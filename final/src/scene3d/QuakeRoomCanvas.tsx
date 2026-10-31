@@ -31,12 +31,19 @@ export interface QuakeRoomCanvasProps {
   isShaking: boolean;
   hasCollapsed: boolean;
   walkthroughActive: boolean;
+  autoWalk?: boolean;
   fullScreen?: boolean;
   titleBadge?: string;
   floorMaterial?: TextureStyle;
   teleportRoomId?: string | null;
   playerResetCounter?: number;
   showItemLabels?: boolean;
+  onHudUpdate?: (info: {
+    roomName: string;
+    collidedWith: string | null;
+    pushedObject: string | null;
+    distToExitM: number;
+  }) => void;
 }
 
 /**
@@ -2158,6 +2165,7 @@ function MultiRoomSanctuaryScene({
   isShaking,
   hasCollapsed,
   walkthroughActive,
+  autoWalk = false,
   floorMaterial = "wood",
   teleportRoomId,
   playerResetCounter,
@@ -2169,6 +2177,7 @@ function MultiRoomSanctuaryScene({
   isShaking: boolean;
   hasCollapsed: boolean;
   walkthroughActive: boolean;
+  autoWalk?: boolean;
   floorMaterial: TextureStyle;
   teleportRoomId?: string | null;
   playerResetCounter?: number;
