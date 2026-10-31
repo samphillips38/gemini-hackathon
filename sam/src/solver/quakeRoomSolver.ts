@@ -367,7 +367,10 @@ export function evaluateRoomScene(scene: RoomSceneGraph): EgressAndShelterResult
       : Number(rawSF.toFixed(2));
 
     const canTipCategory =
-      obj.category === "bookshelf" || obj.category === "wardrobe";
+      obj.category === "bookshelf" ||
+      obj.category === "wardrobe" ||
+      ((obj.category === "heavy_item" || obj.category === "tv_monitor") &&
+        obj.height_m >= 0.95);
     const tippedOver = canTipCategory && !obj.anchored_to_wall && safetyFactor < 1.0;
 
     const restingBBox = getRestingBBox(obj, tippedOver, scene.room, bedObj, doorObj);
@@ -568,7 +571,11 @@ export function runMonteCarloQuakeSimulation(
       const rawSF =
         effectiveBaseWidthM / Math.max(0.2, comHeightM) / Math.max(0.05, effectivePga);
       const sf = obj.anchored_to_wall ? Math.max(2.4, rawSF * 2.8) : rawSF;
-      const canTip = obj.category === "bookshelf" || obj.category === "wardrobe";
+      const canTip =
+        obj.category === "bookshelf" ||
+        obj.category === "wardrobe" ||
+        ((obj.category === "heavy_item" || obj.category === "tv_monitor") &&
+          obj.height_m >= 0.95);
       const tipped = canTip && !obj.anchored_to_wall && sf < 1.0;
 
       const bbox = getRestingBBox(obj, tipped, scene.room, bedObj, doorObj);

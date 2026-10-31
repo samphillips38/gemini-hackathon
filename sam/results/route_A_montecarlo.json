@@ -3,6 +3,8 @@
     "room": "room200",
     "exit_clear_walk": "0/50",
     "exit_clear_wheelchair": "0/50",
+    "remediated_exit_clear_walk": "50/50",
+    "remediated_exit_clear_wheelchair": "50/50",
     "blocked_by": [
       "r200_banner_front"
     ],
@@ -15,6 +17,8 @@
     "room": "hall",
     "exit_clear_walk": "50/50",
     "exit_clear_wheelchair": "0/50",
+    "remediated_exit_clear_walk": "50/50",
+    "remediated_exit_clear_wheelchair": "50/50",
     "blocked_by": [
       "banner_build_future",
       "recycling_bins",
@@ -30,6 +34,8 @@
     "room": "corridor",
     "exit_clear_walk": "50/50",
     "exit_clear_wheelchair": "50/50",
+    "remediated_exit_clear_walk": "50/50",
+    "remediated_exit_clear_wheelchair": "50/50",
     "blocked_by": [],
     "shelter_spot_m": [
       5.8,
@@ -40,6 +46,8 @@
     "room": "lobby",
     "exit_clear_walk": "0/50",
     "exit_clear_wheelchair": "0/50",
+    "remediated_exit_clear_walk": "50/50",
+    "remediated_exit_clear_wheelchair": "50/50",
     "blocked_by": [
       "statue_marble",
       "digital_totem",
