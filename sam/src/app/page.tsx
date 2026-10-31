@@ -1113,28 +1113,33 @@ export default function SeismicCommandCenter() {
 
             {/* Official CAGB Level 2 Floorplan Calibration + Video Evidence & Macro-to-Micro Bridge */}
             <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4 grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-              <div className="md:col-span-4 flex items-center gap-3">
+              <div className="md:col-span-5 flex items-center gap-2.5">
                 <img
                   src="/floorplans/cagb-L2-preview.jpg"
                   alt="Imperial CAGB Level 2 Official Map"
-                  className="h-20 w-28 object-cover rounded-lg border border-slate-700 bg-slate-950"
+                  className="h-20 w-24 object-cover rounded-lg border border-slate-700 bg-slate-950"
+                />
+                <img
+                  src="/floorplans/routes/routes_overview.png"
+                  alt="CAGB Level 2 Routes A-D Overview"
+                  className="h-20 w-24 object-cover rounded-lg border border-cyan-500/40 bg-slate-950"
                 />
                 <div className="text-xs space-y-1">
                   <div className="font-bold text-white">
-                    CAGB Level 2 Venue Map
+                    CAGB Level 2 Venue & Routes A–D
                   </div>
                   <div className="text-[11px] text-slate-400">
-                    Scale Lock: Exhibition Rd Double Doors ={" "}
-                    <strong className="text-emerald-300">2.10m clear</strong>;
-                    Dalby Court = <strong className="text-amber-300">1.12m</strong>
+                    Scale Lock (<code className="text-cyan-300">11.43 px/m</code>): Exhibition Rd ={" "}
+                    <strong className="text-emerald-300">2.10m</strong>; Dalby Ct ={" "}
+                    <strong className="text-amber-300">1.12m</strong>
                   </div>
                 </div>
               </div>
 
-              <div className="md:col-span-5 text-xs space-y-1 bg-slate-950 p-3 rounded-lg border border-slate-800">
+              <div className="md:col-span-4 text-xs space-y-1 bg-slate-950 p-3 rounded-lg border border-slate-800">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-rose-400">
-                    Multimodal Video Hazard Evidence
+                    Video Hazard Evidence
                   </span>
                   {liveHazards[0]?.video_evidence && (
                     <span className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-mono text-[10px]">
