@@ -13,6 +13,8 @@ import {
 import {
   getProceduralTexture,
   getProceduralBumpMap,
+  getItemTexture,
+  getItemBumpMap,
   getGlassPillTexture,
   TextureStyle,
 } from "./proceduralTextures";
@@ -34,6 +36,7 @@ export interface QuakeRoomCanvasProps {
   floorMaterial?: TextureStyle;
   teleportRoomId?: string | null;
   playerResetCounter?: number;
+  showItemLabels?: boolean;
 }
 
 /**
@@ -651,12 +654,15 @@ function PlayerAvatarMesh({
   playerPosRef,
   playerYawRef,
   walkthroughActive,
+  showItemLabels,
 }: {
   playerPosRef: React.MutableRefObject<THREE.Vector3>;
   playerYawRef: React.MutableRefObject<number>;
   walkthroughActive: boolean;
+  showItemLabels: boolean;
 }) {
   const groupRef = useRef<THREE.Group>(null);
+  const steelTex = useMemo(() => getItemTexture("brushed_steel"), []);
 
   useFrame(({ clock }) => {
     if (!groupRef.current) return;
@@ -679,10 +685,12 @@ function PlayerAvatarMesh({
           <mesh position={[0, 0.65, 0]} castShadow>
             <cylinderGeometry args={[0.18, 0.22, 0.95, 16]} />
             <meshStandardMaterial
+              map={steelTex}
               color="#0284c7"
               emissive="#0369a1"
-              emissiveIntensity={0.4}
-              roughness={0.35}
+              emissiveIntensity={0.35}
+              roughness={0.32}
+              metalness={0.45}
             />
           </mesh>
           <mesh position={[0, 1.32, 0]} castShadow>
@@ -698,13 +706,15 @@ function PlayerAvatarMesh({
               emissiveIntensity={1.2}
             />
           </mesh>
-          <TelemetrySprite
-            position={[0, 1.85, 0]}
-            title="YOU (PLAYER)"
-            subtitle="WASD / ARROWS TO WALK"
-            statusColor="#38bdf8"
-            scale={[1.35, 0.34, 1]}
-          />
+          {showItemLabels && (
+            <TelemetrySprite
+              position={[0, 1.85, 0]}
+              title="YOU (PLAYER)"
+              subtitle="WASD / ARROWS TO WALK"
+              statusColor="#38bdf8"
+              scale={[1.18, 0.28, 1]}
+            />
+          )}
         </group>
       )}
     </group>
@@ -721,6 +731,7 @@ function Room1FurnitureMesh({
   body,
   isShaking,
   hasCollapsed,
+  showItemLabels,
 }: {
   obj: RoomObjectNode;
   allObjects: RoomObjectNode[];
@@ -728,9 +739,22 @@ function Room1FurnitureMesh({
   body?: PhysicsBody;
   isShaking: boolean;
   hasCollapsed: boolean;
+  showItemLabels: boolean;
 }) {
   const groupRef = useRef<THREE.Group>(null);
   const rotRad = (obj.rotation_deg * Math.PI) / 180;
+
+  // High-detail item textures & bump maps
+  const walnutTex = useMemo(() => getItemTexture("walnut_wood"), []);
+  const walnutBump = useMemo(() => getItemBumpMap("walnut_wood"), []);
+  const oakTex = useMemo(() => getItemTexture("oak_wood"), []);
+  const oakBump = useMemo(() => getItemBumpMap("oak_wood"), []);
+  const velvetTex = useMemo(() => getItemTexture("tufted_velvet"), []);
+  const velvetBump = useMemo(() => getItemBumpMap("tufted_velvet"), []);
+  const linenTex = useMemo(() => getItemTexture("quilted_linen"), []);
+  const linenBump = useMemo(() => getItemBumpMap("quilted_linen"), []);
+  const steelTex = useMemo(() => getItemTexture("brushed_steel"), []);
+  const steelBump = useMemo(() => getItemBumpMap("brushed_steel"), []);
 
   const childrenItems = useMemo(
     () => allObjects.filter((c) => c.parent_id === obj.id),
@@ -785,7 +809,7 @@ function Room1FurnitureMesh({
         </group>
       )}
 
-      {/* BED */}
+      {/* BED (Carved Walnut Frame + Quilted Linen Mattress + Tufted Velvet Duvet & Headboard) */}
       {obj.category === "bed" && (
         <group>
           <RoundedBox
@@ -796,9 +820,11 @@ function Room1FurnitureMesh({
             receiveShadow
           >
             <meshStandardMaterial
-              color="#3e2723"
-              roughness={0.42}
-              metalness={0.15}
+              map={walnutTex}
+              bumpMap={walnutBump}
+              bumpScale={0.025}
+              roughness={0.38}
+              metalness={0.12}
             />
           </RoundedBox>
           <RoundedBox
@@ -808,9 +834,11 @@ function Room1FurnitureMesh({
             castShadow
           >
             <meshStandardMaterial
-              color="#1e293b"
-              roughness={0.65}
-              metalness={0.2}
+              map={velvetTex}
+              bumpMap={velvetBump}
+              bumpScale={0.03}
+              roughness={0.55}
+              metalness={0.1}
             />
           </RoundedBox>
           <RoundedBox
@@ -820,7 +848,12 @@ function Room1FurnitureMesh({
             castShadow
             receiveShadow
           >
-            <meshStandardMaterial color="#f8fafc" roughness={0.7} />
+            <meshStandardMaterial
+              map={linenTex}
+              bumpMap={linenBump}
+              bumpScale={0.02}
+              roughness={0.62}
+            />
           </RoundedBox>
           <RoundedBox
             args={[obj.width_m * 0.96, 0.21, obj.depth_m * 0.62]}
@@ -829,7 +862,12 @@ function Room1FurnitureMesh({
             castShadow
             receiveShadow
           >
-            <meshStandardMaterial color="#7f1d1d" roughness={0.6} />
+            <meshStandardMaterial
+              map={velvetTex}
+              bumpMap={velvetBump}
+              bumpScale={0.03}
+              roughness={0.52}
+            />
           </RoundedBox>
           {[-0.24, 0.24].map((px, i) => (
             <RoundedBox
@@ -840,13 +878,19 @@ function Room1FurnitureMesh({
               rotation={[0.15, 0, 0]}
               castShadow
             >
-              <meshStandardMaterial color="#fef3c7" roughness={0.6} />
+              <meshStandardMaterial
+                map={linenTex}
+                bumpMap={linenBump}
+                bumpScale={0.018}
+                color="#fef3c7"
+                roughness={0.55}
+              />
             </RoundedBox>
           ))}
         </group>
       )}
 
-      {/* BOOKSHELF */}
+      {/* BOOKSHELF (Walnut Casework + Brass Trim + Individual Leather-Bound Volumes) */}
       {obj.category === "bookshelf" && (
         <group>
           <RoundedBox
@@ -856,7 +900,12 @@ function Room1FurnitureMesh({
             castShadow
             receiveShadow
           >
-            <meshStandardMaterial color="#451a03" roughness={0.45} />
+            <meshStandardMaterial
+              map={walnutTex}
+              bumpMap={walnutBump}
+              bumpScale={0.025}
+              roughness={0.38}
+            />
           </RoundedBox>
           {[0.1, 0.46, 0.84, 1.22, 1.58].map((sy, i) => (
             <mesh
@@ -868,8 +917,8 @@ function Room1FurnitureMesh({
               <boxGeometry args={[obj.width_m * 0.92, 0.03, obj.depth_m]} />
               <meshStandardMaterial
                 color="#d4af37"
-                metalness={0.65}
-                roughness={0.3}
+                metalness={0.75}
+                roughness={0.25}
               />
             </mesh>
           ))}
@@ -887,26 +936,31 @@ function Room1FurnitureMesh({
                   castShadow
                 >
                   <meshStandardMaterial
+                    map={velvetTex}
+                    bumpMap={velvetBump}
+                    bumpScale={0.02}
                     color={isTop ? "#dc2626" : "#059669"}
-                    roughness={0.4}
+                    roughness={0.42}
                   />
                 </RoundedBox>
-                <TelemetrySprite
-                  position={[0, 0.26, 0.08]}
-                  title={`${child.mass_kg}kg BOOKS (${child.shelf_level?.toUpperCase()})`}
-                  subtitle={
-                    isTop ? "TOP-HEAVY OVERTURN RISK" : "LOW BALLAST STABLE"
-                  }
-                  statusColor={isTop ? "#ef4444" : "#10b981"}
-                  scale={[1.25, 0.3, 1]}
-                />
+                {showItemLabels && (
+                  <TelemetrySprite
+                    position={[0, 0.26, 0.08]}
+                    title={`${child.mass_kg}kg BOOKS (${child.shelf_level?.toUpperCase()})`}
+                    subtitle={
+                      isTop ? "TOP-HEAVY OVERTURN RISK" : "LOW BALLAST STABLE"
+                    }
+                    statusColor={isTop ? "#ef4444" : "#10b981"}
+                    scale={[1.1, 0.26, 1]}
+                  />
+                )}
               </group>
             );
           })}
         </group>
       )}
 
-      {/* WARDROBE */}
+      {/* WARDROBE (Quarter-Sawn Oak & Walnut Paneled Doors + Brass Handles) */}
       {obj.category === "wardrobe" && (
         <group>
           <RoundedBox
@@ -917,15 +971,34 @@ function Room1FurnitureMesh({
             receiveShadow
           >
             <meshStandardMaterial
-              color="#1e293b"
-              roughness={0.4}
-              metalness={0.2}
+              map={oakTex}
+              bumpMap={oakBump}
+              bumpScale={0.025}
+              roughness={0.36}
+              metalness={0.15}
             />
           </RoundedBox>
+          {/* Recessed Door Panels */}
+          {[-obj.width_m * 0.24, obj.width_m * 0.24].map((px, idx) => (
+            <RoundedBox
+              key={idx}
+              args={[obj.width_m * 0.42, obj.height_m * 0.86, 0.025]}
+              radius={0.01}
+              position={[px, obj.height_m * 0.5, obj.depth_m / 2 + 0.008]}
+              castShadow
+            >
+              <meshStandardMaterial
+                map={walnutTex}
+                bumpMap={walnutBump}
+                bumpScale={0.02}
+                roughness={0.34}
+              />
+            </RoundedBox>
+          ))}
           {[-0.05, 0.05].map((hx, i) => (
             <mesh
               key={i}
-              position={[hx, obj.height_m * 0.52, obj.depth_m / 2 + 0.025]}
+              position={[hx, obj.height_m * 0.52, obj.depth_m / 2 + 0.03]}
             >
               <cylinderGeometry args={[0.012, 0.012, 0.28, 12]} />
               <meshStandardMaterial
@@ -938,20 +1011,37 @@ function Room1FurnitureMesh({
         </group>
       )}
 
-      {/* DESK */}
+      {/* DESK (Quarter-Sawn Oak Top + Brushed Brass Legs + Brushed Steel Monitor & Keyboard) */}
       {obj.category === "desk" && (
         <group>
           <RoundedBox
-            args={[obj.width_m, 0.055, obj.depth_m]}
+            args={[obj.width_m, 0.06, obj.depth_m]}
             radius={0.015}
             position={[0, obj.height_m, 0]}
             castShadow
             receiveShadow
           >
             <meshStandardMaterial
-              color="#78350f"
+              map={oakTex}
+              bumpMap={oakBump}
+              bumpScale={0.022}
+              roughness={0.32}
+              metalness={0.12}
+            />
+          </RoundedBox>
+          {/* Desk Keyboard & Blotter Mat */}
+          <RoundedBox
+            args={[0.52, 0.012, 0.26]}
+            radius={0.005}
+            position={[0, obj.height_m + 0.035, 0.14]}
+            castShadow
+          >
+            <meshStandardMaterial
+              map={steelTex}
+              bumpMap={steelBump}
+              bumpScale={0.015}
               roughness={0.35}
-              metalness={0.15}
+              metalness={0.5}
             />
           </RoundedBox>
           {[
@@ -985,7 +1075,9 @@ function Room1FurnitureMesh({
                   castShadow
                 >
                   <meshStandardMaterial
-                    color="#0f172a"
+                    map={steelTex}
+                    bumpMap={steelBump}
+                    bumpScale={0.015}
                     roughness={0.25}
                     metalness={0.8}
                   />
@@ -1004,7 +1096,7 @@ function Room1FurnitureMesh({
         </group>
       )}
 
-      {/* CHAIR */}
+      {/* CHAIR (Tufted Upholstery + Brushed Steel & Brass Pedestal) */}
       {obj.category === "chair" && (
         <group>
           <RoundedBox
@@ -1013,7 +1105,13 @@ function Room1FurnitureMesh({
             position={[0, 0.45, 0]}
             castShadow
           >
-            <meshStandardMaterial color="#1e293b" roughness={0.6} />
+            <meshStandardMaterial
+              map={velvetTex}
+              bumpMap={velvetBump}
+              bumpScale={0.02}
+              color="#334155"
+              roughness={0.5}
+            />
           </RoundedBox>
           <RoundedBox
             args={[0.42, 0.46, 0.05]}
@@ -1021,7 +1119,13 @@ function Room1FurnitureMesh({
             position={[0, 0.7, -0.2]}
             castShadow
           >
-            <meshStandardMaterial color="#334155" roughness={0.6} />
+            <meshStandardMaterial
+              map={velvetTex}
+              bumpMap={velvetBump}
+              bumpScale={0.02}
+              color="#475569"
+              roughness={0.5}
+            />
           </RoundedBox>
           <mesh position={[0, 0.22, 0]} castShadow>
             <cylinderGeometry args={[0.03, 0.03, 0.42, 12]} />
@@ -1068,8 +1172,8 @@ function Room1FurnitureMesh({
         </group>
       )}
 
-      {/* Floating 3D Glass Telemetry Badge */}
-      {obj.category !== "chair" && (
+      {/* Floating 3D Glass Telemetry Badge (Only shown when enabled via Menu) */}
+      {showItemLabels && obj.category !== "chair" && (
         <TelemetrySprite
           position={[0, Math.max(obj.height_m, 1.0) + 0.36, 0]}
           title={`${obj.label.toUpperCase()} (${obj.mass_kg}kg)`}
@@ -1084,16 +1188,32 @@ function Room1FurnitureMesh({
 }
 
 /**
- * Renders Suite Furniture & Obstacles in Rooms 2, 3, and 4 using PhysicsBody state
+ * Renders Suite Furniture & Obstacles in Rooms 2, 3, and 4 using PhysicsBody state + rich procedural textures
  */
 function ExtraSuiteObjectMesh({
   item,
   body,
+  showItemLabels,
 }: {
   item: ExtraSuiteObject;
   body?: PhysicsBody;
+  showItemLabels: boolean;
 }) {
   const groupRef = useRef<THREE.Group>(null);
+
+  // Rich tactile procedural textures & bump maps for Rooms 2, 3, and 4 items
+  const walnutTex = useMemo(() => getItemTexture("walnut_wood"), []);
+  const walnutBump = useMemo(() => getItemBumpMap("walnut_wood"), []);
+  const oakTex = useMemo(() => getItemTexture("oak_wood"), []);
+  const oakBump = useMemo(() => getItemBumpMap("oak_wood"), []);
+  const velvetTex = useMemo(() => getItemTexture("tufted_velvet"), []);
+  const velvetBump = useMemo(() => getItemBumpMap("tufted_velvet"), []);
+  const steelTex = useMemo(() => getItemTexture("brushed_steel"), []);
+  const steelBump = useMemo(() => getItemBumpMap("brushed_steel"), []);
+  const crateTex = useMemo(() => getItemTexture("weathered_crate"), []);
+  const crateBump = useMemo(() => getItemBumpMap("weathered_crate"), []);
+  const rubbleTex = useMemo(() => getItemTexture("fractured_rubble"), []);
+  const rubbleBump = useMemo(() => getItemBumpMap("fractured_rubble"), []);
 
   useFrame(() => {
     if (!groupRef.current || !body) return;
@@ -1142,25 +1262,40 @@ function ExtraSuiteObjectMesh({
             castShadow
             receiveShadow
           >
-            <meshStandardMaterial color="#7f1d1d" roughness={0.65} />
+            <meshStandardMaterial
+              map={velvetTex}
+              bumpMap={velvetBump}
+              bumpScale={0.032}
+              roughness={0.55}
+            />
           </RoundedBox>
           <RoundedBox
-            args={[item.w, 0.55, 0.2]}
+            args={[item.w, 0.55, 0.22]}
             radius={0.04}
-            position={[0, 0.58, -item.d / 2 + 0.1]}
+            position={[0, 0.58, -item.d / 2 + 0.11]}
             castShadow
           >
-            <meshStandardMaterial color="#991b1b" roughness={0.65} />
+            <meshStandardMaterial
+              map={velvetTex}
+              bumpMap={velvetBump}
+              bumpScale={0.035}
+              roughness={0.52}
+            />
           </RoundedBox>
           {[-item.w / 2 + 0.12, item.w / 2 - 0.12].map((ax, idx) => (
             <RoundedBox
               key={idx}
-              args={[0.22, 0.52, item.d]}
+              args={[0.24, 0.52, item.d]}
               radius={0.04}
               position={[ax, 0.42, 0]}
               castShadow
             >
-              <meshStandardMaterial color="#7f1d1d" roughness={0.6} />
+              <meshStandardMaterial
+                map={velvetTex}
+                bumpMap={velvetBump}
+                bumpScale={0.03}
+                roughness={0.52}
+              />
             </RoundedBox>
           ))}
         </group>
@@ -1169,16 +1304,18 @@ function ExtraSuiteObjectMesh({
       {(item.category === "table" || item.category === "lab_bench") && (
         <group>
           <RoundedBox
-            args={[item.w, 0.06, item.d]}
+            args={[item.w, 0.065, item.d]}
             radius={0.015}
             position={[0, item.h, 0]}
             castShadow
             receiveShadow
           >
             <meshStandardMaterial
-              color={item.category === "lab_bench" ? "#0f172a" : "#78350f"}
-              roughness={0.35}
-              metalness={item.category === "lab_bench" ? 0.6 : 0.15}
+              map={item.category === "lab_bench" ? steelTex : oakTex}
+              bumpMap={item.category === "lab_bench" ? steelBump : oakBump}
+              bumpScale={0.024}
+              roughness={0.32}
+              metalness={item.category === "lab_bench" ? 0.65 : 0.15}
             />
           </RoundedBox>
           {[
@@ -1209,9 +1346,11 @@ function ExtraSuiteObjectMesh({
             receiveShadow
           >
             <meshStandardMaterial
-              color={item.category === "server_rack" ? "#0f172a" : "#3e2723"}
-              metalness={item.category === "server_rack" ? 0.75 : 0.2}
-              roughness={0.35}
+              map={item.category === "server_rack" ? steelTex : walnutTex}
+              bumpMap={item.category === "server_rack" ? steelBump : walnutBump}
+              bumpScale={0.025}
+              metalness={item.category === "server_rack" ? 0.78 : 0.18}
+              roughness={0.32}
             />
           </RoundedBox>
           {[0.4, 0.85, 1.3, 1.75].map((ly, idx) => (
@@ -1238,9 +1377,12 @@ function ExtraSuiteObjectMesh({
             castShadow
           >
             <meshStandardMaterial
+              map={oakTex}
+              bumpMap={oakBump}
+              bumpScale={0.02}
               color="#d4af37"
-              metalness={0.85}
-              roughness={0.2}
+              metalness={0.65}
+              roughness={0.25}
             />
           </RoundedBox>
           <RoundedBox
@@ -1250,9 +1392,11 @@ function ExtraSuiteObjectMesh({
             castShadow
           >
             <meshStandardMaterial
-              color="#1e293b"
-              metalness={0.6}
-              roughness={0.3}
+              map={steelTex}
+              bumpMap={steelBump}
+              bumpScale={0.02}
+              metalness={0.65}
+              roughness={0.28}
             />
           </RoundedBox>
           {[
@@ -1283,8 +1427,10 @@ function ExtraSuiteObjectMesh({
             receiveShadow
           >
             <meshStandardMaterial
-              color={item.category === "debris" ? "#475569" : "#92400e"}
-              roughness={0.75}
+              map={item.category === "debris" ? rubbleTex : crateTex}
+              bumpMap={item.category === "debris" ? rubbleBump : crateBump}
+              bumpScale={0.035}
+              roughness={0.68}
             />
           </RoundedBox>
           {item.category === "debris" && (
@@ -1294,7 +1440,12 @@ function ExtraSuiteObjectMesh({
               castShadow
             >
               <boxGeometry args={[item.w * 0.85, 0.14, 0.22]} />
-              <meshStandardMaterial color="#78350f" roughness={0.65} />
+              <meshStandardMaterial
+                map={walnutTex}
+                bumpMap={walnutBump}
+                bumpScale={0.025}
+                roughness={0.55}
+              />
             </mesh>
           )}
         </group>
@@ -1309,6 +1460,9 @@ function ExtraSuiteObjectMesh({
             castShadow
           >
             <meshStandardMaterial
+              map={steelTex}
+              bumpMap={steelBump}
+              bumpScale={0.02}
               color="#059669"
               emissive="#047857"
               emissiveIntensity={0.65}
@@ -1327,21 +1481,23 @@ function ExtraSuiteObjectMesh({
         </group>
       )}
 
-      <TelemetrySprite
-        position={[0, item.h + 0.34, 0]}
-        title={item.label.toUpperCase()}
-        subtitle={
-          item.movable
-            ? "COLLISION ACTIVE • WALK INTO TO PUSH"
-            : item.lowObstacle
-            ? "OBSTACLE • WALK AROUND OR SPACE TO JUMP"
-            : item.willTipInQuake
-            ? "UNANCHORED • TOPPLES IN QUAKE"
-            : "SOLID STRUCTURAL ELEMENT"
-        }
-        statusColor={statusColor}
-        scale={[1.18, 0.28, 1]}
-      />
+      {showItemLabels && (
+        <TelemetrySprite
+          position={[0, item.h + 0.34, 0]}
+          title={item.label.toUpperCase()}
+          subtitle={
+            item.movable
+              ? "COLLISION ACTIVE • WALK INTO TO PUSH"
+              : item.lowObstacle
+              ? "OBSTACLE • WALK AROUND OR SPACE TO JUMP"
+              : item.willTipInQuake
+              ? "UNANCHORED • TOPPLES IN QUAKE"
+              : "SOLID STRUCTURAL ELEMENT"
+          }
+          statusColor={statusColor}
+          scale={[1.18, 0.28, 1]}
+        />
+      )}
     </group>
   );
 }
@@ -1358,6 +1514,7 @@ function MultiRoomSanctuaryScene({
   floorMaterial = "wood",
   teleportRoomId,
   playerResetCounter,
+  showItemLabels = false,
   onHudUpdate,
 }: {
   scene: RoomSceneGraph;
@@ -1368,6 +1525,7 @@ function MultiRoomSanctuaryScene({
   floorMaterial: TextureStyle;
   teleportRoomId?: string | null;
   playerResetCounter?: number;
+  showItemLabels?: boolean;
   onHudUpdate: (info: {
     roomName: string;
     collidedWith: string | null;
@@ -1888,6 +2046,7 @@ function MultiRoomSanctuaryScene({
           body={physicsBodiesRef.current.find((b) => b.id === obj.id)}
           isShaking={isShaking}
           hasCollapsed={hasCollapsed}
+          showItemLabels={showItemLabels}
         />
       ))}
 
@@ -1897,6 +2056,7 @@ function MultiRoomSanctuaryScene({
           key={item.id}
           item={item}
           body={physicsBodiesRef.current.find((b) => b.id === item.id)}
+          showItemLabels={showItemLabels}
         />
       ))}
 
@@ -1905,14 +2065,18 @@ function MultiRoomSanctuaryScene({
         points={optimalMultiRoomPath}
         color="#10b981"
         emissive="#059669"
-        label="OPTIMAL MULTI-ROOM EXIT PATH"
+        label={showItemLabels ? "OPTIMAL MULTI-ROOM EXIT PATH" : undefined}
       />
       {shelterBranchPath.length >= 2 && (
         <OptimalPathRibbon
           points={shelterBranchPath}
           color="#d4af37"
           emissive="#b45309"
-          label={evaluation.safe_shelter_spot_m?.label || "SAFE SHELTER SPOT"}
+          label={
+            showItemLabels
+              ? evaluation.safe_shelter_spot_m?.label || "SAFE SHELTER SPOT"
+              : undefined
+          }
         />
       )}
 
@@ -1921,6 +2085,7 @@ function MultiRoomSanctuaryScene({
         playerPosRef={playerPosRef}
         playerYawRef={playerYawRef}
         walkthroughActive={walkthroughActive}
+        showItemLabels={showItemLabels}
       />
 
       <ContactShadows
@@ -1945,6 +2110,7 @@ export default function QuakeRoomCanvas({
   floorMaterial = "wood",
   teleportRoomId = null,
   playerResetCounter = 0,
+  showItemLabels = false,
 }: QuakeRoomCanvasProps) {
   const [hudInfo, setHudInfo] = useState<{
     roomName: string;
@@ -2037,6 +2203,7 @@ export default function QuakeRoomCanvas({
           floorMaterial={floorMaterial}
           teleportRoomId={teleportRoomId}
           playerResetCounter={playerResetCounter}
+          showItemLabels={showItemLabels}
           onHudUpdate={setHudInfo}
         />
 

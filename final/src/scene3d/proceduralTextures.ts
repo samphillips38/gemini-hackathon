@@ -4,8 +4,19 @@ import * as THREE from 'three';
 
 export type TextureStyle = 'marble' | 'wood' | 'cyber' | 'stone' | 'carpet' | 'stars';
 
+export type ItemTextureStyle =
+  | 'walnut_wood'
+  | 'oak_wood'
+  | 'tufted_velvet'
+  | 'quilted_linen'
+  | 'brushed_steel'
+  | 'weathered_crate'
+  | 'fractured_rubble';
+
 const textureCache: Partial<Record<TextureStyle, THREE.CanvasTexture>> = {};
 const bumpCache: Partial<Record<TextureStyle, THREE.CanvasTexture>> = {};
+const itemTexCache: Partial<Record<ItemTextureStyle, THREE.CanvasTexture>> = {};
+const itemBumpCache: Partial<Record<ItemTextureStyle, THREE.CanvasTexture>> = {};
 const spriteCache: Record<string, THREE.CanvasTexture> = {};
 
 /**
@@ -432,6 +443,330 @@ export function getProceduralBumpMap(style: TextureStyle): THREE.CanvasTexture {
   bump.needsUpdate = true;
 
   bumpCache[style] = bump;
+  return bump;
+}
+
+/**
+ * Generates high-detail tactile textures specifically for 3D furniture & physical obstacles
+ * (wood grain, diamond-tufted velvet, quilted linen, brushed steel louvers, timber crates, fractured rubble).
+ */
+export function getItemTexture(style: ItemTextureStyle): THREE.CanvasTexture {
+  if (itemTexCache[style]) {
+    return itemTexCache[style]!;
+  }
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d')!;
+
+  if (style === 'walnut_wood' || style === 'oak_wood') {
+    const isOak = style === 'oak_wood';
+    const grad = ctx.createLinearGradient(0, 0, 512, 512);
+    if (isOak) {
+      grad.addColorStop(0, '#7c471e');
+      grad.addColorStop(0.5, '#683a16');
+      grad.addColorStop(1, '#854e23');
+    } else {
+      grad.addColorStop(0, '#3e2313');
+      grad.addColorStop(0.5, '#2f190c');
+      grad.addColorStop(1, '#472816');
+    }
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 512, 512);
+
+    // Plank seams
+    ctx.strokeStyle = 'rgba(15, 8, 3, 0.55)';
+    ctx.lineWidth = 2;
+    for (let x = 64; x < 512; x += 64) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, 512);
+      ctx.stroke();
+    }
+
+    // Organic wood grain waves & knots
+    for (let i = 0; i < 95; i++) {
+      ctx.beginPath();
+      ctx.strokeStyle =
+        i % 3 === 0
+          ? 'rgba(255, 224, 178, 0.08)'
+          : 'rgba(18, 9, 4, 0.28)';
+      ctx.lineWidth = 1 + (i % 3) * 0.7;
+      let gx = (i * 29) % 512;
+      ctx.moveTo(gx, 0);
+      for (let y = 0; y <= 512; y += 32) {
+        gx += Math.sin(y * 0.025 + i * 0.7) * 4.5;
+        ctx.lineTo(gx, y);
+      }
+      ctx.stroke();
+    }
+
+    // Subtle brass border inlay
+    ctx.strokeStyle = 'rgba(212, 175, 55, 0.24)';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(10, 10, 492, 492);
+  } else if (style === 'tufted_velvet') {
+    const grad = ctx.createRadialGradient(256, 256, 30, 256, 256, 360);
+    grad.addColorStop(0, '#881327');
+    grad.addColorStop(0.6, '#690f20');
+    grad.addColorStop(1, '#470914');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 512, 512);
+
+    // Diamond velvet tufting grid & deep button dimples
+    const step = 64;
+    ctx.strokeStyle = 'rgba(28, 4, 9, 0.65)';
+    ctx.lineWidth = 2.5;
+    for (let i = -512; i < 1024; i += step) {
+      ctx.beginPath();
+      ctx.moveTo(i, 0);
+      ctx.lineTo(i + 512, 512);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(i + 512, 0);
+      ctx.lineTo(i, 512);
+      ctx.stroke();
+    }
+
+    for (let y = step / 2; y < 512; y += step) {
+      for (let x = step / 2; x < 512; x += step) {
+        const rad = ctx.createRadialGradient(x, y, 2, x, y, 18);
+        rad.addColorStop(0, 'rgba(20, 3, 7, 0.85)');
+        rad.addColorStop(0.5, 'rgba(255, 190, 200, 0.12)');
+        rad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = rad;
+        ctx.beginPath();
+        ctx.arc(x, y, 18, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Gold/brass tuft button
+        ctx.fillStyle = '#d4af37';
+        ctx.beginPath();
+        ctx.arc(x, y, 3.2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  } else if (style === 'quilted_linen') {
+    ctx.fillStyle = '#f5f3ef';
+    ctx.fillRect(0, 0, 512, 512);
+
+    // Woven fabric micro-threads
+    ctx.strokeStyle = 'rgba(203, 213, 225, 0.35)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i < 512; i += 6) {
+      ctx.beginPath();
+      ctx.moveTo(i, 0);
+      ctx.lineTo(i, 512);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(0, i);
+      ctx.lineTo(512, i);
+      ctx.stroke();
+    }
+
+    // Soft quilted diamond stitching
+    const step = 48;
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.45)';
+    ctx.lineWidth = 1.8;
+    ctx.setLineDash([4, 3]);
+    for (let i = -512; i < 1024; i += step) {
+      ctx.beginPath();
+      ctx.moveTo(i, 0);
+      ctx.lineTo(i + 512, 512);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(i + 512, 0);
+      ctx.lineTo(i, 512);
+      ctx.stroke();
+    }
+    ctx.setLineDash([]);
+  } else if (style === 'brushed_steel') {
+    const grad = ctx.createLinearGradient(0, 0, 512, 512);
+    grad.addColorStop(0, '#1e293b');
+    grad.addColorStop(0.5, '#334155');
+    grad.addColorStop(1, '#0f172a');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 512, 512);
+
+    // Fine horizontal brushed metal hairlines
+    for (let y = 0; y < 512; y += 2) {
+      ctx.strokeStyle =
+        y % 4 === 0
+          ? 'rgba(255, 255, 255, 0.05)'
+          : 'rgba(0, 0, 0, 0.12)';
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(512, y);
+      ctx.stroke();
+    }
+
+    // Modular panel seams & ventilation louvers
+    ctx.strokeStyle = 'rgba(15, 23, 42, 0.85)';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(12, 12, 488, 488);
+    ctx.strokeRect(12, 256, 488, 244);
+
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.16)';
+    for (let y = 44; y < 220; y += 22) {
+      ctx.fillRect(48, y, 160, 8);
+      ctx.fillRect(304, y, 160, 8);
+    }
+  } else if (style === 'weathered_crate') {
+    ctx.fillStyle = '#854d0e';
+    ctx.fillRect(0, 0, 512, 512);
+
+    // Horizontal timber slats
+    for (let y = 0; y < 512; y += 64) {
+      ctx.fillStyle = (y / 64) % 2 === 0 ? '#9a5b13' : '#7c460b';
+      ctx.fillRect(0, y + 2, 512, 60);
+      ctx.strokeStyle = '#3f2204';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(2, y + 2, 508, 60);
+    }
+
+    // Outer frame & diagonal cross-brace
+    ctx.strokeStyle = '#451a03';
+    ctx.lineWidth = 28;
+    ctx.strokeRect(14, 14, 484, 484);
+    ctx.beginPath();
+    ctx.moveTo(20, 20);
+    ctx.lineTo(492, 492);
+    ctx.moveTo(492, 20);
+    ctx.lineTo(20, 492);
+    ctx.stroke();
+
+    // Corner metal brackets & rivets
+    ctx.fillStyle = '#334155';
+    const corners = [
+      [0, 0],
+      [448, 0],
+      [0, 448],
+      [448, 448],
+    ];
+    for (const [cx, cy] of corners) {
+      ctx.fillRect(cx, cy, 64, 64);
+    }
+  } else if (style === 'fractured_rubble') {
+    ctx.fillStyle = '#475569';
+    ctx.fillRect(0, 0, 512, 512);
+
+    // Aggregate concrete & plaster patches
+    const tones = ['#64748b', '#334155', '#52525b', '#78716c', '#475569'];
+    for (let i = 0; i < 180; i++) {
+      ctx.fillStyle = tones[i % tones.length];
+      const rx = (i * 173) % 512;
+      const ry = (i * 293) % 512;
+      const rw = 18 + (i % 5) * 14;
+      const rh = 14 + (i % 4) * 16;
+      ctx.fillRect(rx, ry, rw, rh);
+    }
+
+    // Deep fracture lines
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = 2.5;
+    for (let c = 0; c < 18; c++) {
+      let x = (c * 89) % 512;
+      let y = (c * 151) % 512;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      for (let s = 0; s < 8; s++) {
+        x += Math.cos(c * 2.1 + s) * 38;
+        y += Math.sin(c * 1.4 + s) * 38;
+        ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+  }
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.RepeatWrapping;
+  tex.anisotropy = 8;
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.needsUpdate = true;
+
+  itemTexCache[style] = tex;
+  return tex;
+}
+
+export function getItemBumpMap(style: ItemTextureStyle): THREE.CanvasTexture {
+  if (itemBumpCache[style]) {
+    return itemBumpCache[style]!;
+  }
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d')!;
+  ctx.fillStyle = '#808080';
+  ctx.fillRect(0, 0, 256, 256);
+
+  if (style === 'walnut_wood' || style === 'oak_wood') {
+    ctx.strokeStyle = '#404040';
+    ctx.lineWidth = 2;
+    for (let x = 0; x < 256; x += 32) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, 256);
+      ctx.stroke();
+    }
+    ctx.strokeStyle = '#686868';
+    ctx.lineWidth = 1;
+    for (let i = 0; i < 64; i++) {
+      const gx = (i * 19) % 256;
+      ctx.beginPath();
+      ctx.moveTo(gx, 0);
+      ctx.bezierCurveTo(gx + 6, 85, gx - 6, 170, gx, 256);
+      ctx.stroke();
+    }
+  } else if (style === 'tufted_velvet' || style === 'quilted_linen') {
+    const step = 32;
+    ctx.strokeStyle = '#303030';
+    ctx.lineWidth = 2;
+    for (let i = -256; i < 512; i += step) {
+      ctx.beginPath();
+      ctx.moveTo(i, 0);
+      ctx.lineTo(i + 256, 256);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(i + 256, 0);
+      ctx.lineTo(i, 256);
+      ctx.stroke();
+    }
+  } else if (style === 'weathered_crate') {
+    ctx.strokeStyle = '#252525';
+    ctx.lineWidth = 3;
+    for (let y = 0; y < 256; y += 32) {
+      ctx.strokeRect(2, y, 252, 30);
+    }
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = '#b5b5b5';
+    ctx.strokeRect(6, 6, 244, 244);
+  } else if (style === 'fractured_rubble') {
+    for (let i = 0; i < 160; i++) {
+      ctx.fillStyle = i % 2 === 0 ? '#a8a8a8' : '#484848';
+      ctx.fillRect((i * 73) % 256, (i * 137) % 256, 14, 14);
+    }
+  } else if (style === 'brushed_steel') {
+    ctx.strokeStyle = '#606060';
+    ctx.lineWidth = 1;
+    for (let y = 0; y < 256; y += 3) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(256, y);
+      ctx.stroke();
+    }
+  }
+
+  const bump = new THREE.CanvasTexture(canvas);
+  bump.wrapS = THREE.RepeatWrapping;
+  bump.wrapT = THREE.RepeatWrapping;
+  bump.anisotropy = 4;
+  bump.needsUpdate = true;
+
+  itemBumpCache[style] = bump;
   return bump;
 }
 

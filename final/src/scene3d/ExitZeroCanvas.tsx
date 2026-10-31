@@ -15,6 +15,8 @@ import {
   getProceduralTexture,
   getProceduralBumpMap,
   getGlassPillTexture,
+  getItemTexture,
+  getItemBumpMap,
 } from "./proceduralTextures";
 import {
   WallCollider,
@@ -30,6 +32,7 @@ export interface ExitZeroCanvasProps {
   walkthroughActive: boolean;
   fullScreen?: boolean;
   playerResetCounter?: number;
+  showItemLabels?: boolean;
 }
 
 function TelemetrySprite({
@@ -215,6 +218,7 @@ function WingScene({
   verification,
   walkthroughActive,
   playerResetCounter,
+  showItemLabels = false,
   onHudUpdate,
 }: {
   floorGraph: BuildingFloorGraph;
@@ -222,6 +226,7 @@ function WingScene({
   verification: EvacuationVerificationResult;
   walkthroughActive: boolean;
   playerResetCounter?: number;
+  showItemLabels?: boolean;
   onHudUpdate: (info: {
     zoneName: string;
     collidedWith: string | null;
@@ -240,6 +245,16 @@ function WingScene({
   const stoneBump = useMemo(() => getProceduralBumpMap("stone"), []);
   const woodTex = useMemo(() => getProceduralTexture("wood"), []);
   const starTex = useMemo(() => getProceduralTexture("stars"), []);
+
+  // Rich Procedural Item Surface Textures & Bump Maps
+  const walnutTex = useMemo(() => getItemTexture("walnut_wood"), []);
+  const walnutBump = useMemo(() => getItemBumpMap("walnut_wood"), []);
+  const steelTex = useMemo(() => getItemTexture("brushed_steel"), []);
+  const steelBump = useMemo(() => getItemBumpMap("brushed_steel"), []);
+  const crateTex = useMemo(() => getItemTexture("weathered_crate"), []);
+  const crateBump = useMemo(() => getItemBumpMap("weathered_crate"), []);
+  const rubbleTex = useMemo(() => getItemTexture("fractured_rubble"), []);
+  const rubbleBump = useMemo(() => getItemBumpMap("fractured_rubble"), []);
 
   const nodeMap = useMemo(() => {
     const map = new Map<string, NavNode>();
@@ -646,21 +661,23 @@ function WingScene({
               <ringGeometry args={[0.42, 0.56, 28]} />
               <meshBasicMaterial color={color} transparent opacity={0.75} />
             </mesh>
-            <TelemetrySprite
-              position={[0, 2.35, 0]}
-              title={node.label.toUpperCase()}
-              subtitle={
-                isStair
-                  ? "VERIFIED SAFE EXIT"
-                  : isLift
-                  ? "DO NOT USE IN SEISMIC/FIRE"
-                  : isRefuge
-                  ? "ACCESSIBLE REFUGE POINT"
-                  : "EXPLORABLE ROOM / JUNCTION"
-              }
-              statusColor={color}
-              scale={[2.25, 0.48, 1]}
-            />
+            {showItemLabels && (
+              <TelemetrySprite
+                position={[0, 2.35, 0]}
+                title={node.label.toUpperCase()}
+                subtitle={
+                  isStair
+                    ? "VERIFIED SAFE EXIT"
+                    : isLift
+                    ? "DO NOT USE IN SEISMIC/FIRE"
+                    : isRefuge
+                    ? "ACCESSIBLE REFUGE POINT"
+                    : "EXPLORABLE ROOM / JUNCTION"
+                }
+                statusColor={color}
+                scale={[2.25, 0.48, 1]}
+              />
+            )}
           </group>
         );
       })}
@@ -676,22 +693,31 @@ function WingScene({
               <circleGeometry args={[2.2, 32]} />
               <meshBasicMaterial color="#ef4444" transparent opacity={0.28} />
             </mesh>
-            {/* Physical Fallen Masonry Barricade */}
+            {/* Physical Fallen Masonry Barricade with Fractured Rubble Texture */}
             <RoundedBox
               args={[1.8, 1.35, 1.8]}
               radius={0.05}
               position={[0, 0.68, 0]}
               castShadow
+              receiveShadow
             >
-              <meshStandardMaterial color="#7f1d1d" roughness={0.7} />
+              <meshStandardMaterial
+                map={rubbleTex}
+                bumpMap={rubbleBump}
+                bumpScale={0.045}
+                color="#b91c1c"
+                roughness={0.85}
+              />
             </RoundedBox>
-            <TelemetrySprite
-              position={[0, 2.45, 0]}
-              title={`HAZARD: ${haz.hazard_type.toUpperCase()}`}
-              subtitle={haz.description}
-              statusColor="#ef4444"
-              scale={[2.6, 0.55, 1]}
-            />
+            {showItemLabels && (
+              <TelemetrySprite
+                position={[0, 2.45, 0]}
+                title={`HAZARD: ${haz.hazard_type.toUpperCase()}`}
+                subtitle={haz.description}
+                statusColor="#ef4444"
+                scale={[2.6, 0.55, 1]}
+              />
+            )}
           </group>
         );
       })}
@@ -702,6 +728,10 @@ function WingScene({
         const bx = body ? body.x : item.gx - W / 2;
         const bz = body ? body.z : item.gz - D / 2;
         const statusColor = item.movable ? "#38bdf8" : "#f59e0b";
+
+        const isCrate = item.category === "crate";
+        const isServerOrCart =
+          item.category === "server" || item.category === "cart";
 
         return (
           <group
@@ -717,30 +747,47 @@ function WingScene({
               receiveShadow
             >
               <meshStandardMaterial
+                map={
+                  isCrate
+                    ? crateTex
+                    : isServerOrCart
+                    ? steelTex
+                    : walnutTex
+                }
+                bumpMap={
+                  isCrate
+                    ? crateBump
+                    : isServerOrCart
+                    ? steelBump
+                    : walnutBump
+                }
+                bumpScale={0.03}
                 color={
                   item.category === "cart"
-                    ? "#0284c7"
+                    ? "#7dd3fc"
                     : item.category === "crate"
-                    ? "#b45309"
+                    ? "#f5d0a9"
                     : item.category === "server"
-                    ? "#0f172a"
-                    : "#475569"
+                    ? "#cbd5e1"
+                    : "#e2c7a8"
                 }
-                metalness={item.category === "server" ? 0.7 : 0.25}
-                roughness={0.45}
+                metalness={isServerOrCart ? 0.72 : 0.15}
+                roughness={isCrate ? 0.68 : 0.38}
               />
             </RoundedBox>
-            <TelemetrySprite
-              position={[0, item.h + 0.45, 0]}
-              title={item.label.toUpperCase()}
-              subtitle={
-                item.movable
-                  ? "PUSHABLE OBSTACLE (WALK INTO)"
-                  : "SOLID OBSTACLE (WALK AROUND)"
-              }
-              statusColor={statusColor}
-              scale={[1.85, 0.42, 1]}
-            />
+            {showItemLabels && (
+              <TelemetrySprite
+                position={[0, item.h + 0.45, 0]}
+                title={item.label.toUpperCase()}
+                subtitle={
+                  item.movable
+                    ? "PUSHABLE OBSTACLE (WALK INTO)"
+                    : "SOLID OBSTACLE (WALK AROUND)"
+                }
+                statusColor={statusColor}
+                scale={[1.85, 0.42, 1]}
+              />
+            )}
           </group>
         );
       })}
@@ -769,6 +816,9 @@ function WingScene({
             <mesh position={[0, 0.75, 0]} castShadow>
               <cylinderGeometry args={[0.24, 0.28, 1.15, 16]} />
               <meshStandardMaterial
+                map={steelTex}
+                bumpMap={steelBump}
+                bumpScale={0.015}
                 color="#0284c7"
                 emissive="#0369a1"
                 emissiveIntensity={0.45}
@@ -778,13 +828,15 @@ function WingScene({
               <sphereGeometry args={[0.22, 20, 20]} />
               <meshStandardMaterial color="#f8fafc" />
             </mesh>
-            <TelemetrySprite
-              position={[0, 2.2, 0]}
-              title="YOU (PLAYER)"
-              subtitle="WASD / ARROWS TO WALK"
-              statusColor="#38bdf8"
-              scale={[1.9, 0.45, 1]}
-            />
+            {showItemLabels && (
+              <TelemetrySprite
+                position={[0, 2.2, 0]}
+                title="YOU (PLAYER)"
+                subtitle="WASD / ARROWS TO WALK"
+                statusColor="#38bdf8"
+                scale={[1.9, 0.45, 1]}
+              />
+            )}
           </group>
         )}
       </group>
@@ -807,6 +859,7 @@ export default function ExitZeroCanvas({
   walkthroughActive,
   fullScreen = true,
   playerResetCounter = 0,
+  showItemLabels = false,
 }: ExitZeroCanvasProps) {
   const [hudInfo, setHudInfo] = useState<{
     zoneName: string;
@@ -882,6 +935,7 @@ export default function ExitZeroCanvas({
           verification={verification}
           walkthroughActive={walkthroughActive}
           playerResetCounter={playerResetCounter}
+          showItemLabels={showItemLabels}
           onHudUpdate={setHudInfo}
         />
 

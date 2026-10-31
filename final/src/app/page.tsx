@@ -102,6 +102,9 @@ export default function SeismicCommandCenter() {
   // Surface material state (from Memory Palace procedural textures)
   const [floorMaterial, setFloorMaterial] = useState<TextureStyle>("wood");
 
+  // 3D Item Label Popups state (hidden by default; only enabled via Menu or Cmd+P)
+  const [showItemLabels, setShowItemLabels] = useState<boolean>(false);
+
   // Player teleport & respawn state
   const [teleportRoomId, setTeleportRoomId] = useState<string | null>("room_1");
   const [playerResetCounter, setPlayerResetCounter] = useState<number>(0);
@@ -538,6 +541,23 @@ export default function SeismicCommandCenter() {
         },
       },
       {
+        id: "view_item_labels",
+        category: "Camera & View",
+        title: "Toggle 3D Item Label Popups",
+        subtitle: `Currently: ${
+          showItemLabels
+            ? "ON (Showing floating telemetry labels above items)"
+            : "OFF (Clean 3D scene without floating item popups)"
+        }`,
+        keywords: "labels popups item tags floating text telemetry sprites hide show",
+        badge: showItemLabels ? "ON" : "OFF",
+        active: showItemLabels,
+        action: () => {
+          setShowItemLabels((v) => !v);
+          setSearchOpen(false);
+        },
+      },
+      {
         id: "view_split_compare",
         category: "Camera & View",
         title: "Toggle Before / After Split-Screen Comparison",
@@ -871,6 +891,7 @@ export default function SeismicCommandCenter() {
       isShaking,
       activePlan,
       isFirstPersonActive,
+      showItemLabels,
       splitScreenCompare,
       fullScreenMode,
       teleportRoomId,
@@ -1190,6 +1211,7 @@ export default function SeismicCommandCenter() {
                 floorMaterial={floorMaterial}
                 teleportRoomId={teleportRoomId}
                 playerResetCounter={playerResetCounter}
+                showItemLabels={showItemLabels}
                 titleBadge="BEFORE: UNSAFE SUITE (Top-Loaded Shelf + Unanchored Hazards)"
               />
               <QuakeRoomCanvas
@@ -1202,6 +1224,7 @@ export default function SeismicCommandCenter() {
                 floorMaterial={floorMaterial}
                 teleportRoomId={teleportRoomId}
                 playerResetCounter={playerResetCounter}
+                showItemLabels={showItemLabels}
                 titleBadge="AFTER: RENTER-SAFE FIX (Ballast Lowered + Optimal Path Clear)"
               />
             </div>
@@ -1216,6 +1239,7 @@ export default function SeismicCommandCenter() {
               floorMaterial={floorMaterial}
               teleportRoomId={teleportRoomId}
               playerResetCounter={playerResetCounter}
+              showItemLabels={showItemLabels}
               titleBadge={`4-Room Connected Suite • Floor ${roomScene.room.floor_level} • ${roomScene.earthquake.magnitude_mw.toFixed(1)} Mw (${currentPgaG}g PGA)`}
             />
           )
@@ -1227,6 +1251,7 @@ export default function SeismicCommandCenter() {
             walkthroughActive={buildingWalkthrough}
             fullScreen={fullScreenMode}
             playerResetCounter={playerResetCounter}
+            showItemLabels={showItemLabels}
           />
         )}
       </div>
@@ -1309,6 +1334,28 @@ export default function SeismicCommandCenter() {
               >
                 <Volume2 className="h-3.5 w-3.5" />
                 <span className="truncate">Voice: {voiceLabel}</span>
+              </button>
+            </div>
+
+            {/* 3D Item Label Popups Toggle (Off by default, opt-in via Menu) */}
+            <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950 border border-slate-800">
+              <div>
+                <div className="text-xs font-bold text-slate-200">
+                  3D Item Label Popups
+                </div>
+                <div className="text-[11px] text-slate-400">
+                  Show floating name & safety tags above 3D furniture & obstacles
+                </div>
+              </div>
+              <button
+                onClick={() => setShowItemLabels((v) => !v)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
+                  showItemLabels
+                    ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/50"
+                    : "bg-slate-800 text-slate-400 border-slate-700 hover:text-slate-200"
+                }`}
+              >
+                {showItemLabels ? "Labels: ON" : "Labels: OFF"}
               </button>
             </div>
 
