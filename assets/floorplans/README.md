@@ -4,7 +4,8 @@
 
 | File | What |
 |---|---|
-| `cagb-L2-preview.jpg` | 700x570 crop of the official Level 2 plan (already here) |
+| `cagb-L2-1280.jpg` | Level 2 plan, 1280x904: **pixel frame for `routes/routes.json`** |
+| `cagb-L2-preview.jpg` | 700x570 crop of the official Level 2 plan |
 | `cagb-L2.jpg` | Full-res original, 1934x1366. Not committed yet: run `bash assets/floorplans/fetch.sh` on a Mac with normal internet, then commit it |
 
 Source page (official, public): Imperial Faculty of Engineering teaching spaces, e.g. Room 200
@@ -23,3 +24,15 @@ Source: https://www.accessable.co.uk/imperial-college-london/south-kensington-ca
 
 ## Using it in the app
 Copy into the web app's static folder once it exists (e.g. `cp assets/floorplans/*.jpg <app>/public/floorplans/`).
+
+## Filming routes (from Room 200) — `routes/`
+| Route | Video file | Image |
+|---|---|---|
+| A — main entrance, Exhibition Road (primary exit) | `route_A.mp4` | `routes/route_A_main_exit.png` |
+| B — Dalby Court entrance (alternative exit) | `route_B.mp4` | `routes/route_B_dalby_court.png` |
+| C — Room 203, then a slow 360° of the room | `route_C.mp4` + `room.mp4` | `routes/route_C_room_203.png` |
+| D — south walkway fallback (optional) | `route_D.mp4` | `routes/route_D_south_fallback.png` |
+
+`routes/routes.json` = waypoints (pixel coords in `cagb-L2-1280.jpg`) + the numbered landmarks the walker says out loud,
+so each video can be aligned to its path. Routes are approximate corridor centrelines; walkers follow the real corridor.
+Videos are gitignored: share via AirDrop/Drive.
