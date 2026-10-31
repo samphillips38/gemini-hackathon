@@ -1,8 +1,9 @@
-﻿import {
+import {
   RoomSceneGraph,
   RoomObjectNode,
   ObjectHazardResult,
   EgressAndShelterResult,
+  MonteCarloQuakeSummary,
 } from "@/types/contracts";
 
 /**
@@ -125,6 +126,9 @@ function bboxesOverlap(
 
 /**
  * 2D Grid A* Pathfinder (0.2m cell resolution)
+ * Supports variable clearance half-width:
+ * - walk (0.4m total width) -> clearanceMarginM = 0.14
+ * - wheelchair (0.9m total width) -> clearanceMarginM = 0.34
  */
 function findGridPathAStar(
   roomWidthM: number,
@@ -132,7 +136,8 @@ function findGridPathAStar(
   startM: { x_m: number; z_m: number },
   goalM: { x_m: number; z_m: number },
   obstacles: Array<{ min_x: number; max_x: number; min_z: number; max_z: number }>,
-  glassZones: Array<{ x_m: number; z_m: number; radius_m: number }>
+  glassZones: Array<{ x_m: number; z_m: number; radius_m: number }>,
+  clearanceMarginM = 0.12
 ): Array<{ x_m: number; z_m: number }> {
   const cellSize = 0.2;
   const cols = Math.ceil(roomWidthM / cellSize);
@@ -160,10 +165,10 @@ function findGridPathAStar(
     const wz = (r + 0.5) * cellSize;
     for (const obs of obstacles) {
       if (
-        wx >= obs.min_x - 0.12 &&
-        wx <= obs.max_x + 0.12 &&
-        wz >= obs.min_z - 0.12 &&
-        wz <= obs.max_z + 0.12
+        wx >= obs.min_x - clearanceMarginM &&
+        wx <= obs.max_x + clearanceMarginM &&
+        wz >= obs.min_z - clearanceMarginM &&
+        wz <= obs.max_z + clearanceMarginM
       ) {
         return true;
       }
@@ -423,10 +428,26 @@ export function evaluateRoomScene(scene: RoomSceneGraph): EgressAndShelterResult
           occupantStart,
           exitGoal,
           postQuakeObstacles,
-          glassHazardZones
+          glassHazardZones,
+          0.12 // 0.4m walking clearance
+        );
+
+  const wheelchairPath =
+    blockingObjectIds.length > 0
+      ? []
+      : findGridPathAStar(
+          scene.room.width_m,
+          scene.room.depth_m,
+          occupantStart,
+          exitGoal,
+          postQuakeObstacles,
+          glassHazardZones,
+          0.32 // 0.9m wheelchair clearance
         );
 
   const exitReachable = blockingObjectIds.length === 0 && escapePath.length > 1;
+  const wheelchairReachable =
+    blockingObjectIds.length === 0 && wheelchairPath.length > 1;
 
   // Safe Drop-Cover-Hold spot under the desk
   const safeShelterSpot = deskObj
@@ -448,104 +469,154 @@ export function evaluateRoomScene(scene: RoomSceneGraph): EgressAndShelterResult
   const anyCasualtyHit = objectResults.some((r) => r.hit_occupant_zone);
   const survivable = !anyCasualtyHit && exitReachable;
 
+  const monteCarlo = runMonteCarloQuakeSimulation(scene, 50, 42);
+
   return {
     survivable,
     exit_reachable_post_quake: exitReachable,
+    wheelchair_reachable_post_quake: wheelchairReachable,
     escape_path_points_m: escapePath,
     safe_shelter_spot_m: safeShelterSpot,
     shelter_reach_time_s: shelterReachTimeS,
     blocking_object_ids: blockingObjectIds,
     glass_hazard_zones_m: glassHazardZones,
     object_results: objectResults,
+    monte_carlo: monteCarlo,
   };
 }
 
 /**
- * Deterministic Monte Carlo Seismic Simulator (N = 50 runs, Slava HANDOFF spec)
- * Varies ground PGA in [0.3g, 0.5g] (scaled by upper-floor amplification) and directional azimuth,
- * checking post-collapse A* exit reachability for both Walking (0.4m) and Wheelchair (0.9m) clearance.
+ * Deterministic Seeded N=50 Monte Carlo Seismic Simulation (Slava + Ana Spec)
+ * Evaluates exit reachability across 50 stochastic ground-motion realizations
+ * for both walking (0.4m) and wheelchair (0.9m) clearance profiles.
  */
 export function runMonteCarloQuakeSimulation(
   scene: RoomSceneGraph,
   runs = 50,
   seed = 42
-): {
-  runs: number;
-  pga_g_range: [number, number];
-  exit_clear_walk_count: number;
-  exit_clear_wheelchair_count: number;
-  exit_reachable_p: { walk: number; wheelchair: number };
-} {
+): MonteCarloQuakeSummary {
+  // Mulberry32 deterministic PRNG
   let state = seed >>> 0;
-  const nextRand = () => {
-    state = (1664525 * state + 1013904223) >>> 0;
-    return state / 0xffffffff;
+  const rand = () => {
+    state = (state + 0x6d2b79f5) >>> 0;
+    let t = Math.imul(state ^ (state >>> 15), 1 | state);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 
-  const floorAmp = 1.0 + Math.max(0, scene.room.floor_level - 1) * 0.11;
-  const minPga = Number((0.3 * floorAmp).toFixed(2));
-  const maxPga = Number((0.5 * floorAmp).toFixed(2));
+  const basePga = calculateFloorPGA(
+    scene.earthquake.magnitude_mw,
+    scene.room.floor_level
+  );
+  const minPga = Number(Math.max(0.12, basePga * 0.65).toFixed(2));
+  const maxPga = Number((basePga * 1.32).toFixed(2));
+
+  const bedObj =
+    scene.objects.find((o) => o.is_occupant_start) ||
+    scene.objects.find((o) => o.category === "bed");
+  const doorObj = scene.objects.find((o) => o.category === "exit_door");
+
+  const doorCorridorBBox = doorObj
+    ? {
+        min_x: Math.max(0, doorObj.x_m - 0.35),
+        max_x: Math.min(scene.room.width_m, doorObj.x_m + doorObj.width_m + 0.35),
+        min_z: Math.max(0, doorObj.z_m - 0.85),
+        max_z: scene.room.depth_m,
+      }
+    : { min_x: 3.0, max_x: 4.2, min_z: 3.1, max_z: 4.0 };
+
+  const occupantStart = bedObj
+    ? {
+        x_m: Number((bedObj.x_m + bedObj.width_m + 0.25).toFixed(2)),
+        z_m: Number((bedObj.z_m + bedObj.depth_m * 0.5).toFixed(2)),
+      }
+    : { x_m: 1.5, z_m: 2.2 };
+
+  const exitGoal = doorObj
+    ? {
+        x_m: Number((doorObj.x_m + doorObj.width_m * 0.5).toFixed(2)),
+        z_m: Number(Math.max(0.3, doorObj.z_m - 0.15).toFixed(2)),
+      }
+    : { x_m: 3.7, z_m: 3.7 };
 
   let walkClearCount = 0;
   let wheelchairClearCount = 0;
-
-  const doorObj = scene.objects.find((o) => o.category === "exit_door");
-  const unanchoredTallNearDoor = scene.objects.filter((o) => {
-    if (o.parent_id !== null || o.anchored_to_wall) return false;
-    if (o.category !== "wardrobe" && o.category !== "bookshelf") return false;
-    if (!doorObj) return false;
-    const distToDoor = Math.hypot(
-      o.x_m + o.width_m * 0.5 - (doorObj.x_m + doorObj.width_m * 0.5),
-      o.z_m + o.depth_m * 0.5 - doorObj.z_m
-    );
-    return distToDoor < 1.65;
-  });
-
-  // Also check top-heavy unanchored bookshelves near bed or corridor
-  const allTallUnanchored = scene.objects.filter(
-    (o) =>
-      o.parent_id === null &&
-      !o.anchored_to_wall &&
-      (o.category === "wardrobe" || o.category === "bookshelf")
-  );
+  const blockCounts = new Map<string, number>();
 
   for (let i = 0; i < runs; i++) {
-    const basePga = 0.3 + nextRand() * 0.2; // 0.30g to 0.50g
-    const dirProjection = 0.72 + nextRand() * 0.38; // Azimuth directional factor
-    const effectivePgaG = basePga * floorAmp * dirProjection;
+    const samplePga = minPga + rand() * (maxPga - minPga);
+    const directionalFactor = 0.8 + rand() * 0.45; // Random dominant wave azimuth
+    const effectivePga = samplePga * directionalFactor;
 
-    let doorBlockedWalk = false;
-    let doorBlockedWheelchair = false;
+    let doorBlockedInRun = false;
+    const obstacles: Array<{
+      min_x: number;
+      max_x: number;
+      min_z: number;
+      max_z: number;
+    }> = [];
 
-    for (const obj of unanchoredTallNearDoor) {
-      const { comHeightM, effectiveBaseWidthM } = computeCompositeCoM(obj, scene.objects);
-      const sf = (effectiveBaseWidthM / Math.max(0.2, comHeightM)) / Math.max(0.05, effectivePgaG);
-      if (sf < 1.0) {
-        doorBlockedWalk = true;
-        doorBlockedWheelchair = true;
-      } else if (sf < 1.18) {
-        // Partial rocking / sliding narrows corridor below 0.9m wheelchair clearance
-        doorBlockedWheelchair = true;
+    for (const obj of scene.objects) {
+      if (obj.category === "exit_door" || obj.category === "window" || obj.parent_id) {
+        continue;
+      }
+
+      const { comHeightM, effectiveBaseWidthM } = computeCompositeCoM(
+        obj,
+        scene.objects
+      );
+      const rawSF =
+        effectiveBaseWidthM / Math.max(0.2, comHeightM) / Math.max(0.05, effectivePga);
+      const sf = obj.anchored_to_wall ? Math.max(2.4, rawSF * 2.8) : rawSF;
+      const canTip = obj.category === "bookshelf" || obj.category === "wardrobe";
+      const tipped = canTip && !obj.anchored_to_wall && sf < 1.0;
+
+      const bbox = getRestingBBox(obj, tipped, scene.room, bedObj, doorObj);
+      if (tipped && bboxesOverlap(bbox, doorCorridorBBox, 0.05)) {
+        doorBlockedInRun = true;
+        blockCounts.set(obj.id, (blockCounts.get(obj.id) ?? 0) + 1);
+      }
+
+      if (obj.id !== bedObj?.id && obj.category !== "chair") {
+        obstacles.push(bbox);
       }
     }
 
-    for (const obj of allTallUnanchored) {
-      const { comHeightM, effectiveBaseWidthM } = computeCompositeCoM(obj, scene.objects);
-      const sf = (effectiveBaseWidthM / Math.max(0.2, comHeightM)) / Math.max(0.05, effectivePgaG);
-      if (sf < 0.85) {
-        // Severe collapse into room center narrows wheelchair path
-        doorBlockedWheelchair = true;
-      }
-    }
+    if (!doorBlockedInRun) {
+      const walkPath = findGridPathAStar(
+        scene.room.width_m,
+        scene.room.depth_m,
+        occupantStart,
+        exitGoal,
+        obstacles,
+        [],
+        0.12
+      );
+      if (walkPath.length > 1) walkClearCount++;
 
-    if (!doorBlockedWalk) walkClearCount++;
-    if (!doorBlockedWheelchair && (!doorObj || doorObj.width_m >= 0.85)) {
-      wheelchairClearCount++;
+      const wcPath = findGridPathAStar(
+        scene.room.width_m,
+        scene.room.depth_m,
+        occupantStart,
+        exitGoal,
+        obstacles,
+        [],
+        0.32
+      );
+      if (wcPath.length > 1) wheelchairClearCount++;
     }
   }
 
+  const topBlocking = Array.from(blockCounts.entries())
+    .map(([id, count]) => ({
+      id,
+      block_rate: Number((count / runs).toFixed(2)),
+    }))
+    .sort((a, b) => b.block_rate - a.block_rate);
+
   return {
     runs,
+    seed,
     pga_g_range: [minPga, maxPga],
     exit_clear_walk_count: walkClearCount,
     exit_clear_wheelchair_count: wheelchairClearCount,
@@ -553,5 +624,44 @@ export function runMonteCarloQuakeSimulation(
       walk: Number((walkClearCount / runs).toFixed(2)),
       wheelchair: Number((wheelchairClearCount / runs).toFixed(2)),
     },
+    top_blocking_objects: topBlocking,
+  };
+}
+
+/**
+ * Stage 1 -> Stage 2 Coordinate Converter (Slava RECONSTRUCTION_PLAN.md)
+ * Converts CAGB Level 2 floorplan pixels (u, v) on cagb-L2.jpg (1934x1366)
+ * into right-handed Building Metric coordinates (X_b, Y_b) using
+ * AccessAble scale reference (2.10m Exhibition Rd doors = 24px -> 11.43 px/m).
+ */
+export function floorplanPxToBuildingMetric(
+  u_px: number,
+  v_px: number,
+  planPxPerM = 11.43,
+  imageHeightPx = 1366
+): { x_m: number; y_m: number } {
+  return {
+    x_m: Number((u_px / planPxPerM).toFixed(2)),
+    y_m: Number(((imageHeightPx - v_px) / planPxPerM).toFixed(2)),
+  };
+}
+
+/**
+ * Stage 3 -> Stage 4 Coordinate Converter (Slava HANDOFF.md Section 8)
+ * Converts MuJoCo z-up pose ([x,y,z], quat [w,x,y,z]) to Three.js y-up pose
+ * ([x, z, -y], quat [qx, qz, -qy, w]) in a single place.
+ */
+export function mujocoToThreePose(
+  posMj: [number, number, number],
+  quatMj: [number, number, number, number]
+): {
+  position: [number, number, number];
+  quaternion: [number, number, number, number];
+} {
+  const [xm, ym, zm] = posMj;
+  const [wm, qx, qy, qz] = quatMj;
+  return {
+    position: [xm, zm, -ym],
+    quaternion: [qx, qz, -qy, wm],
   };
 }

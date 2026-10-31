@@ -1,9 +1,6 @@
-﻿// ============================================================================
-// PLAN B (QuakeRoom) & PLAN C (ExitZero) — Unified TypeScript Contracts
-// Includes Monte Carlo N=50 Seismic Verification & Wheelchair Clearance (0.4m / 0.9m)
 // ============================================================================
-
-export type MobilityClearanceMode = "walking_running" | "wheelchair_accessible";
+// PLAN B (QuakeRoom) & PLAN C (ExitZero) — Unified TypeScript Contracts
+// ============================================================================
 
 // ----------------------------------------------------------------------------
 // PLAN B: QuakeRoom — Seismic Room Collapse, Safe-Shelter & Escape Verifier
@@ -70,15 +67,19 @@ export interface ObjectHazardResult {
   resting_bbox_2d: { min_x: number; max_x: number; min_z: number; max_z: number };
 }
 
+export type MobilityClearanceMode = "walk" | "wheelchair";
+
 export interface MonteCarloQuakeSummary {
-  runs: number; // N = 50 synthetic earthquakes (PGA 0.3g - 0.5g scaled by floor amplification)
-  pga_g_range: [number, number];
-  exit_clear_walk_count: number;
-  exit_clear_wheelchair_count: number;
+  runs: number; // e.g., 50 simulated quakes
+  seed: number; // e.g., 42
+  pga_g_range: [number, number]; // e.g., [0.3, 0.5] scaled by floor amplification
+  exit_clear_walk_count: number; // 0.4m clearance
+  exit_clear_wheelchair_count: number; // 0.9m clearance
   exit_reachable_p: {
-    walk: number;       // 0.0 to 1.0 over N=50 runs (0.4m clearance)
-    wheelchair: number; // 0.0 to 1.0 over N=50 runs (0.9m clearance)
+    walk: number; // Probability [0..1]
+    wheelchair: number; // Probability [0..1]
   };
+  top_blocking_objects: Array<{ id: string; block_rate: number }>;
 }
 
 export interface EgressAndShelterResult {
@@ -95,6 +96,7 @@ export interface EgressAndShelterResult {
   blocking_object_ids: string[];
   glass_hazard_zones_m: Array<{ x_m: number; z_m: number; radius_m: number }>;
   object_results: ObjectHazardResult[];
+  // N=50 Monte Carlo seismic ensemble verification (from Slava + Ana synthesis)
   monte_carlo?: MonteCarloQuakeSummary;
 }
 
