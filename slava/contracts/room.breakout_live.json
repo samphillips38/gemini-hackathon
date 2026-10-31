@@ -1,0 +1,286 @@
+{
+  "_note": "Live Breakout Concourse & Room 200 Exit Alcove physics twin populated from assets/20261031_132011.mp4 and assets/20261031_132259.mp4.",
+  "version": "1.0",
+  "conventions": {
+    "units": "metres, kilograms, seconds",
+    "axes": "room frame, z-up (MuJoCo). Origin = SW floor corner of Breakout bay; +x East, +y North, +z Up."
+  },
+  "source": {
+    "video": "assets/20261031_132259.mp4",
+    "companion_video": "assets/20261031_132011.mp4",
+    "frames_used": 38,
+    "model": "gemini-4-argon"
+  },
+  "room": {
+    "dims_m": {
+      "x": 8.5,
+      "y": 12,
+      "z": 3.8
+    },
+    "dims_uncertainty_pct": 10
+  },
+  "doors": [
+    {
+      "id": "door_room200_vestibule",
+      "wall": "xmax",
+      "offset_m": 2.2,
+      "width_m": 1.89
+    },
+    {
+      "id": "door_north_atrium_firedoors",
+      "wall": "ymax",
+      "offset_m": 4.2,
+      "width_m": 2.1
+    }
+  ],
+  "windows": [
+    {
+      "id": "win_west_curtain_wall",
+      "wall": "x0",
+      "offset_m": 1,
+      "width_m": 9.5,
+      "sill_m": 0,
+      "glass": true
+    },
+    {
+      "id": "win_north_upper_gallery",
+      "wall": "ymax",
+      "offset_m": 2.5,
+      "width_m": 4.5,
+      "sill_m": 2.4,
+      "glass": true
+    }
+  ],
+  "furniture": [
+    {
+      "id": "roller_banner_build_future",
+      "type": "retractable_banner",
+      "pos_m": [
+        6.8,
+        2.6
+      ],
+      "yaw_deg": 90,
+      "size_m": [
+        0.85,
+        0.35,
+        2.05
+      ],
+      "mass_kg": 6.5,
+      "anchored": false,
+      "glass": false,
+      "sturdy_shelter": false,
+      "movable": true
+    },
+    {
+      "id": "roller_banner_sundai",
+      "type": "retractable_banner",
+      "pos_m": [
+        6.8,
+        4.8
+      ],
+      "yaw_deg": 90,
+      "size_m": [
+        0.85,
+        0.35,
+        2.05
+      ],
+      "mass_kg": 6.5,
+      "anchored": false,
+      "glass": false,
+      "sturdy_shelter": false,
+      "movable": true
+    },
+    {
+      "id": "wheeled_catering_cart",
+      "type": "utility_cart",
+      "pos_m": [
+        7.1,
+        6.2
+      ],
+      "yaw_deg": 90,
+      "size_m": [
+        1.2,
+        0.6,
+        0.88
+      ],
+      "mass_kg": 32,
+      "anchored": false,
+      "glass": false,
+      "sturdy_shelter": false,
+      "movable": true
+    },
+    {
+      "id": "recycling_bin_trio",
+      "type": "recycling_bins",
+      "pos_m": [
+        7.4,
+        3.6
+      ],
+      "yaw_deg": 90,
+      "size_m": [
+        1.35,
+        0.45,
+        0.92
+      ],
+      "mass_kg": 18,
+      "anchored": false,
+      "glass": false,
+      "sturdy_shelter": false,
+      "movable": true
+    },
+    {
+      "id": "blue_lounge_sofa_1",
+      "type": "sofa",
+      "pos_m": [
+        1.4,
+        3.2
+      ],
+      "yaw_deg": 0,
+      "size_m": [
+        1.8,
+        0.85,
+        0.78
+      ],
+      "mass_kg": 45,
+      "anchored": false,
+      "glass": false,
+      "sturdy_shelter": false,
+      "movable": true
+    },
+    {
+      "id": "blue_lounge_sofa_2",
+      "type": "sofa",
+      "pos_m": [
+        1.4,
+        6
+      ],
+      "yaw_deg": 0,
+      "size_m": [
+        1.8,
+        0.85,
+        0.78
+      ],
+      "mass_kg": 45,
+      "anchored": false,
+      "glass": false,
+      "sturdy_shelter": false,
+      "movable": true
+    },
+    {
+      "id": "rr_jet_engine_display",
+      "type": "museum_exhibit",
+      "pos_m": [
+        2.2,
+        9.8
+      ],
+      "yaw_deg": 25,
+      "size_m": [
+        1.85,
+        1.6,
+        2.1
+      ],
+      "mass_kg": 450,
+      "anchored": true,
+      "glass": false,
+      "sturdy_shelter": false,
+      "movable": false
+    }
+  ],
+  "spawn_points_m": [
+    [
+      7.8,
+      2.2
+    ],
+    [
+      4.5,
+      2.5
+    ]
+  ],
+  "sim": {
+    "runs": 50,
+    "pga_g_range": [
+      0.3,
+      0.5
+    ],
+    "duration_s": 15,
+    "seed": 42,
+    "agent_clearance_m": {
+      "walk": 0.4,
+      "wheelchair": 0.9
+    }
+  },
+  "results": {
+    "exit_reachable_p": {
+      "walk": 0.62,
+      "wheelchair": 0.28
+    },
+    "blocked_by": [
+      "roller_banner_build_future",
+      "roller_banner_sundai",
+      "wheeled_catering_cart"
+    ],
+    "shelter_spot_m": [
+      5.2,
+      4
+    ],
+    "replay": {
+      "run_index": 12,
+      "fps": 30,
+      "frames_file": "results/replay.json"
+    },
+    "iterations": [
+      {
+        "iteration": 1,
+        "layout_changes": [
+          {
+            "id": "roller_banner_build_future",
+            "pos_m": [
+              1.2,
+              1.2
+            ],
+            "yaw_deg": 0
+          },
+          {
+            "id": "roller_banner_sundai",
+            "pos_m": [
+              1.2,
+              8.2
+            ],
+            "yaw_deg": 0
+          }
+        ],
+        "exit_reachable_p": {
+          "walk": 0.86,
+          "wheelchair": 0.64
+        },
+        "argon_rationale": "Relocated both tall high-CoM retractable banners (PGA_tip = 0.18g) away from the Room 200 exit vestibule pinch point into the west lounge bays."
+      },
+      {
+        "iteration": 2,
+        "layout_changes": [
+          {
+            "id": "wheeled_catering_cart",
+            "pos_m": [
+              1.5,
+              4.6
+            ],
+            "yaw_deg": 0
+          },
+          {
+            "id": "recycling_bin_trio",
+            "pos_m": [
+              1.5,
+              7.3
+            ],
+            "yaw_deg": 0
+          }
+        ],
+        "exit_reachable_p": {
+          "walk": 1,
+          "wheelchair": 1
+        },
+        "argon_rationale": "Moved the unbraked wheeled catering cart and recycling bin trio out of the primary North-South evacuation spine and engaged caster locks, clearing a continuous >2.1m wheelchair corridor from Room 200 to Exhibition Road."
+      }
+    ]
+  }
+}

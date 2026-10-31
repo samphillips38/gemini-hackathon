@@ -839,8 +839,8 @@
       return bg;
     }
 
-    const bannerSundai = buildRollerBanner(3.8, 3.8, -Math.PI / 2, ['SUNDAI', 'HACKATHON', 'IMPERIAL CAGB', 'LEVEL 2'], '#f59e0b');
-    const bannerFuture = buildRollerBanner(3.8, 5.2, -Math.PI / 2, ['BUILD THE', 'FUTURE.', 'TOGETHER.', 'IMPERIAL'], '#38bdf8');
+    const bannerSundai = buildRollerBanner(3.6, 4.05, 0, ['SUNDAI', 'HACKATHON', 'IMPERIAL CAGB', 'LEVEL 2'], '#f59e0b');
+    const bannerFuture = buildRollerBanner(4.4, 6.55, 0, ['BUILD THE', 'FUTURE.', 'TOGETHER.', 'IMPERIAL'], '#38bdf8');
     breakoutGroup.add(bannerSundai, bannerFuture);
 
     registerHazard('roller_banners', bannerSundai, {
@@ -1080,7 +1080,7 @@
 
     // Suspended Amber/Red/Gold Glass-Disc Chandelier Sculpture Above White Plinth & Folding Tables
     const sculptureGroup = new THREE.Group();
-    sculptureGroup.position.set(2.4, 0, -1.5);
+    sculptureGroup.position.set(15.5, 0, -4.5);   // world (27.5, -21.5): outside on the Exhibition Rd plaza, seen through the facade glazing (walk1 110-116 s)
     const scPlinth = new THREE.Mesh(new THREE.BoxGeometry(3.0, 0.28, 2.2), deskWhiteMat);
     scPlinth.position.y = 0.14;
     scPlinth.receiveShadow = true;
@@ -1136,7 +1136,7 @@
 
     registerHazard('glass_sculpture', sculptureGroup, {
       title: 'Suspended Amber/Red/Gold Blown-Glass Chandelier Sculpture',
-      desc: '36 suspended translucent glass discs over white plinth and registration tables in the Exhibition Rd Atrium. Generates a 2.3m glass-fall hazard zone under PGA >= 0.25g.',
+      desc: 'Glass-disc sculpture on the Exhibition Rd plaza, outside the main doors (seen through the facade in walk1 110-116 s). Glass-fall zone r = 2.35 m is off the indoor route but matters once you are outside.',
       video: 'walk1_132011 · t = 112.1s',
       img: '../../assets/frames/walk1_132011/frame_014_t112.1s.jpg',
       riskLabel: 'OVERHEAD GLASS',
@@ -1296,16 +1296,17 @@
     // ---------------------------------------------------------------------------
     const G = 9.81, CORRIDOR_W = 1.89, RUNS = 50;
     const PATH_BASE = [[14.5, 6.2], [6.8, 6.2], [1.5, 4.5], [1.5, -4.5], [1.5, -14.5], [11.5, -19.2], [20.5, -17.0]];
-    const PATH_FIX = [[14.5, 6.2], [6.8, 6.2], [1.5, 4.5], [-0.8, 0.8], [-0.8, -4.5], [1.5, -8.0], [1.5, -14.5], [11.5, -19.2], [20.5, -17.0]];
+    const PATH_FIX = PATH_BASE;   // sculpture is outside, so the indoor route does not change
+    const SEG_W = [3.0, 2.6, 3.36, 3.36, 4.0, 4.0];   // free width per segment (m): Room 200 aisle, vestibule, spine (graph min 3.36), atrium
     function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
     function gauss(r) { const u = Math.max(1e-9, r()), v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
     function hazardsFor(mode) {
       const fixed = mode === 'fixed';
       return [
-        { id: 'banner_sundai', label: 'Roller banner "Sundai"', x: fixed ? -5.8 : 3.8, z: fixed ? -4.5 : 3.8, yaw: -Math.PI / 2, w: 0.85, d: 0.35, h: 2.05, thr: 0.175 / 0.95 },
-        { id: 'banner_future', label: 'Roller banner "Build the Future"', x: fixed ? -5.8 : 3.8, z: fixed ? -6.2 : 5.2, yaw: -Math.PI / 2, w: 0.85, d: 0.35, h: 2.05, thr: 0.175 / 0.95 },
+        { id: 'banner_sundai', label: 'Roller banner "Sundai"', x: fixed ? -5.8 : 3.6, z: fixed ? -4.5 : 4.05, yaw: 0, w: 0.85, d: 0.35, h: 2.05, thr: 0.175 / 0.95 },
+        { id: 'banner_future', label: 'Roller banner "Build the Future"', x: fixed ? -5.8 : 4.4, z: fixed ? -6.2 : 6.55, yaw: 0, w: 0.85, d: 0.35, h: 2.05, thr: 0.175 / 0.95 },
         { id: 'cart', label: 'Unbraked catering cart', x: fixed ? -5.5 : 2.8, z: fixed ? -2.5 : 1.8, yaw: 0, w: 1.2, d: 0.6, h: 0.88, thr: 0.22, rolls: !fixed },
-        { id: 'totem', label: 'Laidlaw LED totem', x: -3.2, z: -1.8, yaw: 0.28, w: 3.2, d: 0.6, h: 2.2, thr: 0.3 / 1.15 }
+        { id: 'totem', label: 'Laidlaw LED totem', x: 12 - 3.2, z: -17 - 1.8, yaw: 0.28, w: 3.2, d: 0.6, h: 2.2, thr: 0.3 / 1.15, parent: [12, -17], anchored: fixed }
       ];
     }
     function rectContains(o, px, pz) {           // oriented rectangle: centre (cx,cz), half extents (hx,hz), angle a
@@ -1314,16 +1315,17 @@
       return Math.abs(lx) <= o.hx && Math.abs(lz) <= o.hz;
     }
     function minClearance(path, rects, shards) {
-      let worst = CORRIDOR_W, where = null;
+      let worst = 99, where = null;
       for (let i = 0; i < path.length - 1; i++) {
+        const CW = SEG_W[i] || CORRIDOR_W;
         const [x0, z0] = path[i], [x1, z1] = path[i + 1], L = Math.hypot(x1 - x0, z1 - z0), ux = (x1 - x0) / L, uz = (z1 - z0) / L, nx = -uz, nz = ux;
         for (let t = 0; t <= L; t += 0.2) {
           const cx = x0 + ux * t, cz = z0 + uz * t; let run = 0, best = 0;
           for (let k = 0; k <= 38; k++) {
-            const off = -CORRIDOR_W / 2 + k * (CORRIDOR_W / 38), px = cx + nx * off, pz = cz + nz * off;
+            const off = -CW / 2 + k * (CW / 38), px = cx + nx * off, pz = cz + nz * off;
             let blocked = rects.some(r => rectContains(r, px, pz));
             if (!blocked && shards) blocked = Math.hypot(px - shards.x, pz - shards.z) < shards.r;
-            run = blocked ? 0 : run + CORRIDOR_W / 38; if (run > best) best = run;
+            run = blocked ? 0 : run + CW / 38; if (run > best) best = run;
           }
           if (best < worst) { worst = best; where = [cx, cz]; }
         }
@@ -1343,22 +1345,23 @@
             const dist = Math.min(2.5, 0.9 * (pga / 0.35) * (0.5 + r()));
             x += Math.cos(dir) * dist; z += Math.sin(dir) * dist;
           }
-          const weak = o.yaw + Math.PI / 2;        // local z (thin axis) in world
+          const weak = Math.PI / 2 - o.yaw;        // world angle of the thin (local z) axis for rotation.y = yaw
           const aWeak = pga * Math.abs(Math.cos(dir - weak)), aStrong = pga * Math.abs(Math.sin(dir - weak));
           const strongThr = (o.w / 2) / (o.h * 0.5);
           let fell = 0, fallAng = 0;
-          if (aWeak > o.thr) { fell = 1; fallAng = weak + (Math.cos(dir - weak) >= 0 ? 0 : Math.PI); }
-          else if (aStrong > strongThr) { fell = 1; fallAng = o.yaw + (Math.sin(dir - weak) >= 0 ? 0 : Math.PI); }
+          if (o.anchored) { /* bolted: stays upright */ }
+          else if (aWeak > o.thr) { fell = 1; fallAng = weak + (Math.cos(dir - weak) >= 0 ? 0 : Math.PI); }
+          else if (aStrong > strongThr) { fell = 1; fallAng = -o.yaw + (Math.sin(dir - weak) >= 0 ? 0 : Math.PI); }
           if (fell) {
             stats.tipped[o.id]++;
             const fx = Math.cos(fallAng), fz = Math.sin(fallAng);
             rects.push({ id: o.id, cx: x + fx * o.h / 2, cz: z + fz * o.h / 2, hx: o.h / 2, hz: (fallAng === weak || fallAng === weak + Math.PI ? o.w : o.d) / 2, a: -fallAng });
           } else {
-            rects.push({ id: o.id, cx: x, cz: z, hx: o.w / 2, hz: o.d / 2, a: -o.yaw });
+            rects.push({ id: o.id, cx: x, cz: z, hx: o.w / 2, hz: o.d / 2, a: o.yaw });
           }
-          poses[o.id] = { x, z, fell, fallAng };
+          poses[o.id] = { x: x - (o.parent ? o.parent[0] : 0), z: z - (o.parent ? o.parent[1] : 0), fell, fallAng };
         }
-        const shards = pga >= 0.20 && r() < Math.min(1, (pga - 0.15) / 0.2) ? { x: 2.4, z: -1.5, r: 2.35 } : null;
+        const shards = pga >= 0.20 && r() < Math.min(1, (pga - 0.15) / 0.2) ? { x: 27.5, z: -21.5, r: 2.35 } : null;
         if (shards) stats.shardRuns++;
         const c = minClearance(path, rects, shards);
         stats.widths.push(c.width);
@@ -1376,6 +1379,7 @@
       stats.path = path; stats.H = H;
       return stats;
     }
+    window.__runMC = (mode, pga, agentW) => { const st = runMonteCarlo(mode, pga, agentW); return { pass: st.pass, median_min_clear_m: +st.medianWidth.toFixed(2), tipped: st.tipped, blockedBy: st.blockedBy, shardRuns: st.shardRuns }; };
     function poseFromRun(group, pose, h) {
       if (!group || !pose) return;
       group.position.x = pose.x; group.position.z = pose.z;
@@ -1396,11 +1400,11 @@
       const pga = simState.pga, isWheelchair = simState.clearance === 'wheelchair', agentW = isWheelchair ? 0.9 : 0.4;
       const modeLabel = isWheelchair ? 'wheelchair 0.90 m' : 'walking 0.40 m';
       if (simState.mode === 'baseline') {
-        bannerSundai.position.set(3.8, 0, 3.8); bannerSundai.userData.pivot.rotation.set(0, 0, 0);
-        bannerFuture.position.set(3.8, 0, 5.2); bannerFuture.userData.pivot.rotation.set(0, 0, 0);
+        bannerSundai.position.set(3.6, 0, 4.05); bannerSundai.userData.pivot.rotation.set(0, 0, 0);
+        bannerFuture.position.set(4.4, 0, 6.55); bannerFuture.userData.pivot.rotation.set(0, 0, 0);
         cartGroup.position.set(2.8, 0, 1.8); cartGroup.userData.pivot.rotation.set(0, 0, 0);
         totemGroup.userData.pivot.rotation.set(0, 0, 0); glassHazardZone.visible = false;
-        const c = minClearance(PATH_BASE, hazardsFor('baseline').map(o => ({ cx: o.x, cz: o.z, hx: o.w / 2, hz: o.d / 2, a: -o.yaw })), null);
+        const c = minClearance(PATH_BASE, hazardsFor('baseline').map(o => ({ cx: o.x, cz: o.z, hx: o.w / 2, hz: o.d / 2, a: o.yaw })), null);
         metricPExit.textContent = 'not shaken';
         metricPExit.style.color = 'var(--accent-blue)';
         metricClearance.textContent = c.width.toFixed(2) + ' m now';
@@ -1425,9 +1429,9 @@
       const tip = st.H.map(o => o.label + ' fell ' + st.tipped[o.id] + '/50' + (st.blockedBy[o.id] ? ', alone blocked the exit ' + st.blockedBy[o.id] + '/50' : '')).join('; ');
       statusBanner.style.borderLeftColor = good ? 'var(--accent-green)' : 'var(--accent-red)';
       statusBanner.innerHTML = (simState.mode === 'fixed'
-        ? '<strong>Fix layout re-verified (' + modeLabel + '): exit clear in ' + st.pass + '/50</strong> at median PGA ' + pga.toFixed(2) + ' g. Banners moved to the west alcove, cart parked and casters locked, route detours west of the glass sculpture. '
+        ? '<strong>Fix layout re-verified (' + modeLabel + '): exit clear in ' + st.pass + '/50</strong> at median PGA ' + pga.toFixed(2) + ' g. Banners moved to the west alcove, cart parked with casters locked, LED totem base bolted to the slab. '
         : '<strong>' + (RUNS - st.pass) + '/50 quakes block the exit (' + modeLabel + ')</strong> at median PGA ' + pga.toFixed(2) + ' g. ')
-        + tip + '; glass sculpture shed shards in ' + st.shardRuns + '/50' + (st.shardBlocks ? ' (shards alone blocked the route ' + st.shardBlocks + '/50)' : '') + '. Seeded and repeatable: same PGA, same result.';
+        + tip + '; glass sculpture (outside, off the indoor route) shed shards in ' + st.shardRuns + '/50' + (st.shardBlocks ? ' (shards alone blocked the route ' + st.shardBlocks + '/50)' : '') + '. Seeded and repeatable: same PGA, same result.';
     }
 
     pgaSlider.addEventListener('input', (e) => {
@@ -1568,11 +1572,13 @@
     const fpShell = new THREE.Group(); fpShell.visible = false; worldGroup.add(fpShell);
     (function buildShell() {
       const terr = terrazzoTexture();
-      const floorMat = (w, d) => { const t = terr.clone(); t.needsUpdate = true; t.repeat.set(w / 4, d / 4); return new THREE.MeshStandardMaterial({ map: t, roughness: 0.32, metalness: 0.02 }); };
+      const photo = (file, rx, ry, fallback) => { const t = new THREE.TextureLoader().load('textures/' + file, undefined, undefined, () => {});
+        t.wrapS = t.wrapT = THREE.MirroredRepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; t.repeat.set(rx, ry); return t; };
+      const floorMat = (w, d) => new THREE.MeshStandardMaterial({ map: photo('terrazzo.jpg', w / 2.2, d / 2.2), roughness: 0.28, metalness: 0.03 });   // real terrazzo, cropped from walk1 hall frames
       const plaster = new THREE.MeshStandardMaterial({ color: '#eceae5', roughness: 0.92 });
-      const stone = new THREE.MeshStandardMaterial({ color: '#9a9c9e', roughness: 0.75 });
+      const stone = new THREE.MeshStandardMaterial({ map: photo('stone_clad.jpg', 12, 2.2), roughness: 0.72 });   // real grey stone cladding (walk1 90 s)
       const oakTex = slatTexture('#c4935f', '#7a5634'); oakTex.repeat.set(6, 1);
-      const oak = new THREE.MeshStandardMaterial({ map: oakTex, roughness: 0.6 });
+      const oak = new THREE.MeshStandardMaterial({ map: photo('oak_panel.jpg', 8, 1.5), roughness: 0.6 });   // real oak panelling (walk2 70 s)
       const glass = new THREE.MeshStandardMaterial({ color: '#cfe6ee', transparent: true, opacity: 0.22, roughness: 0.05, metalness: 0.1, depthWrite: false, side: THREE.DoubleSide });
       const sky = new THREE.MeshBasicMaterial({ color: '#dfeefa' });
       const ceilMat = new THREE.MeshStandardMaterial({ color: '#f4f4f2', roughness: 0.95, side: THREE.DoubleSide });
@@ -1581,8 +1587,8 @@
       function wall(ax, az, bx, bz, h, mat, y0 = 0) { const L = Math.hypot(bx - ax, bz - az); const m = new THREE.Mesh(new THREE.BoxGeometry(L, h, 0.18), mat);
         m.position.set((ax + bx) / 2, y0 + h / 2, (az + bz) / 2); m.rotation.y = -Math.atan2(bz - az, bx - ax); m.castShadow = m.receiveShadow = true; fpShell.add(m); return m; }
       // Zone A: Breakout concourse / spine (x -8..7, z -16..8); Zone B: Exhibition Rd atrium (x 3..23, z -23..-13)
-      slab(-8, 7, -16, 8, 0.012, floorMat(15, 24));
-      slab(3, 23, -23, -13, 0.014, floorMat(20, 10));
+      slab(-8, 7, -16, 8, 0.045, floorMat(15, 24));
+      slab(3, 23, -23, -13, 0.047, floorMat(20, 10));
       slab(-8, 7, -16, 8, 4.4, ceilMat); slab(3, 23, -23, -13, 9.0, ceilMat);
       for (let z = -15; z <= 7; z += 2.2) { const m = new THREE.Mesh(new THREE.BoxGeometry(9, 0.04, 0.12), lightMat); m.position.set(-0.5, 4.36, z); fpShell.add(m); }
       for (let x = 5; x <= 22; x += 3) { const m = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.04, 8), lightMat); m.position.set(x, 8.96, -18); fpShell.add(m); }
