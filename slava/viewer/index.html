@@ -327,6 +327,19 @@
       padding-top: 6px;
       border-top: 1px solid rgba(148, 163, 184, 0.15);
     }
+  
+    body.fp .left-panel, body.fp .right-panel { display: none; }
+    .cam-walk { border-color: #10b981 !important; color: #a7f3d0 !important; }
+    .fp-hud { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(18px + env(safe-area-inset-bottom, 0px)); z-index: 20;
+      background: rgba(10, 14, 22, 0.78); color: #e5e7eb; border: 1px solid rgba(148, 163, 184, 0.35); border-radius: 12px;
+      padding: 10px 14px; display: flex; flex-direction: column; gap: 6px; max-width: calc(100vw - 32px); backdrop-filter: blur(6px);
+      font: 13px/1.35 Inter, system-ui, sans-serif; }
+    .fp-hud[hidden] { display: none !important; }
+    .fp-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .fp-row span { font-variant-numeric: tabular-nums; color: #cbd5e1; }
+    .fp-help { color: #94a3b8; font-size: 12px; }
+    .fp-btn { background: #1f2937; color: #e5e7eb; border: 1px solid #374151; border-radius: 8px; padding: 6px 10px; cursor: pointer; font: inherit; }
+    .fp-btn:hover, .fp-btn:focus-visible { border-color: #10b981; outline: none; }
   </style>
   <script type="importmap">
     {
@@ -339,6 +352,11 @@
 </head>
 <body>
   <div id="canvas-container"></div>
+  <div class="fp-hud" id="fp-hud" hidden>
+    <div class="fp-row"><strong id="fp-zone">Room 200</strong><span id="fp-dist">0 / 0 m</span><span id="fp-exit"></span></div>
+    <div class="fp-row fp-help">W A S D to walk · drag to look · Shift = faster</div>
+    <div class="fp-row"><button class="fp-btn" id="fp-auto">⏸ Pause auto-walk</button><button class="fp-btn" id="fp-restart">↺ From Room 200</button><button class="fp-btn" id="fp-shake">⚡ Shake here</button><button class="fp-btn" id="fp-leave">✕ Overview</button></div>
+  </div>
 
   <div class="topbar">
     <div class="brand-card">
@@ -354,6 +372,7 @@
       <button class="cam-btn" data-cam="room200">[Room 200 Auditorium]</button>
       <button class="cam-btn" data-cam="breakout">[Breakout Concourse &amp; Jet Engine]</button>
       <button class="cam-btn" data-cam="atrium">[Exhibition Rd Atrium &amp; Glass Sculpture]</button>
+      <button class="cam-btn cam-walk" data-cam="walk">👣 Walk the exit (first person)</button>
     </div>
   </div>
 
@@ -1527,6 +1546,133 @@
       }
     });
 
+
+    // ============================================================================
+    // FIRST-PERSON "WALK THE EXIT": eye-level camera along the main exit route,
+    // with an interior shell (terrazzo floor, walls, ceiling lights, daylight at the exit)
+    // that is shown only in this mode so the overview stays readable.
+    // ============================================================================
+    function terrazzoTexture() {
+      const c = document.createElement('canvas'); c.width = c.height = 512; const g = c.getContext('2d');
+      g.fillStyle = '#8f9290'; g.fillRect(0, 0, 512, 512);
+      for (let i = 0; i < 9000; i++) { const v = Math.random(); g.fillStyle = v < 0.45 ? '#2d3033' : v < 0.8 ? '#d9d9d3' : '#5f6366';
+        const r = Math.random() * 1.8 + 0.4; g.fillRect(Math.random() * 512, Math.random() * 512, r, r); }
+      g.fillStyle = '#2b2d30'; for (let k = 0; k < 5; k++) g.fillRect(40 + k * 97 + (k % 2) * 30, 60 + (k * 131) % 380, 26, 104);
+      const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
+    }
+    function slatTexture(base, gap) {
+      const c = document.createElement('canvas'); c.width = 256; c.height = 64; const g = c.getContext('2d');
+      g.fillStyle = base; g.fillRect(0, 0, 256, 64); g.fillStyle = gap; for (let x = 0; x < 256; x += 16) g.fillRect(x, 0, 3, 64);
+      const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; return t;
+    }
+    const fpShell = new THREE.Group(); fpShell.visible = false; worldGroup.add(fpShell);
+    (function buildShell() {
+      const terr = terrazzoTexture();
+      const floorMat = (w, d) => { const t = terr.clone(); t.needsUpdate = true; t.repeat.set(w / 4, d / 4); return new THREE.MeshStandardMaterial({ map: t, roughness: 0.32, metalness: 0.02 }); };
+      const plaster = new THREE.MeshStandardMaterial({ color: '#eceae5', roughness: 0.92 });
+      const stone = new THREE.MeshStandardMaterial({ color: '#9a9c9e', roughness: 0.75 });
+      const oakTex = slatTexture('#c4935f', '#7a5634'); oakTex.repeat.set(6, 1);
+      const oak = new THREE.MeshStandardMaterial({ map: oakTex, roughness: 0.6 });
+      const glass = new THREE.MeshStandardMaterial({ color: '#cfe6ee', transparent: true, opacity: 0.22, roughness: 0.05, metalness: 0.1, depthWrite: false, side: THREE.DoubleSide });
+      const sky = new THREE.MeshBasicMaterial({ color: '#dfeefa' });
+      const ceilMat = new THREE.MeshStandardMaterial({ color: '#f4f4f2', roughness: 0.95, side: THREE.DoubleSide });
+      const lightMat = new THREE.MeshStandardMaterial({ color: '#ffffff', emissive: '#fff8e7', emissiveIntensity: 2.2 });
+      function slab(x0, x1, z0, z1, y, mat) { const m = new THREE.Mesh(new THREE.BoxGeometry(x1 - x0, 0.04, z1 - z0), mat); m.position.set((x0 + x1) / 2, y, (z0 + z1) / 2); m.receiveShadow = true; fpShell.add(m); return m; }
+      function wall(ax, az, bx, bz, h, mat, y0 = 0) { const L = Math.hypot(bx - ax, bz - az); const m = new THREE.Mesh(new THREE.BoxGeometry(L, h, 0.18), mat);
+        m.position.set((ax + bx) / 2, y0 + h / 2, (az + bz) / 2); m.rotation.y = -Math.atan2(bz - az, bx - ax); m.castShadow = m.receiveShadow = true; fpShell.add(m); return m; }
+      // Zone A: Breakout concourse / spine (x -8..7, z -16..8); Zone B: Exhibition Rd atrium (x 3..23, z -23..-13)
+      slab(-8, 7, -16, 8, 0.012, floorMat(15, 24));
+      slab(3, 23, -23, -13, 0.014, floorMat(20, 10));
+      slab(-8, 7, -16, 8, 4.4, ceilMat); slab(3, 23, -23, -13, 9.0, ceilMat);
+      for (let z = -15; z <= 7; z += 2.2) { const m = new THREE.Mesh(new THREE.BoxGeometry(9, 0.04, 0.12), lightMat); m.position.set(-0.5, 4.36, z); fpShell.add(m); }
+      for (let x = 5; x <= 22; x += 3) { const m = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.04, 8), lightMat); m.position.set(x, 8.96, -18); fpShell.add(m); }
+      // walls (gaps where the route passes: Room 200 west doors at z 5.2-7.2 on x=7; A->B opening x 3..7 at z -16)
+      wall(-8, 8, -8, -16, 4.4, stone);                 // west stone-clad wall
+      wall(-8, 8, 7, 8, 4.4, oak);                      // south oak wall (Room 200 vestibule side)
+      wall(7, 8, 7, 7.2, 4.4, oak); wall(7, 5.2, 7, -13, 4.4, plaster);   // east wall with Room 200 door gap
+      wall(-8, -16, 3, -16, 4.4, plaster);              // north wall of concourse up to the atrium opening
+      wall(3, -16, 3, -23, 9.0, plaster);               // atrium west wall
+      wall(7, -13, 23, -13, 9.0, plaster);              // atrium south wall
+      wall(3, -23, 23, -23, 9.0, glass);                // atrium north glazing
+      wall(23, -13, 23, -15.9, 9.0, glass); wall(23, -18.1, 23, -23, 9.0, glass); wall(23, -15.9, 23, -18.1, 6.4, glass, 2.6); // east facade, door opening
+      const skyN = new THREE.Mesh(new THREE.PlaneGeometry(60, 30), sky); skyN.position.set(13, 10, -30); fpShell.add(skyN);
+      const skyE = new THREE.Mesh(new THREE.PlaneGeometry(40, 30), sky); skyE.position.set(34, 10, -18); skyE.rotation.y = -Math.PI / 2; fpShell.add(skyE);
+      const pave = new THREE.Mesh(new THREE.BoxGeometry(14, 0.1, 30), new THREE.MeshStandardMaterial({ color: '#b9b7b1', roughness: 0.85 })); pave.position.set(30, -0.06, -18); fpShell.add(pave);
+      // oak upper band in the concourse
+      wall(-7.9, 7.9, -7.9, -15.9, 0.9, oak, 3.2);
+      // daylight from the facade
+      const sun = new THREE.PointLight('#fff3df', 60, 40, 1.6); sun.position.set(20, 6, -18); fpShell.add(sun);
+    })();
+
+    const fp = { active: false, auto: true, s: 0, yaw: 0, pitch: -0.04, keys: {}, look: 0, lastT: 0, intro: 0 };
+    const fpHud = document.getElementById('fp-hud');
+    const ROUTE_START = [6.6, 6.2];   // Room 200 west doors (inside the doorway, clear of the raked tiers)
+    function fpPath() { const p = (simState.mode === 'fixed' ? PATH_FIX : PATH_BASE).slice(1); return [ROUTE_START, ...p]; }
+    function pathInfo(path) { const segs = []; let L = 0; for (let i = 0; i < path.length - 1; i++) { const l = Math.hypot(path[i + 1][0] - path[i][0], path[i + 1][1] - path[i][1]); segs.push(l); L += l; } return { segs, L }; }
+    function pointAt(path, s) { const { segs } = pathInfo(path); let acc = 0;
+      for (let i = 0; i < segs.length; i++) { if (s <= acc + segs[i] || i === segs.length - 1) { const u = Math.min(1, Math.max(0, (s - acc) / segs[i])); return [path[i][0] + (path[i + 1][0] - path[i][0]) * u, path[i][1] + (path[i + 1][1] - path[i][1]) * u]; } acc += segs[i]; }
+      return path[path.length - 1]; }
+    function zoneName(x, z) { if (x > 7 && z > -2) return 'Room 200 lecture theatre'; if (z > 3 && x > 1) return 'Room 200 vestibule (banners, cart)'; if (z > -16 && x < 7) return 'Breakout concourse'; if (x < 22) return 'Exhibition Road atrium'; return 'Main exit → Exhibition Road'; }
+    const savedLook = { bg: scene.background.clone(), fogColor: scene.fog.color.clone(), fogDensity: scene.fog.density, exposure: renderer.toneMappingExposure };
+    function enterFP() {
+      fp.active = true; fp.auto = true; fp.s = 0; fp.intro = 2.2; const p0 = fpPath(); fp.yaw = Math.atan2(p0[1][0] - p0[0][0], -(p0[1][1] - p0[0][1]));
+      fp.yaw += Math.PI; fp.pitch = 0.12; controls.enabled = false; camAnim = null; fpShell.visible = true; grid.visible = false;
+      scene.background = new THREE.Color('#cfd6dc'); scene.fog.color.set('#cfd6dc'); scene.fog.density = 0.018; renderer.toneMappingExposure = 1.05;
+      camera.fov = 68; camera.updateProjectionMatrix(); document.body.classList.add('fp'); fpHud.hidden = false; document.getElementById('fp-auto').textContent = '⏸ Pause auto-walk';
+    }
+    function leaveFP(skipCam) {
+      fp.active = false; controls.enabled = true; fpShell.visible = false; grid.visible = true;
+      scene.background = savedLook.bg.clone(); scene.fog.color.copy(savedLook.fogColor); scene.fog.density = savedLook.fogDensity; renderer.toneMappingExposure = savedLook.exposure;
+      camera.fov = 46; camera.updateProjectionMatrix(); document.body.classList.remove('fp'); fpHud.hidden = true;
+      if (skipCam === true) { document.body.classList.remove('fp'); return; }
+      const pr = cameraPresets.macro; camAnim = { startPos: camera.position.clone(), endPos: pr.pos.clone(), startTarget: controls.target.clone(), endTarget: pr.target.clone(), t0: performance.now() };
+      document.querySelectorAll('.cam-btn').forEach((b) => b.classList.toggle('active', b.dataset.cam === 'macro'));
+    }
+    document.querySelector('.cam-btn[data-cam="walk"]').addEventListener('click', (e) => { e.stopPropagation(); enterFP(); });
+    document.querySelectorAll('.cam-btn:not([data-cam="walk"])').forEach((b) => b.addEventListener('click', () => { if (fp.active) leaveFP(true); }));
+    document.getElementById('fp-leave').addEventListener('click', () => leaveFP());
+    document.getElementById('fp-restart').addEventListener('click', () => { fp.s = 0; fp.auto = true; fp.intro = 2.2; document.getElementById('fp-auto').textContent = '⏸ Pause auto-walk'; });
+    document.getElementById('fp-auto').addEventListener('click', (e) => { fp.auto = !fp.auto; e.target.textContent = fp.auto ? '⏸ Pause auto-walk' : '▶ Auto-walk'; });
+    document.getElementById('fp-shake').addEventListener('click', () => document.getElementById('btn-shake').click());
+    window.addEventListener('keydown', (e) => { if (!fp.active) return; fp.keys[e.code] = true; if (['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) { fp.auto = false; document.getElementById('fp-auto').textContent = '▶ Auto-walk'; } if (e.code === 'Escape') leaveFP(); });
+    window.addEventListener('keyup', (e) => { fp.keys[e.code] = false; });
+    let dragging = null;
+    renderer.domElement.addEventListener('pointerdown', (e) => { if (fp.active) dragging = { x: e.clientX, y: e.clientY, yaw: fp.yaw, pitch: fp.pitch }; });
+    window.addEventListener('pointermove', (e) => { if (!fp.active || !dragging) return; fp.yaw = dragging.yaw - (e.clientX - dragging.x) * 0.004; fp.pitch = Math.max(-1.2, Math.min(1.0, dragging.pitch - (e.clientY - dragging.y) * 0.003)); if (fp.auto && Math.abs(e.clientX - dragging.x) > 4) fp.look = 2.5; });
+    window.addEventListener('pointerup', () => { dragging = null; });
+    window.__fp = fp;
+
+    function updateFP(dt, now) {
+      const path = fpPath(), { L } = pathInfo(path);
+      let x, z;
+      if (fp.auto) {
+        if (fp.intro > 0) fp.intro -= dt;
+        else { const near = path.some(([px, pz], i) => i > 0 && i < path.length - 1 && Math.hypot(...pointAt(path, fp.s).map((v, k) => v - (k ? pz : px))) < 1.2);
+          fp.s = Math.min(L, fp.s + dt * (near ? 0.8 : 1.3)); }
+        [x, z] = pointAt(path, fp.s);
+        if (fp.intro <= 0) { const [ax, az] = pointAt(path, Math.min(L, fp.s + 3.2)); const want = Math.atan2(ax - x, -(az - z));
+          if (fp.look > 0) fp.look -= dt; else { let d = want - fp.yaw; d = Math.atan2(Math.sin(d), Math.cos(d)); fp.yaw += d * Math.min(1, dt * 2.6); fp.pitch += (-0.04 - fp.pitch) * Math.min(1, dt * 2); } }
+        fp.pos = [x, z];
+      } else {
+        const sp = (fp.keys.ShiftLeft || fp.keys.ShiftRight ? 2.6 : 1.4) * dt; let [px, pz] = fp.pos || pointAt(path, fp.s);
+        const fx = Math.sin(fp.yaw), fz = -Math.cos(fp.yaw);
+        if (fp.keys.KeyW || fp.keys.ArrowUp) { px += fx * sp; pz += fz * sp; } if (fp.keys.KeyS || fp.keys.ArrowDown) { px -= fx * sp; pz -= fz * sp; }
+        if (fp.keys.KeyA) { px += fz * sp; pz -= fx * sp; } if (fp.keys.KeyD) { px -= fz * sp; pz += fx * sp; }
+        if (fp.keys.ArrowLeft) fp.yaw += 1.6 * dt; if (fp.keys.ArrowRight) fp.yaw -= 1.6 * dt;
+        fp.pos = [px, pz]; [x, z] = fp.pos;
+        let best = 0, bd = 1e9; for (let s = 0; s <= L; s += 0.5) { const [qx, qz] = pointAt(path, s); const d = Math.hypot(qx - x, qz - z); if (d < bd) { bd = d; best = s; } } fp.s = best;
+      }
+      const moving = fp.auto ? fp.intro <= 0 && fp.s < L : ['KeyW', 'KeyS', 'KeyA', 'KeyD', 'ArrowUp', 'ArrowDown'].some(k => fp.keys[k]);
+      const bob = moving ? Math.sin(now * 8.5) * 0.025 : 0;
+      const shakeAmp = simState.isShakingAnim && now - simState.shakeStartTime < 4.2 ? Math.exp(-(now - simState.shakeStartTime) * 0.55) * simState.pga * 0.35 : 0;
+      camera.position.set(x + worldGroup.position.x * 0.2 + Math.sin(now * 31) * shakeAmp * 0.2, 1.65 + bob + Math.sin(now * 27) * shakeAmp * 0.08, z + worldGroup.position.z * 0.2);
+      const dir = new THREE.Vector3(Math.sin(fp.yaw) * Math.cos(fp.pitch), Math.sin(fp.pitch), -Math.cos(fp.yaw) * Math.cos(fp.pitch));
+      camera.lookAt(camera.position.clone().add(dir));
+      document.getElementById('fp-zone').textContent = zoneName(x, z);
+      document.getElementById('fp-dist').textContent = fp.s.toFixed(0) + ' / ' + L.toFixed(0) + ' m to the exit doors';
+      document.getElementById('fp-exit').textContent = simState.mode === 'baseline' ? '' : 'Exit clear in ' + metricPExit.textContent;
+    }
+
     // ============================================================================
     // MAIN RENDER & SYNTHETIC ACCELEROGRAM / PENDULUM ANIMATION LOOP
     // ============================================================================
@@ -1579,7 +1725,8 @@
       // Pulse shelter beacon
       shelterBeacon.material.opacity = 0.14 + Math.sin(now * 3.5) * 0.08;
 
-      controls.update();
+      const dtFP = fp.lastT ? Math.min(0.1, now - fp.lastT) : 0.016; fp.lastT = now;
+      if (fp.active) updateFP(dtFP, now); else controls.update();
       renderer.render(scene, camera);
     }
 
