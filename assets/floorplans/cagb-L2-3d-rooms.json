@@ -1,0 +1,675 @@
+{
+  "_note": "3D Room Footprints & Extrusion Templates for City and Guilds Building Level 2 (CAGB + Skempton wing). Compatible with slava/contracts/room.example.json and assets/floorplans/cagb-L2-graph.json.",
+  "version": "1.0",
+  "conventions": {
+    "units": "metres, kilograms, seconds",
+    "plan_image": "assets/floorplans/cagb-L2.jpg",
+    "plan_image_size_px": [
+      1934,
+      1366
+    ],
+    "plan_px_per_m": 9.52,
+    "wall_inclusive_alt_px_per_m": 11.43,
+    "building_frame": "Right-handed z-up metric frame: origin at bottom-left image corner (u=0, v=1366), X_b = u / plan_px_per_m (East), Y_b = (1366 - v) / plan_px_per_m (North), Z_b = elevation_m (Up).",
+    "room_frame": "Local room z-up frame (MuJoCo): origin at room SW floor corner (u_min, v_max); +x East along wall y0, +y North along wall x0, +z Up.",
+    "threejs_conversion": "position_three = [x_mj, z_mj, -y_mj]; quaternion_three = [qx_mj, qz_mj, -qy_mj, w_mj]"
+  },
+  "rooms": [
+    {
+      "id": "room200",
+      "label": "Room 200 Lecture Theatre (350-seat raked bowl)",
+      "role": "demo_opener_and_evacuation_origin",
+      "bounds_px": [
+        [
+          1352,
+          752
+        ],
+        [
+          1492,
+          874
+        ]
+      ],
+      "full_enclosure_bounds_px": [
+        [
+          1352,
+          752
+        ],
+        [
+          1549,
+          874
+        ]
+      ],
+      "anchor_corner_px": [
+        1352,
+        874
+      ],
+      "anchor_building_m": [
+        142.02,
+        51.68,
+        0
+      ],
+      "room": {
+        "dims_m": {
+          "x": 14.71,
+          "y": 12.82,
+          "z": 4.5
+        },
+        "full_enclosure_dims_m": {
+          "x": 20.69,
+          "y": 12.82,
+          "z": 4.5
+        },
+        "dims_uncertainty_pct": 10,
+        "geometry_type": "raked_lecture_theatre",
+        "tier_slope": {
+          "west_rear_elevation_m": 1.8,
+          "east_stage_elevation_m": 0,
+          "fixed_seating": true
+        }
+      },
+      "doors": [
+        {
+          "id": "door_west_vestibule_north",
+          "wall": "x0",
+          "plan_px": [
+            1352,
+            768
+          ],
+          "offset_m": 11.13,
+          "width_m": 1.89,
+          "connects_to": "breakout"
+        },
+        {
+          "id": "door_west_vestibule_south",
+          "wall": "x0",
+          "plan_px": [
+            1352,
+            795
+          ],
+          "offset_m": 8.3,
+          "width_m": 1.89,
+          "connects_to": "breakout"
+        },
+        {
+          "id": "door_stage_ne",
+          "wall": "ymax",
+          "plan_px": [
+            1485,
+            752
+          ],
+          "offset_m": 13.97,
+          "width_m": 1.5
+        }
+      ],
+      "windows": [
+        {
+          "id": "win_foyer_glazing",
+          "wall": "x0",
+          "offset_m": 6.5,
+          "width_m": 4,
+          "sill_m": 0,
+          "glass": true
+        }
+      ]
+    },
+    {
+      "id": "breakout",
+      "label": "Level 2 Breakout Space (Concourse & Study Alcove)",
+      "role": "primary_physics_deep_dive_and_corridor_hub",
+      "bounds_px": [
+        [
+          1084,
+          796
+        ],
+        [
+          1254,
+          875
+        ]
+      ],
+      "anchor_corner_px": [
+        1084,
+        875
+      ],
+      "anchor_building_m": [
+        113.87,
+        51.58,
+        0
+      ],
+      "room": {
+        "dims_m": {
+          "x": 17.86,
+          "y": 8.3,
+          "z": 2.8
+        },
+        "subbay_sim_dims_m": {
+          "x": 6,
+          "y": 4.5,
+          "z": 2.8
+        },
+        "dims_uncertainty_pct": 12
+      },
+      "doors": [
+        {
+          "id": "opening_east_spine",
+          "wall": "xmax",
+          "plan_px": [
+            1254,
+            828
+          ],
+          "offset_m": 4.94,
+          "width_m": 2.52,
+          "connects_to": "j_corridor_breakout"
+        },
+        {
+          "id": "door_south_room203",
+          "wall": "y0",
+          "plan_px": [
+            1166,
+            875
+          ],
+          "offset_m": 8.61,
+          "width_m": 1.68,
+          "connects_to": "room203"
+        }
+      ],
+      "windows": [
+        {
+          "id": "win_room203_partition",
+          "wall": "y0",
+          "offset_m": 2,
+          "width_m": 6,
+          "sill_m": 0,
+          "glass": true
+        },
+        {
+          "id": "win_west_exterior",
+          "wall": "x0",
+          "offset_m": 1,
+          "width_m": 5.5,
+          "sill_m": 0.9,
+          "glass": true
+        }
+      ]
+    },
+    {
+      "id": "room203",
+      "label": "Room 203 Computer Room",
+      "role": "secondary_physics_deep_dive_candidate",
+      "bounds_px": [
+        [
+          1084,
+          876
+        ],
+        [
+          1254,
+          992
+        ]
+      ],
+      "anchor_corner_px": [
+        1084,
+        992
+      ],
+      "anchor_building_m": [
+        113.87,
+        39.29,
+        0
+      ],
+      "room": {
+        "dims_m": {
+          "x": 17.86,
+          "y": 12.18,
+          "z": 2.7
+        },
+        "subbay_sim_dims_m": {
+          "x": 6.5,
+          "y": 5,
+          "z": 2.7
+        },
+        "dims_uncertainty_pct": 12
+      },
+      "doors": [
+        {
+          "id": "door_north_breakout",
+          "wall": "ymax",
+          "plan_px": [
+            1166,
+            876
+          ],
+          "offset_m": 8.61,
+          "width_m": 1.68,
+          "connects_to": "breakout"
+        },
+        {
+          "id": "door_east_corridor",
+          "wall": "xmax",
+          "plan_px": [
+            1254,
+            933
+          ],
+          "offset_m": 6.2,
+          "width_m": 1.68,
+          "connects_to": "j_corridor_room203"
+        }
+      ],
+      "windows": [
+        {
+          "id": "win_west_facade",
+          "wall": "x0",
+          "offset_m": 1.5,
+          "width_m": 9,
+          "sill_m": 0.9,
+          "glass": true
+        },
+        {
+          "id": "win_north_glazed_wall",
+          "wall": "ymax",
+          "offset_m": 2,
+          "width_m": 6,
+          "sill_m": 0.9,
+          "glass": true
+        }
+      ]
+    },
+    {
+      "id": "foyer_exhibition",
+      "label": "Exhibition Road Main Entrance Hall",
+      "role": "primary_exit_foyer",
+      "bounds_px": [
+        [
+          1360,
+          395
+        ],
+        [
+          1538,
+          508
+        ]
+      ],
+      "anchor_corner_px": [
+        1360,
+        508
+      ],
+      "anchor_building_m": [
+        142.86,
+        90.13,
+        0
+      ],
+      "room": {
+        "dims_m": {
+          "x": 18.7,
+          "y": 11.87,
+          "z": 3.8
+        },
+        "dims_uncertainty_pct": 10
+      },
+      "doors": [
+        {
+          "id": "exit_exhibition_double_doors",
+          "wall": "xmax",
+          "plan_px": [
+            1515,
+            466
+          ],
+          "offset_m": 4.41,
+          "width_m": 2.1,
+          "note": "Primary scale reference (2.10 m clear opening); 6 steps down outside, step-free ramp to south"
+        }
+      ],
+      "windows": []
+    },
+    {
+      "id": "foyer_dalby",
+      "label": "Dalby Court Entrance Lobby & Ramp/Steps",
+      "role": "secondary_exit_lobby",
+      "bounds_px": [
+        [
+          1225,
+          342
+        ],
+        [
+          1395,
+          392
+        ]
+      ],
+      "anchor_corner_px": [
+        1225,
+        392
+      ],
+      "anchor_building_m": [
+        128.68,
+        102.31,
+        0
+      ],
+      "room": {
+        "dims_m": {
+          "x": 17.86,
+          "y": 5.25,
+          "z": 3.2
+        },
+        "dims_uncertainty_pct": 12
+      },
+      "doors": [
+        {
+          "id": "exit_dalby_auto_door",
+          "wall": "x0",
+          "plan_px": [
+            1225,
+            383
+          ],
+          "offset_m": 0.95,
+          "width_m": 1.12,
+          "note": "1.12 m automatic door reached via 1.06 m steep ramp or 10 steps"
+        }
+      ],
+      "windows": []
+    },
+    {
+      "id": "college_cafe",
+      "label": "College Cafe",
+      "role": "north_wing_space",
+      "bounds_px": [
+        [
+          1228,
+          175
+        ],
+        [
+          1345,
+          346
+        ]
+      ],
+      "anchor_corner_px": [
+        1228,
+        346
+      ],
+      "anchor_building_m": [
+        128.99,
+        107.14,
+        0
+      ],
+      "room": {
+        "dims_m": {
+          "x": 12.29,
+          "y": 17.96,
+          "z": 3.2
+        },
+        "dims_uncertainty_pct": 15
+      },
+      "doors": [
+        {
+          "id": "door_cafe_south",
+          "wall": "y0",
+          "plan_px": [
+            1285,
+            346
+          ],
+          "offset_m": 5.99,
+          "width_m": 1.68
+        }
+      ],
+      "windows": []
+    },
+    {
+      "id": "room222",
+      "label": "Room 222 (Skempton East)",
+      "role": "skempton_wing_room",
+      "bounds_px": [
+        [
+          896,
+          876
+        ],
+        [
+          952,
+          972
+        ]
+      ],
+      "anchor_corner_px": [
+        896,
+        972
+      ],
+      "anchor_building_m": [
+        94.12,
+        41.39,
+        0
+      ],
+      "room": {
+        "dims_m": {
+          "x": 5.88,
+          "y": 10.08,
+          "z": 2.7
+        },
+        "dims_uncertainty_pct": 15
+      },
+      "doors": [
+        {
+          "id": "door_222",
+          "wall": "x0",
+          "plan_px": [
+            896,
+            924
+          ],
+          "offset_m": 5.04,
+          "width_m": 0.9
+        }
+      ]
+    },
+    {
+      "id": "room224",
+      "label": "Room 224 (Skempton North)",
+      "role": "skempton_wing_room",
+      "bounds_px": [
+        [
+          750,
+          868
+        ],
+        [
+          822,
+          972
+        ]
+      ],
+      "anchor_corner_px": [
+        750,
+        972
+      ],
+      "anchor_building_m": [
+        78.78,
+        41.39,
+        0
+      ],
+      "room": {
+        "dims_m": {
+          "x": 7.56,
+          "y": 10.92,
+          "z": 2.7
+        },
+        "dims_uncertainty_pct": 15
+      },
+      "doors": [
+        {
+          "id": "door_224",
+          "wall": "xmax",
+          "plan_px": [
+            822,
+            920
+          ],
+          "offset_m": 5.46,
+          "width_m": 0.9
+        }
+      ]
+    },
+    {
+      "id": "room240",
+      "label": "Room 240 (Skempton Central)",
+      "role": "skempton_wing_room",
+      "bounds_px": [
+        [
+          798,
+          976
+        ],
+        [
+          894,
+          1106
+        ]
+      ],
+      "anchor_corner_px": [
+        798,
+        1106
+      ],
+      "anchor_building_m": [
+        83.82,
+        27.31,
+        0
+      ],
+      "room": {
+        "dims_m": {
+          "x": 10.08,
+          "y": 13.66,
+          "z": 2.7
+        },
+        "dims_uncertainty_pct": 15
+      },
+      "doors": [
+        {
+          "id": "door_240",
+          "wall": "y0",
+          "plan_px": [
+            847,
+            1106
+          ],
+          "offset_m": 5.15,
+          "width_m": 1.2
+        }
+      ]
+    },
+    {
+      "id": "room208",
+      "label": "Room 208 (Skempton South)",
+      "role": "skempton_wing_room",
+      "bounds_px": [
+        [
+          704,
+          1154
+        ],
+        [
+          878,
+          1222
+        ]
+      ],
+      "anchor_corner_px": [
+        704,
+        1222
+      ],
+      "anchor_building_m": [
+        73.95,
+        15.13,
+        0
+      ],
+      "room": {
+        "dims_m": {
+          "x": 18.28,
+          "y": 7.14,
+          "z": 2.7
+        },
+        "dims_uncertainty_pct": 15
+      },
+      "doors": [
+        {
+          "id": "door_208",
+          "wall": "ymax",
+          "plan_px": [
+            791,
+            1154
+          ],
+          "offset_m": 9.14,
+          "width_m": 1.2
+        }
+      ]
+    },
+    {
+      "id": "room207",
+      "label": "Room 207 (Skempton South-West)",
+      "role": "skempton_wing_room",
+      "bounds_px": [
+        [
+          616,
+          1159
+        ],
+        [
+          703,
+          1222
+        ]
+      ],
+      "anchor_corner_px": [
+        616,
+        1222
+      ],
+      "anchor_building_m": [
+        64.71,
+        15.13,
+        0
+      ],
+      "room": {
+        "dims_m": {
+          "x": 9.14,
+          "y": 6.62,
+          "z": 2.7
+        },
+        "dims_uncertainty_pct": 15
+      },
+      "doors": [
+        {
+          "id": "door_207",
+          "wall": "ymax",
+          "plan_px": [
+            660,
+            1159
+          ],
+          "offset_m": 4.62,
+          "width_m": 0.9
+        }
+      ]
+    },
+    {
+      "id": "room201",
+      "label": "Room 201 Lecture Theatre (Skempton West)",
+      "role": "skempton_wing_room",
+      "bounds_px": [
+        [
+          296,
+          1106
+        ],
+        [
+          396,
+          1222
+        ]
+      ],
+      "anchor_corner_px": [
+        296,
+        1222
+      ],
+      "anchor_building_m": [
+        31.09,
+        15.13,
+        0
+      ],
+      "room": {
+        "dims_m": {
+          "x": 10.5,
+          "y": 12.18,
+          "z": 3.8
+        },
+        "dims_uncertainty_pct": 15
+      },
+      "doors": [
+        {
+          "id": "door_201",
+          "wall": "xmax",
+          "plan_px": [
+            396,
+            1120
+          ],
+          "offset_m": 10.71,
+          "width_m": 1.5
+        }
+      ]
+    }
+  ]
+}

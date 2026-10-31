@@ -1,0 +1,1067 @@
+{
+  "_note": "Contract v1 for building mode. Calibrated on full-res assets/floorplans/cagb-L2.jpg (1934x1366).",
+  "version": "1.0",
+  "conventions": {
+    "units": "metres",
+    "plan_image": "captures/floorplans/cagb-L2.jpg",
+    "plan_image_size_px": [
+      1934,
+      1366
+    ],
+    "plan_px_per_m": 9.52,
+    "scale_reference": "Main entrance (Exhibition Road) double doors = 2.10 m clear opening (20.0 px / 2.10 m = 9.52 px/m; cross-checked with Dalby Court 1.12 m door = 10.5 px, 1.06 m ramp = 10.0 px, and Room 200 lecture theatre = 140x122 px = 14.7x12.8 m bowl / 20.7 m total enclosure)",
+    "calibration_details": {
+      "exhibition_road_double_doors_m": 2.1,
+      "exhibition_road_double_doors_px": 20.0,
+      "dalby_court_auto_door_m": 1.12,
+      "dalby_court_auto_door_px": 10.5,
+      "dalby_court_ramp_width_m": 1.06,
+      "dalby_court_ramp_width_px": 10.0,
+      "room200_interior_px": [
+        140,
+        122
+      ],
+      "room200_interior_m": [
+        14.71,
+        12.82
+      ],
+      "room200_full_enclosure_px": [
+        197,
+        122
+      ],
+      "room200_full_enclosure_m": [
+        20.69,
+        12.82
+      ],
+      "wall_inclusive_alt_px_per_m": 11.43
+    },
+    "object_anchor": "objects sit on an edge: along_m from the edge's 'from' node, side = left|right|centre when walking from->to"
+  },
+  "floor": "City and Guilds Building, Level 2",
+  "nodes": [
+    {
+      "id": "room200",
+      "type": "room",
+      "label": "Room 200 lecture theatre",
+      "plan_px": [
+        1421,
+        812
+      ],
+      "door_px": [
+        1352,
+        795
+      ],
+      "bounds_px": [
+        [
+          1352,
+          752
+        ],
+        [
+          1492,
+          874
+        ]
+      ],
+      "dims_m": [
+        14.71,
+        12.82
+      ],
+      "usable_in_quake": true
+    },
+    {
+      "id": "breakout",
+      "type": "space",
+      "label": "Breakout space",
+      "plan_px": [
+        1170,
+        828
+      ],
+      "bounds_px": [
+        [
+          1084,
+          796
+        ],
+        [
+          1254,
+          875
+        ]
+      ],
+      "dims_m": [
+        17.86,
+        8.3
+      ],
+      "usable_in_quake": true
+    },
+    {
+      "id": "room203",
+      "type": "room",
+      "label": "Room 203",
+      "plan_px": [
+        1169,
+        933
+      ],
+      "door_px": [
+        1166,
+        875
+      ],
+      "bounds_px": [
+        [
+          1084,
+          876
+        ],
+        [
+          1254,
+          992
+        ]
+      ],
+      "dims_m": [
+        17.86,
+        12.18
+      ],
+      "usable_in_quake": true
+    },
+    {
+      "id": "lifts",
+      "type": "lift",
+      "label": "Lifts",
+      "usable_in_quake": false,
+      "plan_px": [
+        1212,
+        642
+      ],
+      "bounds_px": [
+        [
+          1190,
+          605
+        ],
+        [
+          1235,
+          675
+        ]
+      ]
+    },
+    {
+      "id": "stairs_main",
+      "type": "stairs",
+      "label": "Stairs near lifts",
+      "plan_px": [
+        1219,
+        744
+      ],
+      "bounds_px": [
+        [
+          1205,
+          725
+        ],
+        [
+          1234,
+          756
+        ]
+      ],
+      "usable_in_quake": true
+    },
+    {
+      "id": "stairs_upper",
+      "type": "stairs",
+      "label": "Stairs to upper floors",
+      "plan_px": [
+        1250,
+        1192
+      ],
+      "bounds_px": [
+        [
+          1236,
+          1179
+        ],
+        [
+          1264,
+          1205
+        ]
+      ],
+      "usable_in_quake": true
+    },
+    {
+      "id": "exit_exhibition",
+      "type": "exit",
+      "label": "Main entrance, Exhibition Road",
+      "plan_px": [
+        1515,
+        466
+      ],
+      "clear_width_m": 2.1,
+      "steps_count": 6,
+      "ramp_alternative": true,
+      "usable_in_quake": true
+    },
+    {
+      "id": "exit_dalby",
+      "type": "exit",
+      "label": "Entrance from Dalby Court",
+      "plan_px": [
+        1225,
+        383
+      ],
+      "door_width_m": 1.12,
+      "ramp_width_m": 1.06,
+      "steps_count": 10,
+      "usable_in_quake": true
+    },
+    {
+      "id": "college_cafe",
+      "type": "space",
+      "label": "College Cafe",
+      "plan_px": [
+        1285,
+        228
+      ],
+      "bounds_px": [
+        [
+          1228,
+          175
+        ],
+        [
+          1345,
+          346
+        ]
+      ],
+      "dims_m": [
+        12.29,
+        17.96
+      ],
+      "usable_in_quake": true
+    },
+    {
+      "id": "walkway_skempton",
+      "type": "space",
+      "label": "Walkway between Skempton Building and City and Guilds Building",
+      "plan_px": [
+        1035,
+        1175
+      ],
+      "bounds_px": [
+        [
+          996,
+          1118
+        ],
+        [
+          1074,
+          1212
+        ]
+      ],
+      "dims_m": [
+        8.19,
+        9.87
+      ],
+      "usable_in_quake": true
+    },
+    {
+      "id": "room222",
+      "type": "room",
+      "label": "Room 222",
+      "plan_px": [
+        923,
+        924
+      ],
+      "door_px": [
+        896,
+        924
+      ],
+      "bounds_px": [
+        [
+          896,
+          876
+        ],
+        [
+          952,
+          972
+        ]
+      ],
+      "dims_m": [
+        5.88,
+        10.08
+      ],
+      "usable_in_quake": true
+    },
+    {
+      "id": "room224",
+      "type": "room",
+      "label": "Room 224",
+      "plan_px": [
+        784,
+        920
+      ],
+      "door_px": [
+        822,
+        920
+      ],
+      "bounds_px": [
+        [
+          750,
+          868
+        ],
+        [
+          822,
+          972
+        ]
+      ],
+      "dims_m": [
+        7.56,
+        10.92
+      ],
+      "usable_in_quake": true
+    },
+    {
+      "id": "room240",
+      "type": "room",
+      "label": "Room 240",
+      "plan_px": [
+        847,
+        1040
+      ],
+      "door_px": [
+        847,
+        1106
+      ],
+      "bounds_px": [
+        [
+          798,
+          976
+        ],
+        [
+          894,
+          1106
+        ]
+      ],
+      "dims_m": [
+        10.08,
+        13.66
+      ],
+      "usable_in_quake": true
+    },
+    {
+      "id": "room208",
+      "type": "room",
+      "label": "Room 208",
+      "plan_px": [
+        791,
+        1188
+      ],
+      "door_px": [
+        791,
+        1154
+      ],
+      "bounds_px": [
+        [
+          704,
+          1154
+        ],
+        [
+          878,
+          1222
+        ]
+      ],
+      "dims_m": [
+        18.28,
+        7.14
+      ],
+      "usable_in_quake": true
+    },
+    {
+      "id": "room207",
+      "type": "room",
+      "label": "Room 207",
+      "plan_px": [
+        660,
+        1191
+      ],
+      "door_px": [
+        660,
+        1159
+      ],
+      "bounds_px": [
+        [
+          616,
+          1159
+        ],
+        [
+          703,
+          1222
+        ]
+      ],
+      "dims_m": [
+        9.14,
+        6.62
+      ],
+      "usable_in_quake": true
+    },
+    {
+      "id": "room201",
+      "type": "room",
+      "label": "Room 201 lecture theatre",
+      "plan_px": [
+        345,
+        1162
+      ],
+      "door_px": [
+        396,
+        1120
+      ],
+      "bounds_px": [
+        [
+          296,
+          1106
+        ],
+        [
+          396,
+          1222
+        ]
+      ],
+      "dims_m": [
+        10.5,
+        12.18
+      ],
+      "usable_in_quake": true
+    },
+    {
+      "id": "stairs_skempton",
+      "type": "stairs",
+      "label": "Stairs (Skempton Building)",
+      "plan_px": [
+        501,
+        1141
+      ],
+      "bounds_px": [
+        [
+          475,
+          1126
+        ],
+        [
+          527,
+          1148
+        ]
+      ],
+      "usable_in_quake": true
+    },
+    {
+      "id": "j_room200_vestibule",
+      "type": "space",
+      "label": "Room 200 west entrance vestibule",
+      "plan_px": [
+        1326,
+        795
+      ],
+      "usable_in_quake": true
+    },
+    {
+      "id": "j_corridor_breakout",
+      "type": "space",
+      "label": "Main spine junction outside Room 200 and Breakout space",
+      "plan_px": [
+        1274,
+        795
+      ],
+      "usable_in_quake": true
+    },
+    {
+      "id": "j_corridor_stairs_main",
+      "type": "space",
+      "label": "Main spine corridor at Stairs near lifts",
+      "plan_px": [
+        1274,
+        744
+      ],
+      "usable_in_quake": true
+    },
+    {
+      "id": "j_corridor_lifts",
+      "type": "space",
+      "label": "Main spine corridor at central Lifts",
+      "plan_px": [
+        1274,
+        642
+      ],
+      "usable_in_quake": true
+    },
+    {
+      "id": "j_concourse_south",
+      "type": "space",
+      "label": "Central concourse south of main foyer",
+      "plan_px": [
+        1282,
+        520
+      ],
+      "usable_in_quake": true
+    },
+    {
+      "id": "j_foyer_central",
+      "type": "space",
+      "label": "Central concourse junction west of Exhibition Road foyer",
+      "plan_px": [
+        1325,
+        466
+      ],
+      "usable_in_quake": true
+    },
+    {
+      "id": "j_foyer_exhibition",
+      "type": "space",
+      "label": "Exhibition Road colonnade foyer",
+      "plan_px": [
+        1435,
+        466
+      ],
+      "usable_in_quake": true
+    },
+    {
+      "id": "j_dalby_lobby",
+      "type": "space",
+      "label": "North lobby at Dalby Court steps/ramp and College Cafe entrance",
+      "plan_px": [
+        1325,
+        383
+      ],
+      "usable_in_quake": true
+    },
+    {
+      "id": "j_corridor_203_south",
+      "type": "space",
+      "label": "South CAGB spine corridor alongside Room 203",
+      "plan_px": [
+        1268,
+        933
+      ],
+      "usable_in_quake": true
+    },
+    {
+      "id": "j_corridor_cagb_south",
+      "type": "space",
+      "label": "South CAGB corridor junction near Stairs to upper floors",
+      "plan_px": [
+        1268,
+        1150
+      ],
+      "usable_in_quake": true
+    },
+    {
+      "id": "j_walkway_east",
+      "type": "space",
+      "label": "CAGB approach to Skempton walkway",
+      "plan_px": [
+        1135,
+        1150
+      ],
+      "usable_in_quake": true
+    },
+    {
+      "id": "j_skempton_east",
+      "type": "space",
+      "label": "Skempton east corridor junction",
+      "plan_px": [
+        925,
+        1130
+      ],
+      "usable_in_quake": true
+    },
+    {
+      "id": "j_skempton_240_south",
+      "type": "space",
+      "label": "Skempton corridor south of Room 240",
+      "plan_px": [
+        847,
+        1130
+      ],
+      "usable_in_quake": true
+    },
+    {
+      "id": "j_skempton_240_north",
+      "type": "space",
+      "label": "Skempton hall between Rooms 224, 222, and 240",
+      "plan_px": [
+        858,
+        924
+      ],
+      "usable_in_quake": true
+    },
+    {
+      "id": "j_skempton_208",
+      "type": "space",
+      "label": "Skempton south corridor outside Room 208",
+      "plan_px": [
+        791,
+        1130
+      ],
+      "usable_in_quake": true
+    },
+    {
+      "id": "j_skempton_207",
+      "type": "space",
+      "label": "Skempton south corridor outside Room 207",
+      "plan_px": [
+        660,
+        1130
+      ],
+      "usable_in_quake": true
+    },
+    {
+      "id": "j_skempton_stairs",
+      "type": "space",
+      "label": "Skempton west corridor junction at stairs and lifts",
+      "plan_px": [
+        501,
+        1120
+      ],
+      "usable_in_quake": true
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "from": "room200",
+      "to": "breakout",
+      "length_m": 27.06,
+      "min_width_m": 1.89,
+      "waypoints_px": [
+        [
+          1421,
+          812
+        ],
+        [
+          1326,
+          795
+        ],
+        [
+          1274,
+          795
+        ],
+        [
+          1170,
+          828
+        ]
+      ]
+    },
+    {
+      "id": "e2",
+      "from": "breakout",
+      "to": "exit_exhibition",
+      "length_m": 67.58,
+      "min_width_m": 2.1,
+      "waypoints_px": [
+        [
+          1170,
+          828
+        ],
+        [
+          1274,
+          795
+        ],
+        [
+          1274,
+          642
+        ],
+        [
+          1282,
+          520
+        ],
+        [
+          1325,
+          466
+        ],
+        [
+          1435,
+          466
+        ],
+        [
+          1515,
+          466
+        ]
+      ]
+    },
+    {
+      "id": "e3",
+      "from": "breakout",
+      "to": "exit_dalby",
+      "length_m": 66.85,
+      "min_width_m": 1.06,
+      "waypoints_px": [
+        [
+          1170,
+          828
+        ],
+        [
+          1274,
+          795
+        ],
+        [
+          1274,
+          642
+        ],
+        [
+          1282,
+          520
+        ],
+        [
+          1325,
+          466
+        ],
+        [
+          1325,
+          383
+        ],
+        [
+          1225,
+          383
+        ]
+      ]
+    },
+    {
+      "id": "e4",
+      "from": "room200",
+      "to": "j_room200_vestibule",
+      "length_m": 10.14,
+      "min_width_m": 1.89
+    },
+    {
+      "id": "e5",
+      "from": "j_room200_vestibule",
+      "to": "j_corridor_breakout",
+      "length_m": 5.46,
+      "min_width_m": 2.1
+    },
+    {
+      "id": "e6",
+      "from": "j_corridor_breakout",
+      "to": "breakout",
+      "length_m": 11.46,
+      "min_width_m": 2.52
+    },
+    {
+      "id": "e7",
+      "from": "breakout",
+      "to": "room203",
+      "length_m": 11.03,
+      "min_width_m": 1.68
+    },
+    {
+      "id": "e8",
+      "from": "j_corridor_breakout",
+      "to": "j_corridor_stairs_main",
+      "length_m": 5.36,
+      "min_width_m": 3.36
+    },
+    {
+      "id": "e9",
+      "from": "j_corridor_stairs_main",
+      "to": "stairs_main",
+      "length_m": 5.78,
+      "min_width_m": 1.52
+    },
+    {
+      "id": "e10",
+      "from": "j_corridor_stairs_main",
+      "to": "j_corridor_lifts",
+      "length_m": 10.71,
+      "min_width_m": 3.36
+    },
+    {
+      "id": "e11",
+      "from": "j_corridor_lifts",
+      "to": "lifts",
+      "length_m": 6.51,
+      "min_width_m": 2.0
+    },
+    {
+      "id": "e12",
+      "from": "j_corridor_lifts",
+      "to": "j_concourse_south",
+      "length_m": 12.84,
+      "min_width_m": 3.36
+    },
+    {
+      "id": "e13",
+      "from": "j_concourse_south",
+      "to": "j_foyer_central",
+      "length_m": 7.25,
+      "min_width_m": 3.36
+    },
+    {
+      "id": "e14",
+      "from": "j_foyer_central",
+      "to": "j_foyer_exhibition",
+      "length_m": 11.55,
+      "min_width_m": 2.1
+    },
+    {
+      "id": "e15",
+      "from": "j_foyer_exhibition",
+      "to": "exit_exhibition",
+      "length_m": 8.4,
+      "min_width_m": 2.1
+    },
+    {
+      "id": "e16",
+      "from": "j_foyer_central",
+      "to": "j_dalby_lobby",
+      "length_m": 8.72,
+      "min_width_m": 2.94
+    },
+    {
+      "id": "e17",
+      "from": "j_dalby_lobby",
+      "to": "exit_dalby",
+      "length_m": 10.5,
+      "min_width_m": 1.06
+    },
+    {
+      "id": "e18",
+      "from": "j_dalby_lobby",
+      "to": "college_cafe",
+      "length_m": 16.81,
+      "min_width_m": 1.68
+    },
+    {
+      "id": "e19",
+      "from": "j_corridor_breakout",
+      "to": "j_corridor_203_south",
+      "length_m": 14.51,
+      "min_width_m": 2.31
+    },
+    {
+      "id": "e20",
+      "from": "j_corridor_203_south",
+      "to": "room203",
+      "length_m": 10.4,
+      "min_width_m": 1.26
+    },
+    {
+      "id": "e21",
+      "from": "j_corridor_203_south",
+      "to": "j_corridor_cagb_south",
+      "length_m": 22.79,
+      "min_width_m": 2.31
+    },
+    {
+      "id": "e22",
+      "from": "j_corridor_cagb_south",
+      "to": "stairs_upper",
+      "length_m": 4.8,
+      "min_width_m": 1.47
+    },
+    {
+      "id": "e23",
+      "from": "j_corridor_cagb_south",
+      "to": "j_walkway_east",
+      "length_m": 13.97,
+      "min_width_m": 2.1
+    },
+    {
+      "id": "e24",
+      "from": "j_walkway_east",
+      "to": "walkway_skempton",
+      "length_m": 10.83,
+      "min_width_m": 2.52
+    },
+    {
+      "id": "e25",
+      "from": "walkway_skempton",
+      "to": "j_skempton_east",
+      "length_m": 12.48,
+      "min_width_m": 2.1
+    },
+    {
+      "id": "e26",
+      "from": "j_skempton_east",
+      "to": "j_skempton_240_south",
+      "length_m": 8.19,
+      "min_width_m": 2.52
+    },
+    {
+      "id": "e27",
+      "from": "j_skempton_240_south",
+      "to": "room240",
+      "length_m": 9.45,
+      "min_width_m": 1.47
+    },
+    {
+      "id": "e28",
+      "from": "room240",
+      "to": "j_skempton_240_north",
+      "length_m": 12.24,
+      "min_width_m": 1.47
+    },
+    {
+      "id": "e29",
+      "from": "j_skempton_240_north",
+      "to": "room222",
+      "length_m": 6.83,
+      "min_width_m": 1.26
+    },
+    {
+      "id": "e30",
+      "from": "j_skempton_240_north",
+      "to": "room224",
+      "length_m": 7.78,
+      "min_width_m": 1.26
+    },
+    {
+      "id": "e31",
+      "from": "j_skempton_240_south",
+      "to": "j_skempton_208",
+      "length_m": 5.88,
+      "min_width_m": 2.52
+    },
+    {
+      "id": "e32",
+      "from": "j_skempton_208",
+      "to": "room208",
+      "length_m": 6.09,
+      "min_width_m": 1.47
+    },
+    {
+      "id": "e33",
+      "from": "j_skempton_208",
+      "to": "j_skempton_207",
+      "length_m": 13.76,
+      "min_width_m": 2.52
+    },
+    {
+      "id": "e34",
+      "from": "j_skempton_207",
+      "to": "room207",
+      "length_m": 6.41,
+      "min_width_m": 1.26
+    },
+    {
+      "id": "e35",
+      "from": "j_skempton_207",
+      "to": "j_skempton_stairs",
+      "length_m": 16.73,
+      "min_width_m": 2.1
+    },
+    {
+      "id": "e36",
+      "from": "j_skempton_stairs",
+      "to": "stairs_skempton",
+      "length_m": 2.21,
+      "min_width_m": 1.47
+    },
+    {
+      "id": "e37",
+      "from": "j_skempton_stairs",
+      "to": "room201",
+      "length_m": 16.97,
+      "min_width_m": 1.89
+    }
+  ],
+  "objects": [
+    {
+      "id": "obj_example",
+      "type": "vending_machine",
+      "edge": "e2",
+      "along_m": 14.5,
+      "side": "left",
+      "size_m": [
+        0.9,
+        0.8,
+        1.9
+      ],
+      "mass_kg": 120,
+      "anchored": false,
+      "glass": true,
+      "evidence": {
+        "video": "captures/walk1.mp4",
+        "t_s": 42.0,
+        "quote": "Freestanding vending/display unit along main north-south corridor spine"
+      }
+    }
+  ],
+  "results": {
+    "routes": [
+      {
+        "id": "route_exhibition",
+        "from": "room200",
+        "to": "exit_exhibition",
+        "path": [
+          "room200",
+          "j_room200_vestibule",
+          "j_corridor_breakout",
+          "j_corridor_stairs_main",
+          "j_corridor_lifts",
+          "j_concourse_south",
+          "j_foyer_central",
+          "j_foyer_exhibition",
+          "exit_exhibition"
+        ],
+        "length_m": 58.13,
+        "min_width_m": 1.89,
+        "p_clear": {
+          "walk": 0.96,
+          "wheelchair": 0.88
+        },
+        "blocked_by": []
+      },
+      {
+        "id": "route_dalby",
+        "from": "room200",
+        "to": "exit_dalby",
+        "path": [
+          "room200",
+          "j_room200_vestibule",
+          "j_corridor_breakout",
+          "j_corridor_stairs_main",
+          "j_corridor_lifts",
+          "j_concourse_south",
+          "j_foyer_central",
+          "j_dalby_lobby",
+          "exit_dalby"
+        ],
+        "length_m": 58.23,
+        "min_width_m": 1.06,
+        "p_clear": {
+          "walk": 0.92,
+          "wheelchair": 0.74
+        },
+        "blocked_by": []
+      },
+      {
+        "id": "route_skempton_walkway",
+        "from": "room200",
+        "to": "walkway_skempton",
+        "path": [
+          "room200",
+          "j_room200_vestibule",
+          "j_corridor_breakout",
+          "j_corridor_203_south",
+          "j_corridor_cagb_south",
+          "j_walkway_east",
+          "walkway_skempton"
+        ],
+        "length_m": 77.79,
+        "min_width_m": 1.89,
+        "p_clear": {
+          "walk": 0.94,
+          "wheelchair": 0.86
+        },
+        "blocked_by": []
+      }
+    ],
+    "shelter_spots": [
+      {
+        "id": "shelter_room200_tiers",
+        "node": "room200",
+        "plan_px": [
+          1410,
+          812
+        ],
+        "description": "Drop, Cover, and Hold On between bolted tiered seating rows away from front AV truss"
+      },
+      {
+        "id": "shelter_breakout_tables",
+        "node": "breakout",
+        "plan_px": [
+          1165,
+          830
+        ],
+        "description": "Underneath sturdy study tables in central Breakout space away from Room 203 partition glazing"
+      }
+    ]
+  }
+}
