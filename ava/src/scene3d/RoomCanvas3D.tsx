@@ -622,6 +622,31 @@ function FurnitureItem3D({
           </group>
         )}
 
+        {/* ==================== STANDALONE CAGB FLOOR OBJECTS (BANNERS, TOTEMS, STATUES, BINS) ==================== */}
+        {(obj.category === "heavy_item" || obj.category === "tv_monitor" || obj.category === "fragile_glass") && (
+          <group>
+            <RoundedBox
+              args={[w, h, d]}
+              radius={0.02}
+              smoothness={4}
+              position={[0, h / 2, 0]}
+              castShadow
+              receiveShadow
+            >
+              <meshStandardMaterial
+                color={
+                  obj.category === "tv_monitor"
+                    ? "#0ea5e9"
+                    : isDanger
+                    ? "#dc2626"
+                    : "#f59e0b"
+                }
+                roughness={0.45}
+              />
+            </RoundedBox>
+          </group>
+        )}
+
         {/* Render Stacked Child Items (Heavy Textbooks, Monitors, Fragile Glass) */}
         {childrenItems.map((child) => {
           const levelY =
