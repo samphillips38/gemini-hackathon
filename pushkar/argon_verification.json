@@ -1,0 +1,9 @@
+[
+  {
+    "id": "vending_machine_concourse_1",
+    "exists": true,
+    "side_ok": true,
+    "size_ok": true,
+    "note": "Pre-stage schema ready; waiting for slava/route_A/scene.json & slava/route_A/evidence/ to land on main for full Gemini 4 Argon frame-by-frame object verification."
+  }
+]

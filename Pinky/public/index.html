@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chronicle3D — Living Textbook &amp; 3D Historical World Visualizer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+  <!-- TOP NAVIGATION BAR -->
+  <header class="top-navbar">
+    <div class="brand-cluster">
+      <div class="brand-emblem">📜</div>
+      <div>
+        <h1 class="brand-title">Chronicle<span>3D</span></h1>
+        <p class="brand-tagline">Living Textbook &amp; Interactive Historical World</p>
+      </div>
+    </div>
+
+    <div class="nav-controls">
+      <div class="book-selector-wrapper">
+        <label for="book-preset-select" class="sr-only">Select Textbook</label>
+        <select id="book-preset-select" class="nav-select">
+          <option value="athens">🏛️ The Peloponnesian War &amp; Classical Athens (431 BCE)</option>
+          <option value="revolution">🗽 The French Revolution: Liberty &amp; Republic (1789)</option>
+          <option value="silkroad">🏮 The Silk Road &amp; Tang Dynasty Chang’an (645 CE)</option>
+        </select>
+      </div>
+
+      <button id="open-upload-modal-btn" class="nav-btn accent-outline-btn" type="button">
+        <span>📤</span> Upload Textbook (PDF / TXT)
+      </button>
+
+      <button id="toggle-stage-mode-btn" class="nav-btn primary-gold-btn" type="button">
+        <span class="btn-icon">🌍</span> Open Book into 3D World
+      </button>
+
+      <button id="open-reader-drawer-btn" class="nav-btn" type="button">
+        <span>📖</span> Read Chapters
+      </button>
+
+      <button id="open-journal-btn" class="nav-btn" type="button">
+        <span>🧭</span> Progress <span id="journal-progress-badge" class="badge-pill">0/5 Met</span>
+      </button>
+
+      <button id="toggle-voice-btn" class="nav-btn" type="button">
+        🔈 Voice: OFF
+      </button>
+
+      <button id="open-api-modal-btn" class="nav-btn api-btn" type="button" title="Configure Gemini API Key">
+        <span id="api-status-dot" class="status-dot demo"></span>
+        <span>Gemini 3.8</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN 3D VIEWPORT -->
+  <main class="viewport-wrapper">
+    <div id="canvas-container" class="canvas-stage"></div>
+    <div id="world-label-layer" class="world-label-layer"></div>
+
+    <!-- STAGE 1 HUD: 3D BOOK PEDESTAL INSPECTION -->
+    <section id="book-stage-hud" class="book-stage-hud">
+      <div class="book-info-card glass-panel">
+        <div id="book-hud-era" class="era-pill">Classical Greece (5th Century BCE)</div>
+        <h2 id="book-hud-title">The Peloponnesian War &amp; Classical Athens</h2>
+        <p id="book-hud-subtitle" class="book-subtitle">431–404 BCE • Democracy, Empire &amp; Philosophy</p>
+        <p id="book-hud-synopsis" class="book-synopsis"></p>
+
+        <div class="book-stage-actions">
+          <button id="enter-3d-world-btn" class="hero-cta-btn" type="button">
+            ✨ Open Book &amp; Step Into 3D World
+          </button>
+          <div class="secondary-book-btns">
+            <button id="peek-book-cover-btn" class="secondary-btn" type="button">
+              📘 Open / Close 3D Cover
+            </button>
+            <button id="turn-book-page-btn" class="secondary-btn" type="button">
+              📖 Flip Chapter
+            </button>
+          </div>
+        </div>
+
+        <div class="book-controls-hint">
+          <span>🖱️ <strong>Drag</strong> to rotate 3D book</span>
+          <span>🔍 <strong>Scroll</strong> to zoom</span>
+          <span>⌨️ Press <strong>Space</strong> or <strong>Click Book</strong> to enter world</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- STAGE 1.5 BANNER: CINEMATIC BOOK OPENING INTO WORLD -->
+    <div id="book-opening-banner" class="book-opening-banner hidden">
+      <div class="opening-glow-card">
+        <div class="spinner-ring"></div>
+        <h3>Unfolding the Living Chronicle...</h3>
+        <p>Bringing historical characters and architecture from the pages into 3D space</p>
+      </div>
+    </div>
+
+    <!-- STAGE 2 HUD: 3D WORLD EXPLORATION & CHARACTER ROSTER -->
+    <section id="world-stage-hud" class="world-stage-hud hidden">
+      <!-- Top-Left World Location Banner + Controls -->
+      <div class="world-top-left glass-panel">
+        <div class="world-loc-header">
+          <span class="loc-pin">📍</span>
+          <div>
+            <h3 id="world-location-name">The Athenian Agora &amp; Acropolis Precinct</h3>
+            <p id="world-atmosphere-desc"></p>
+          </div>
+        </div>
+        <div class="controls-bar">
+          <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or <kbd>Arrows</kbd> Walk</span>
+          <span><kbd>Click Ground</kbd> Move</span>
+          <span><kbd>Drag</kbd> Look</span>
+          <span><kbd>E</kbd> / <kbd>Click Figure</kbd> Chat</span>
+          <button id="toggle-pov-btn" class="mini-hud-btn" type="button">🎥 View: 3rd Person</button>
+        </div>
+      </div>
+
+      <!-- Center-Bottom Proximity Interaction Prompt -->
+      <div id="proximity-prompt" class="proximity-prompt hidden">
+        <span class="pulse-ring"></span>
+        <span id="proximity-prompt-text">Press E to Converse</span>
+      </div>
+
+      <!-- Bottom-Left Radar Minimap -->
+      <div class="minimap-panel glass-panel">
+        <canvas id="minimap-canvas" width="148" height="148"></canvas>
+        <div class="minimap-caption">World Compass • Click a figure below to teleport</div>
+      </div>
+
+      <!-- Bottom Character Quick-Teleport Roster -->
+      <div class="character-roster-dock glass-panel">
+        <div class="roster-label">CHARACTERS IN THIS BOOK:</div>
+        <div id="character-roster-bar" class="character-roster-bar"></div>
+      </div>
+    </section>
+
+    <!-- INTERACTIVE HISTORICAL CHARACTER CHAT PANEL -->
+    <aside id="character-chat-panel" class="character-chat-panel glass-panel hidden">
+      <div class="chat-panel-header">
+        <div>
+          <span id="chat-char-faction" class="faction-tag">Athenian Assembly</span>
+          <h3 id="chat-char-name">Pericles of Athens</h3>
+          <p id="chat-char-title" class="char-role-sub">Strategos &amp; Statesman</p>
+        </div>
+        <button id="close-chat-panel-btn" class="icon-close-btn" type="button" aria-label="Close Chat">✕</button>
+      </div>
+
+      <details class="char-dossier-accordion" open>
+        <summary>📜 Historical Dossier &amp; Key Textbook Facts</summary>
+        <div class="dossier-body">
+          <p id="chat-char-bio" class="char-bio-text"></p>
+          <ul id="chat-key-facts-list" class="key-facts-list"></ul>
+        </div>
+      </details>
+
+      <div id="chat-messages" class="chat-messages"></div>
+
+      <div class="suggested-questions-wrap">
+        <div class="suggested-label">Ask about the textbook:</div>
+        <div id="chat-suggested-chips" class="suggested-chips"></div>
+      </div>
+
+      <form id="chat-input-form" class="chat-input-form">
+        <input
+          id="chat-input-field"
+          type="text"
+          placeholder="Ask this historical figure anything about their life or era..."
+          autocomplete="off"
+        />
+        <button type="submit" class="send-chat-btn">Ask</button>
+      </form>
+    </aside>
+  </main>
+
+  <!-- MODAL 1: UPLOAD CUSTOM TEXTBOOK (PDF / TXT / MD) -->
+  <div id="upload-textbook-modal" class="modal-backdrop hidden">
+    <div class="modal-card glass-panel">
+      <div class="modal-header">
+        <h2>📤 Upload a Textbook to Generate a 3D World</h2>
+        <button id="close-upload-modal-btn" class="icon-close-btn" type="button">✕</button>
+      </div>
+      <p class="modal-desc">
+        Upload any history textbook or chapter (<strong>.pdf</strong>, <strong>.txt</strong>, <strong>.md</strong>) or paste an excerpt below. Chronicle3D extracts the book’s characters, chapters, and monuments and builds an interactive 3D book that opens into a navigable 3D world.
+      </p>
+
+      <div id="file-drop-zone" class="file-drop-zone">
+        <input id="textbook-file-input" type="file" accept=".pdf,.txt,.md" hidden />
+        <div class="drop-icon">📚</div>
+        <div class="drop-title">Click or Drag &amp; Drop Textbook File (.PDF, .TXT, .MD)</div>
+        <div id="selected-file-label" class="selected-file-label">No file chosen yet</div>
+      </div>
+
+      <div class="paste-section">
+        <label for="custom-textbook-paste">Or Paste Textbook Chapter / Historical Passage:</label>
+        <textarea
+          id="custom-textbook-paste"
+          rows="5"
+          placeholder="Paste a chapter about Ancient Rome, the Scientific Revolution, the Meiji Restoration, the Civil Rights Movement, or any textbook topic..."
+        ></textarea>
+      </div>
+
+      <div id="upload-status-msg" class="upload-status"></div>
+
+      <div class="modal-actions">
+        <button id="generate-3d-book-btn" class="hero-cta-btn" type="button">
+          ✨ Generate 3D Book &amp; Character World
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: TEXTBOOK CHAPTERS & MONUMENTS READER -->
+  <div id="textbook-reader-modal" class="modal-backdrop hidden">
+    <div class="modal-card reader-modal-card glass-panel">
+      <div class="modal-header">
+        <h2>📖 Textbook Source Reader &amp; Monument Archive</h2>
+        <button id="close-reader-modal-btn" class="icon-close-btn" type="button">✕</button>
+      </div>
+      <div id="reader-chapters-container" class="reader-chapters-container"></div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: GEMINI 3.8 API SETTINGS -->
+  <div id="api-settings-modal" class="modal-backdrop hidden">
+    <div class="modal-card small-modal glass-panel">
+      <div class="modal-header">
+        <h2>⚡ Gemini Interactions API Settings</h2>
+        <button id="close-api-modal-btn" class="icon-close-btn" type="button">✕</button>
+      </div>
+      <p class="modal-desc">
+        Chronicle3D uses the <strong>Gemini Interactions API</strong> (<code>client.interactions.create</code> with <code>gemini-3.8-flash</code> or <code>gemini-4-argon</code>) for multimodal PDF textbook extraction and stateful multi-turn character conversations (<code>previous_interaction_id</code>).
+      </p>
+      <div class="form-field">
+        <label for="gemini-api-key-input">Gemini API Key (Optional — Built-in Engine works offline too):</label>
+        <input
+          id="gemini-api-key-input"
+          type="password"
+          placeholder="AIzaSy..."
+          autocomplete="off"
+        />
+      </div>
+      <div class="form-field">
+        <label for="gemini-model-select">Gemini Model:</label>
+        <select id="gemini-model-select" class="nav-select full-width">
+          <option value="gemini-3.8-flash">gemini-3.8-flash (Fast Multimodal &amp; Character Roleplay)</option>
+          <option value="gemini-4-argon">gemini-4-argon (Deep Historical Reasoning)</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button id="save-api-settings-btn" class="hero-cta-btn" type="button">Save Configuration</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>
