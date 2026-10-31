@@ -490,7 +490,7 @@ function SanctuaryAtmosphere() {
 }
 
 /**
- * Multi-tier Brass & Crystal Chandelier with Dynamic Seismic Sway
+ * Architectural Acoustic Ceiling Panel & Paired Recessed Warm-White LED Downlight Cluster (Matches the Lecture Theatre video)
  */
 function MemoryPalaceChandelier({
   position,
@@ -504,12 +504,12 @@ function MemoryPalaceChandelier({
     if (!ref.current) return;
     const t = clock.getElapsedTime();
     if (isShaking) {
-      ref.current.rotation.z = Math.sin(t * 15 + position[0]) * 0.26;
-      ref.current.rotation.x = Math.cos(t * 13 + position[2]) * 0.2;
+      ref.current.rotation.z = Math.sin(t * 15 + position[0]) * 0.18;
+      ref.current.rotation.x = Math.cos(t * 13 + position[2]) * 0.14;
     } else {
       ref.current.rotation.z = THREE.MathUtils.lerp(
         ref.current.rotation.z,
-        Math.sin(t * 1.1 + position[0]) * 0.012,
+        Math.sin(t * 1.1 + position[0]) * 0.005,
         0.1
       );
       ref.current.rotation.x = THREE.MathUtils.lerp(
@@ -522,44 +522,38 @@ function MemoryPalaceChandelier({
 
   return (
     <group ref={ref} position={position}>
-      <mesh position={[0, -0.3, 0]}>
-        <cylinderGeometry args={[0.012, 0.012, 0.6, 12]} />
-        <meshStandardMaterial color="#d4af37" metalness={0.9} roughness={0.18} />
+      {/* Suspended Matte-White Acoustic Ceiling Raft */}
+      <mesh position={[0, -0.06, 0]}>
+        <boxGeometry args={[1.45, 0.04, 0.85]} />
+        <meshStandardMaterial color="#f5f5f3" roughness={0.65} metalness={0.05} />
       </mesh>
-      <mesh position={[0, -0.6, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[0.38, 0.018, 12, 32]} />
-        <meshStandardMaterial color="#d4af37" metalness={0.92} roughness={0.16} />
-      </mesh>
-      <mesh position={[0, -0.7, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[0.22, 0.014, 12, 24]} />
-        <meshStandardMaterial color="#d4af37" metalness={0.92} roughness={0.16} />
-      </mesh>
-      {[0, 60, 120, 180, 240, 300].map((deg, idx) => {
-        const rad = (deg * Math.PI) / 180;
-        const cx = Math.cos(rad) * 0.38;
-        const cz = Math.sin(rad) * 0.38;
-        return (
-          <group key={idx} position={[cx, -0.56, cz]}>
-            <mesh>
-              <cylinderGeometry args={[0.016, 0.016, 0.09, 10]} />
-              <meshStandardMaterial color="#fffbeb" roughness={0.3} />
-            </mesh>
-            <mesh position={[0, 0.065, 0]}>
-              <sphereGeometry args={[0.026, 10, 10]} />
-              <meshStandardMaterial
-                color="#fef08a"
-                emissive="#f59e0b"
-                emissiveIntensity={2.0}
-              />
-            </mesh>
-          </group>
-        );
-      })}
+      {/* Paired Circular Recessed Warm-White LED Downlights (seen across the ceiling in the video) */}
+      {[
+        [-0.36, -0.18],
+        [-0.14, -0.18],
+        [0.14, 0.18],
+        [0.36, 0.18],
+      ].map(([dx, dz], idx) => (
+        <group key={idx} position={[dx, -0.085, dz]}>
+          <mesh rotation={[Math.PI / 2, 0, 0]}>
+            <ringGeometry args={[0.045, 0.068, 20]} />
+            <meshStandardMaterial color="#cbd5e1" metalness={0.6} roughness={0.3} />
+          </mesh>
+          <mesh position={[0, -0.004, 0]} rotation={[Math.PI / 2, 0, 0]}>
+            <circleGeometry args={[0.045, 20]} />
+            <meshStandardMaterial
+              color="#fffbeb"
+              emissive="#fef08a"
+              emissiveIntensity={2.2}
+            />
+          </mesh>
+        </group>
+      ))}
       <pointLight
-        position={[0, -0.68, 0]}
-        intensity={0.95}
-        distance={8.5}
-        color="#fde68a"
+        position={[0, -0.35, 0]}
+        intensity={1.15}
+        distance={10.5}
+        color="#fffbeb"
       />
     </group>
   );
@@ -960,7 +954,7 @@ function Room1FurnitureMesh({
         </group>
       )}
 
-      {/* WARDROBE (Quarter-Sawn Oak & Walnut Paneled Doors + Brass Handles) */}
+      {/* WARDROBE (Warm Honey-Oak / Beech Veneer Doors + Brushed Stainless Handles) */}
       {obj.category === "wardrobe" && (
         <group>
           <RoundedBox
@@ -971,14 +965,14 @@ function Room1FurnitureMesh({
             receiveShadow
           >
             <meshStandardMaterial
-              map={oakTex}
-              bumpMap={oakBump}
+              map={walnutTex}
+              bumpMap={walnutBump}
               bumpScale={0.025}
-              roughness={0.36}
-              metalness={0.15}
+              roughness={0.38}
+              metalness={0.08}
             />
           </RoundedBox>
-          {/* Recessed Door Panels */}
+          {/* Recessed Timber Veneer Door Panels */}
           {[-obj.width_m * 0.24, obj.width_m * 0.24].map((px, idx) => (
             <RoundedBox
               key={idx}
@@ -1000,18 +994,18 @@ function Room1FurnitureMesh({
               key={i}
               position={[hx, obj.height_m * 0.52, obj.depth_m / 2 + 0.03]}
             >
-              <cylinderGeometry args={[0.012, 0.012, 0.28, 12]} />
+              <cylinderGeometry args={[0.012, 0.012, 0.32, 12]} />
               <meshStandardMaterial
-                color="#d4af37"
-                metalness={0.9}
-                roughness={0.15}
+                color="#e2e8f0"
+                metalness={0.88}
+                roughness={0.18}
               />
             </mesh>
           ))}
         </group>
       )}
 
-      {/* DESK (Quarter-Sawn Oak Top + Brushed Brass Legs + Brushed Steel Monitor & Keyboard) */}
+      {/* DESK (Light-Grey Matte Laminate Bench Top + Dark Charcoal Edge + Silver Aluminum Legs) */}
       {obj.category === "desk" && (
         <group>
           <RoundedBox
@@ -1024,14 +1018,27 @@ function Room1FurnitureMesh({
             <meshStandardMaterial
               map={oakTex}
               bumpMap={oakBump}
-              bumpScale={0.022}
-              roughness={0.32}
-              metalness={0.12}
+              bumpScale={0.018}
+              roughness={0.35}
+              metalness={0.08}
             />
           </RoundedBox>
-          {/* Desk Keyboard & Blotter Mat */}
+          {/* Silver Anodized Modesty Panel (like the lecture benches in the video) */}
+          <mesh
+            position={[0, obj.height_m - 0.22, -obj.depth_m / 2 + 0.04]}
+            castShadow
+          >
+            <boxGeometry args={[obj.width_m - 0.12, 0.38, 0.025]} />
+            <meshStandardMaterial
+              map={steelTex}
+              color="#cbd5e1"
+              roughness={0.4}
+              metalness={0.45}
+            />
+          </mesh>
+          {/* Silver Laptop / Keyboard Mat */}
           <RoundedBox
-            args={[0.52, 0.012, 0.26]}
+            args={[0.38, 0.014, 0.25]}
             radius={0.005}
             position={[0, obj.height_m + 0.035, 0.14]}
             castShadow
@@ -1039,9 +1046,10 @@ function Room1FurnitureMesh({
             <meshStandardMaterial
               map={steelTex}
               bumpMap={steelBump}
-              bumpScale={0.015}
-              roughness={0.35}
-              metalness={0.5}
+              bumpScale={0.012}
+              color="#e2e8f0"
+              roughness={0.28}
+              metalness={0.75}
             />
           </RoundedBox>
           {[
@@ -1053,9 +1061,9 @@ function Room1FurnitureMesh({
             <mesh key={i} position={[lx, obj.height_m / 2, lz]} castShadow>
               <cylinderGeometry args={[0.028, 0.024, obj.height_m, 12]} />
               <meshStandardMaterial
-                color="#d4af37"
-                metalness={0.85}
-                roughness={0.2}
+                color="#94a3b8"
+                metalness={0.75}
+                roughness={0.25}
               />
             </mesh>
           ))}
@@ -1085,9 +1093,9 @@ function Room1FurnitureMesh({
                 <mesh position={[0, 0.24, 0.015]}>
                   <planeGeometry args={[0.5, 0.3]} />
                   <meshStandardMaterial
-                    color="#0284c7"
-                    emissive="#38bdf8"
-                    emissiveIntensity={0.65}
+                    color="#0f172a"
+                    emissive="#1e3a8a"
+                    emissiveIntensity={0.45}
                   />
                 </mesh>
               </group>
@@ -1096,43 +1104,41 @@ function Room1FurnitureMesh({
         </group>
       )}
 
-      {/* CHAIR (Tufted Upholstery + Brushed Steel & Brass Pedestal) */}
+      {/* CHAIR (Imperial Royal Cobalt Blue Woven Fabric Upholstery + Dark Charcoal Pedestal) */}
       {obj.category === "chair" && (
         <group>
           <RoundedBox
-            args={[0.46, 0.06, 0.44]}
-            radius={0.02}
+            args={[0.48, 0.07, 0.46]}
+            radius={0.025}
             position={[0, 0.45, 0]}
             castShadow
           >
             <meshStandardMaterial
               map={velvetTex}
               bumpMap={velvetBump}
-              bumpScale={0.02}
-              color="#334155"
-              roughness={0.5}
+              bumpScale={0.022}
+              roughness={0.55}
             />
           </RoundedBox>
           <RoundedBox
-            args={[0.42, 0.46, 0.05]}
-            radius={0.02}
-            position={[0, 0.7, -0.2]}
+            args={[0.46, 0.48, 0.06]}
+            radius={0.025}
+            position={[0, 0.71, -0.2]}
             castShadow
           >
             <meshStandardMaterial
               map={velvetTex}
               bumpMap={velvetBump}
-              bumpScale={0.02}
-              color="#475569"
-              roughness={0.5}
+              bumpScale={0.022}
+              roughness={0.55}
             />
           </RoundedBox>
           <mesh position={[0, 0.22, 0]} castShadow>
             <cylinderGeometry args={[0.03, 0.03, 0.42, 12]} />
             <meshStandardMaterial
-              color="#d4af37"
-              metalness={0.85}
-              roughness={0.2}
+              color="#334155"
+              metalness={0.75}
+              roughness={0.28}
             />
           </mesh>
         </group>
@@ -1453,6 +1459,7 @@ function ExtraSuiteObjectMesh({
 
       {item.category === "exit_door" && (
         <group>
+          {/* Imperial Royal Cobalt Blue Double Door Leaf (matches 00:00 & 00:06 of the video) */}
           <RoundedBox
             args={[item.w, item.h, item.d]}
             radius={0.02}
@@ -1460,18 +1467,34 @@ function ExtraSuiteObjectMesh({
             castShadow
           >
             <meshStandardMaterial
-              map={steelTex}
-              bumpMap={steelBump}
-              bumpScale={0.02}
-              color="#059669"
-              emissive="#047857"
-              emissiveIntensity={0.65}
-              metalness={0.45}
-              roughness={0.25}
+              map={velvetTex}
+              bumpMap={velvetBump}
+              bumpScale={0.015}
+              color="#25478a"
+              metalness={0.18}
+              roughness={0.38}
             />
           </RoundedBox>
+          {/* Brushed Stainless-Steel Vertical Push/Pull Handle Bar */}
+          <mesh position={[-item.w / 2 - 0.03, item.h * 0.48, 0.18]}>
+            <cylinderGeometry args={[0.018, 0.018, 0.58, 12]} />
+            <meshStandardMaterial
+              color="#e2e8f0"
+              metalness={0.92}
+              roughness={0.15}
+            />
+          </mesh>
+          {/* White Notice Sign on Blue Door ("Filming and photography are taking place") */}
+          <mesh
+            position={[-item.w / 2 - 0.015, item.h * 0.56, -0.28]}
+            rotation={[0, -Math.PI / 2, 0]}
+          >
+            <planeGeometry args={[0.32, 0.44]} />
+            <meshStandardMaterial color="#f8fafc" roughness={0.4} />
+          </mesh>
+          {/* Glowing Green & White Running-Man EXIT Sign Box Above Doorway */}
           <mesh position={[-0.08, item.h + 0.22, 0]}>
-            <boxGeometry args={[0.08, 0.24, 0.75]} />
+            <boxGeometry args={[0.08, 0.24, 0.72]} />
             <meshStandardMaterial
               color="#10b981"
               emissive="#10b981"
@@ -1548,6 +1571,8 @@ function MultiRoomSanctuaryScene({
   const marbleTex = useMemo(() => getProceduralTexture("marble"), []);
   const stoneTex = useMemo(() => getProceduralTexture("stone"), []);
   const stoneBump = useMemo(() => getProceduralBumpMap("stone"), []);
+  const woodTex = useMemo(() => getProceduralTexture("wood"), []);
+  const woodBump = useMemo(() => getProceduralBumpMap("wood"), []);
   const carpetTex = useMemo(() => getProceduralTexture("carpet"), []);
   const cyberTex = useMemo(() => getProceduralTexture("cyber"), []);
 
@@ -1901,22 +1926,22 @@ function MultiRoomSanctuaryScene({
     <group ref={suiteGroupRef}>
       <SanctuaryAtmosphere />
 
-      {/* ==================== CALACATTA MARBLE OUTER PLINTH & GOLD TRIM ==================== */}
+      {/* ==================== ARCHITECTURAL OUTER PLINTH & SILVER STEP EDGING ==================== */}
       <mesh position={[0, -0.14, 0]} receiveShadow>
         <boxGeometry args={[SUITE_W + 1.4, 0.26, SUITE_D + 1.4]} />
         <meshStandardMaterial
           map={marbleTex}
-          roughness={0.22}
-          metalness={0.12}
+          roughness={0.28}
+          metalness={0.1}
         />
       </mesh>
       <mesh position={[0, -0.005, 0]}>
         <boxGeometry args={[SUITE_W + 0.45, 0.03, SUITE_D + 0.45]} />
-        <meshStandardMaterial color="#d4af37" metalness={0.88} roughness={0.2} />
+        <meshStandardMaterial color="#dde2ea" metalness={0.45} roughness={0.25} />
       </mesh>
 
-      {/* ==================== MULTI-ROOM ARCHITECTURAL FLOORS ==================== */}
-      {/* Base Versailles Parquet / Selected Material Floor */}
+      {/* ==================== MULTI-ROOM LECTURE HALL CARPET & TIMBER FLOORS ==================== */}
+      {/* Base Charcoal Loop-Pile Carpet / Selected Material Floor */}
       <mesh
         position={[0, 0.005, 0]}
         rotation={[-Math.PI / 2, 0, 0]}
@@ -1926,23 +1951,30 @@ function MultiRoomSanctuaryScene({
         <meshStandardMaterial
           map={floorTex}
           bumpMap={floorBump}
-          bumpScale={0.015}
-          roughness={floorMaterial === "marble" ? 0.18 : 0.36}
-          metalness={floorMaterial === "cyber" ? 0.45 : 0.08}
+          bumpScale={0.018}
+          roughness={floorMaterial === "marble" ? 0.18 : 0.62}
+          metalness={floorMaterial === "cyber" ? 0.45 : 0.06}
         />
       </mesh>
 
-      {/* Room 2 Damask Sanctuary Carpet Inlay */}
-      <mesh
-        position={[0.0, 0.012, 3.5]}
-        rotation={[-Math.PI / 2, 0, 0]}
-        receiveShadow
-      >
-        <planeGeometry args={[5.2, 4.6]} />
-        <meshStandardMaterial map={carpetTex} roughness={0.65} />
-      </mesh>
+      {/* Room 2 Central Lounge Slate Carpet Tier with Silver-White Step Edging (matches 00:01 of video) */}
+      <group position={[0.0, 0.012, 3.5]}>
+        <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+          <planeGeometry args={[5.4, 4.8]} />
+          <meshStandardMaterial map={carpetTex} roughness={0.68} />
+        </mesh>
+        {/* Crisp Light-Grey Safety Step-Nosing Border */}
+        <mesh position={[0, 0.003, -2.4]} rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[5.44, 0.09]} />
+          <meshStandardMaterial color="#e2e8f0" roughness={0.35} />
+        </mesh>
+        <mesh position={[0, 0.003, 2.4]} rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[5.44, 0.09]} />
+          <meshStandardMaterial color="#e2e8f0" roughness={0.35} />
+        </mesh>
+      </group>
 
-      {/* Room 3 Cyber Lab Matrix Floor Inlay */}
+      {/* Room 3 Research Lab Floor Inlay */}
       <mesh
         position={[6.8, 0.012, 3.5]}
         rotation={[-Math.PI / 2, 0, 0]}
@@ -1950,13 +1982,13 @@ function MultiRoomSanctuaryScene({
       >
         <planeGeometry args={[6.2, 5.6]} />
         <meshStandardMaterial
-          map={cyberTex}
-          roughness={0.28}
-          metalness={0.35}
+          map={carpetTex}
+          roughness={0.58}
+          metalness={0.08}
         />
       </mesh>
 
-      {/* ==================== ASHLAR STONE WALLS & GOLD CROWN MOLDINGS ==================== */}
+      {/* ==================== MATTE OFF-WHITE LECTURE HALL WALLS & HONEY-OAK TIMBER PANELS ==================== */}
       {SUITE_WALLS.map((w) => {
         const dx = w.x2 - w.x1;
         const dz = w.z2 - w.z1;
@@ -1967,63 +1999,126 @@ function MultiRoomSanctuaryScene({
         // Cutaway South exterior wall slightly in dollhouse mode so user can see inside easily
         const isSouthOuter = w.id === "w_south";
         const wallH = isSouthOuter && !walkthroughActive ? 0.55 : WALL_H;
+        // Interior partition & rear walls use the Warm Honey-Oak Acoustic Timber Veneer from the video;
+        // Perimeter walls use the Warm Matte Off-White Painted Plaster with Vertical Pilasters from the video!
+        const isTimberFeatureWall =
+          w.id.startsWith("w_r12") ||
+          w.id.startsWith("w_r23") ||
+          w.id.startsWith("w_mid");
 
         return (
           <group key={w.id} position={[cx, 0, cz]} rotation={[0, -ang, 0]}>
             <mesh position={[0, wallH / 2, 0]} castShadow receiveShadow>
               <boxGeometry args={[len, wallH, w.thickness]} />
               <meshStandardMaterial
-                map={stoneTex}
-                bumpMap={stoneBump}
-                bumpScale={0.02}
-                roughness={0.55}
+                map={isTimberFeatureWall ? woodTex : stoneTex}
+                bumpMap={isTimberFeatureWall ? woodBump : stoneBump}
+                bumpScale={0.018}
+                roughness={isTimberFeatureWall ? 0.42 : 0.62}
               />
             </mesh>
-            {/* Dark Slate Baseboard */}
-            <mesh position={[0, 0.09, 0]}>
-              <boxGeometry args={[len + 0.01, 0.18, w.thickness + 0.03]} />
-              <meshStandardMaterial color="#0f172a" roughness={0.4} />
+            {/* Crisp Light-Grey & Charcoal Architectural Baseboard / Step-Nosing Trim */}
+            <mesh position={[0, 0.07, 0]}>
+              <boxGeometry args={[len + 0.01, 0.14, w.thickness + 0.03]} />
+              <meshStandardMaterial color="#dde2ea" roughness={0.35} />
             </mesh>
-            {/* Brushed Gold Crown Molding */}
+            {/* Clean Matte-White / Silver Ceiling Shadow Reveal Trim */}
             <mesh position={[0, wallH - 0.04, 0]}>
-              <boxGeometry args={[len + 0.02, 0.08, w.thickness + 0.05]} />
+              <boxGeometry args={[len + 0.02, 0.08, w.thickness + 0.04]} />
               <meshStandardMaterial
-                color="#d4af37"
-                metalness={0.85}
-                roughness={0.2}
+                color="#e2e8f0"
+                metalness={0.35}
+                roughness={0.3}
               />
             </mesh>
           </group>
         );
       })}
 
-      {/* ==================== GOLDEN DOORWAY LINTELS & ROOM PORTALS ==================== */}
+      {/* ==================== FRONT-WALL PROJECTION SCREENS & SLIDING WHITEBOARDS (FROM VIDEO 00:02) ==================== */}
+      {[
+        { x: -6.8, z: -6.44, w: 3.6, h: 1.95 },
+        { x: 0.0, z: -6.44, w: 4.2, h: 2.05 },
+      ].map((scr, idx) => (
+        <group key={idx} position={[scr.x, 1.85, scr.z]}>
+          {/* Silver Anodized Aluminum Frame */}
+          <mesh castShadow>
+            <boxGeometry args={[scr.w + 0.12, scr.h + 0.12, 0.04]} />
+            <meshStandardMaterial
+              color="#cbd5e1"
+              metalness={0.75}
+              roughness={0.25}
+            />
+          </mesh>
+          {/* Matte-White Projection / Whiteboard Surface */}
+          <mesh position={[0, 0, 0.025]}>
+            <planeGeometry args={[scr.w, scr.h]} />
+            <meshStandardMaterial
+              color="#f8fafc"
+              emissive="#f1f5f9"
+              emissiveIntensity={0.18}
+              roughness={0.45}
+            />
+          </mesh>
+        </group>
+      ))}
+
+      {/* ==================== HONEY-OAK TIMBER DOORWAY LINTELS, COBALT BLUE DOORS & GREEN EXIT SIGNS ==================== */}
       {DOORWAY_LINTELS.map((dl) => (
         <group
           key={dl.id}
           position={[dl.x, 0, dl.z]}
           rotation={[0, dl.rotY, 0]}
         >
-          {/* Upper Stone & Gold Lintel above doorway */}
+          {/* Upper Honey-Oak Timber Veneer Transom above doorway (matches 00:06 of video) */}
           <mesh position={[0, WALL_H - 0.42, 0]} castShadow>
             <boxGeometry args={[dl.w, 0.84, WALL_T + 0.04]} />
-            <meshStandardMaterial map={stoneTex} roughness={0.5} />
+            <meshStandardMaterial map={woodTex} roughness={0.42} />
           </mesh>
+          {/* Brushed Silver Doorway Header Trim */}
           <mesh position={[0, WALL_H - 0.84, 0]}>
-            <boxGeometry args={[dl.w + 0.08, 0.07, WALL_T + 0.08]} />
+            <boxGeometry args={[dl.w + 0.08, 0.06, WALL_T + 0.08]} />
             <meshStandardMaterial
-              color="#d4af37"
-              metalness={0.9}
-              roughness={0.18}
+              color="#cbd5e1"
+              metalness={0.8}
+              roughness={0.22}
             />
           </mesh>
-          {/* Threshold Gold Plate */}
+          {/* Glowing Green & White Running-Man EXIT Sign Box Above Portal */}
+          <mesh position={[0, WALL_H - 0.58, WALL_T / 2 + 0.04]}>
+            <boxGeometry args={[0.48, 0.18, 0.04]} />
+            <meshStandardMaterial
+              color="#10b981"
+              emissive="#10b981"
+              emissiveIntensity={1.4}
+            />
+          </mesh>
+          {/* Open Imperial Cobalt Blue Door Leaf Pinned Back Against Frame (with Steel Handle) */}
+          <group position={[-dl.w / 2 + 0.06, 0, WALL_T / 2 + 0.36]}>
+            <mesh position={[0, 1.2, 0]} castShadow>
+              <boxGeometry args={[0.06, 2.4, 0.68]} />
+              <meshStandardMaterial
+                color="#25478a"
+                roughness={0.38}
+                metalness={0.15}
+              />
+            </mesh>
+            <mesh position={[0.045, 1.15, 0.2]}>
+              <cylinderGeometry args={[0.012, 0.012, 0.45, 10]} />
+              <meshStandardMaterial
+                color="#e2e8f0"
+                metalness={0.9}
+                roughness={0.15}
+              />
+            </mesh>
+          </group>
+          {/* Crisp Silver-White Safety Step Threshold Strip */}
           <mesh position={[0, 0.014, 0]}>
             <boxGeometry args={[dl.w, 0.015, 0.24]} />
             <meshStandardMaterial
-              color="#d4af37"
-              metalness={0.85}
-              roughness={0.22}
+              color="#dde2ea"
+              metalness={0.45}
+              roughness={0.28}
             />
           </mesh>
         </group>
@@ -2107,7 +2202,7 @@ export default function QuakeRoomCanvas({
   walkthroughActive,
   fullScreen = true,
   titleBadge,
-  floorMaterial = "wood",
+  floorMaterial = "carpet",
   teleportRoomId = null,
   playerResetCounter = 0,
   showItemLabels = false,

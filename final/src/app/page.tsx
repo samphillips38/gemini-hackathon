@@ -99,8 +99,8 @@ export default function SeismicCommandCenter() {
   // Voice label state
   const [voiceLabel, setVoiceLabel] = useState<string>("Natural Neural");
 
-  // Surface material state (from Memory Palace procedural textures)
-  const [floorMaterial, setFloorMaterial] = useState<TextureStyle>("wood");
+  // Surface material state (defaults to lecture theatre charcoal carpet with step nosing)
+  const [floorMaterial, setFloorMaterial] = useState<TextureStyle>("carpet");
 
   // 3D Item Label Popups state (hidden by default; only enabled via Menu or Cmd+P)
   const [showItemLabels, setShowItemLabels] = useState<boolean>(false);

@@ -110,134 +110,147 @@ export function getProceduralTexture(style: TextureStyle): THREE.CanvasTexture {
       }
     }
   } else if (style === 'wood') {
-    // Rich warm walnut / Versailles parquet base
-    ctx.fillStyle = '#4a2e1b';
+    // Warm Honey-Oak / Beech Architectural Timber Veneer Paneling (matches the rear wall of the lecture theatre video)
+    const bgGrad = ctx.createLinearGradient(0, 0, 1024, 0);
+    bgGrad.addColorStop(0, '#b58654');
+    bgGrad.addColorStop(0.5, '#bf9160');
+    bgGrad.addColorStop(1, '#a97948');
+    ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, 1024, 1024);
 
-    const panelSize = 256;
-    const tones = ['#5c3a21', '#4f311c', '#684227', '#54351e', '#613d24'];
+    const panelW = 128;
+    const tones = ['#b88958', '#ad7d4c', '#c29463', '#b18250', '#bc8e5c'];
 
-    for (let py = 0; py < 4; py++) {
-      for (let px = 0; px < 4; px++) {
-        const x0 = px * panelSize;
-        const y0 = py * panelSize;
+    for (let px = 0; px < 8; px++) {
+      const x0 = px * panelW;
+      ctx.fillStyle = tones[px % tones.length];
+      ctx.fillRect(x0 + 2, 0, panelW - 4, 1024);
 
-        // Alternating parquet strips inside each panel
-        const strips = 6;
-        const stripW = panelSize / strips;
-        const evenPanel = (px + py) % 2 === 0;
-
-        for (let s = 0; s < strips; s++) {
-          ctx.fillStyle = tones[(px * 3 + py * 5 + s) % tones.length];
-          if (evenPanel) {
-            ctx.fillRect(x0 + s * stripW, y0, stripW - 1, panelSize);
-          } else {
-            ctx.fillRect(x0, y0 + s * stripW, panelSize, stripW - 1);
-          }
-
-          // Fine wood grain lines
-          ctx.strokeStyle = 'rgba(24, 13, 6, 0.24)';
-          ctx.lineWidth = 1.2;
-          for (let g = 0; g < 5; g++) {
-            ctx.beginPath();
-            if (evenPanel) {
-              const gx = x0 + s * stripW + (g + 1) * (stripW / 6);
-              ctx.moveTo(gx, y0);
-              ctx.bezierCurveTo(
-                gx + 4,
-                y0 + panelSize * 0.33,
-                gx - 4,
-                y0 + panelSize * 0.66,
-                gx,
-                y0 + panelSize
-              );
-            } else {
-              const gy = y0 + s * stripW + (g + 1) * (stripW / 6);
-              ctx.moveTo(x0, gy);
-              ctx.bezierCurveTo(
-                x0 + panelSize * 0.33,
-                gy + 4,
-                x0 + panelSize * 0.66,
-                gy - 4,
-                x0 + panelSize,
-                gy
-              );
-            }
-            ctx.stroke();
-          }
-        }
-
-        // Panel frame border
-        ctx.strokeStyle = 'rgba(28, 16, 8, 0.72)';
-        ctx.lineWidth = 4;
-        ctx.strokeRect(x0 + 2, y0 + 2, panelSize - 4, panelSize - 4);
-
-        // Subtle brass fillet line inside each parquet square
-        ctx.strokeStyle = 'rgba(212, 175, 55, 0.22)';
-        ctx.lineWidth = 1.5;
-        ctx.strokeRect(x0 + 10, y0 + 10, panelSize - 20, panelSize - 20);
+      // Fine vertical beech/oak wood grain lines
+      for (let g = 0; g < 18; g++) {
+        ctx.beginPath();
+        ctx.strokeStyle =
+          g % 4 === 0
+            ? 'rgba(255, 235, 205, 0.14)'
+            : 'rgba(92, 56, 24, 0.18)';
+        ctx.lineWidth = 1 + (g % 3) * 0.6;
+        const gx = x0 + 6 + g * ((panelW - 12) / 18);
+        ctx.moveTo(gx, 0);
+        ctx.bezierCurveTo(
+          gx + 4,
+          340,
+          gx - 4,
+          680,
+          gx,
+          1024
+        );
+        ctx.stroke();
       }
+
+      // Architectural recessed shadow joint between timber veneer panels
+      ctx.strokeStyle = 'rgba(72, 43, 18, 0.55)';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x0, 0);
+      ctx.lineTo(x0, 1024);
+      ctx.stroke();
+    }
+
+    // Horizontal acoustic panel joint
+    ctx.strokeStyle = 'rgba(72, 43, 18, 0.45)';
+    ctx.lineWidth = 3;
+    for (let y = 256; y < 1024; y += 256) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(1024, y);
+      ctx.stroke();
     }
   } else if (style === 'stone') {
-    // Architectural warm limestone / plaster ashlar masonry
-    ctx.fillStyle = '#1e293b';
+    // Warm Matte Off-White / Cream Painted Lecture Theatre Wall with Vertical Architectural Pilasters (from video)
+    const wallGrad = ctx.createLinearGradient(0, 0, 0, 1024);
+    wallGrad.addColorStop(0, '#faf8f2');
+    wallGrad.addColorStop(0.35, '#f2efe7');
+    wallGrad.addColorStop(1, '#e6e2d8');
+    ctx.fillStyle = wallGrad;
     ctx.fillRect(0, 0, 1024, 1024);
 
-    const rows = 8;
-    const rowH = 1024 / rows;
-    const cols = 4;
-    const colW = 1024 / cols;
-    const palette = ['#263449', '#2b3950', '#233044', '#2d3c54'];
-
-    for (let r = 0; r < rows; r++) {
-      const offset = (r % 2) * (colW / 2);
-      for (let c = -1; c <= cols; c++) {
-        const x = c * colW + offset;
-        const y = r * rowH;
-
-        ctx.fillStyle = palette[(r * 3 + c + 4) % palette.length];
-        ctx.fillRect(x + 3, y + 3, colW - 6, rowH - 6);
-
-        // Top-left bevel highlight
-        ctx.strokeStyle = 'rgba(148, 163, 184, 0.16)';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(x + 4, y + rowH - 4);
-        ctx.lineTo(x + 4, y + 4);
-        ctx.lineTo(x + colW - 4, y + 4);
-        ctx.stroke();
-
-        // Bottom-right bevel shadow
-        ctx.strokeStyle = 'rgba(9, 13, 22, 0.55)';
-        ctx.beginPath();
-        ctx.moveTo(x + colW - 4, y + 4);
-        ctx.lineTo(x + colW - 4, y + rowH - 4);
-        ctx.lineTo(x + 4, y + rowH - 4);
-        ctx.stroke();
-      }
+    // Subtle warm ceiling downlight grazing wash cones along the top of the wall
+    for (let sx = 128; sx < 1024; sx += 256) {
+      const cone = ctx.createRadialGradient(sx, 40, 10, sx, 220, 240);
+      cone.addColorStop(0, 'rgba(255, 251, 235, 0.55)');
+      cone.addColorStop(1, 'rgba(255, 251, 235, 0)');
+      ctx.fillStyle = cone;
+      ctx.fillRect(0, 0, 1024, 512);
     }
 
-    // Subtle stone speckle
-    for (let i = 0; i < 1800; i++) {
+    // Vertical architectural pilaster columns & subtle drywall expansion seams
+    const colStep = 256;
+    for (let x = 0; x <= 1024; x += colStep) {
+      // Subtle pilaster relief band
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+      ctx.fillRect(x - 18, 0, 36, 1024);
+
+      ctx.strokeStyle = 'rgba(180, 174, 162, 0.42)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x - 18, 0);
+      ctx.lineTo(x - 18, 1024);
+      ctx.moveTo(x + 18, 0);
+      ctx.lineTo(x + 18, 1024);
+      ctx.stroke();
+    }
+
+    // Fine matte painted plaster micro-stipple
+    for (let i = 0; i < 2200; i++) {
       const x = (i * 613) % 1024;
       const y = (i * 997) % 1024;
       ctx.fillStyle =
-        i % 2 === 0 ? 'rgba(255,255,255,0.035)' : 'rgba(0,0,0,0.05)';
-      ctx.fillRect(x, y, 3, 3);
+        i % 2 === 0 ? 'rgba(255,255,255,0.22)' : 'rgba(160,154,142,0.08)';
+      ctx.fillRect(x, y, 2, 2);
     }
   } else if (style === 'carpet') {
-    // Royal crimson & gold woven tapestry carpet
-    const grad = ctx.createRadialGradient(512, 512, 60, 512, 512, 680);
-    grad.addColorStop(0, '#6b1426');
-    grad.addColorStop(0.7, '#4c0d1b');
-    grad.addColorStop(1, '#330812');
-    ctx.fillStyle = grad;
+    // Charcoal / Slate Commercial Loop-Pile Lecture Theatre Carpet with Crisp Light-Grey Step Edging (from video)
+    ctx.fillStyle = '#545861';
     ctx.fillRect(0, 0, 1024, 1024);
 
-    // Fine woven cross-hatch threads
-    ctx.strokeStyle = 'rgba(212, 175, 55, 0.08)';
-    ctx.lineWidth = 1;
-    for (let i = 0; i < 1024; i += 8) {
+    // Commercial carpet tile grid (256x256 modular tiles with subtle tonal variation)
+    const tileStep = 256;
+    const tileTones = ['#52565f', '#575b64', '#4f535c', '#555962'];
+    for (let ty = 0; ty < 4; ty++) {
+      for (let tx = 0; tx < 4; tx++) {
+        ctx.fillStyle = tileTones[(tx + ty * 3) % tileTones.length];
+        ctx.fillRect(tx * tileStep, ty * tileStep, tileStep, tileStep);
+      }
+    }
+
+    // Fine heavy-duty commercial ribbed loop-pile weave
+    for (let y = 0; y < 1024; y += 4) {
+      ctx.strokeStyle =
+        y % 8 === 0
+          ? 'rgba(255, 255, 255, 0.055)'
+          : 'rgba(20, 22, 27, 0.16)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(1024, y);
+      ctx.stroke();
+    }
+
+    // Pepper/salt heathering flecks characteristic of lecture theatre carpet
+    for (let i = 0; i < 3600; i++) {
+      const fx = (i * 463) % 1024;
+      const fy = (i * 787) % 1024;
+      ctx.fillStyle =
+        i % 3 === 0
+          ? 'rgba(210, 216, 226, 0.09)'
+          : 'rgba(30, 33, 40, 0.12)';
+      ctx.fillRect(fx, fy, 2, 2);
+    }
+
+    // Subtle carpet tile seams
+    ctx.strokeStyle = 'rgba(34, 37, 44, 0.35)';
+    ctx.lineWidth = 2;
+    for (let i = 0; i <= 1024; i += tileStep) {
       ctx.beginPath();
       ctx.moveTo(i, 0);
       ctx.lineTo(i, 1024);
@@ -248,29 +261,13 @@ export function getProceduralTexture(style: TextureStyle): THREE.CanvasTexture {
       ctx.stroke();
     }
 
-    // Double ornate gold border
-    ctx.strokeStyle = 'rgba(212, 175, 55, 0.78)';
-    ctx.lineWidth = 14;
-    ctx.strokeRect(36, 36, 1024 - 72, 1024 - 72);
-
-    ctx.strokeStyle = 'rgba(245, 208, 97, 0.55)';
-    ctx.lineWidth = 4;
-    ctx.strokeRect(64, 64, 1024 - 128, 1024 - 128);
-
-    // Repeating geometric diamond medallions
-    ctx.strokeStyle = 'rgba(212, 175, 55, 0.28)';
-    ctx.lineWidth = 3;
-    for (let y = 160; y < 900; y += 176) {
-      for (let x = 160; x < 900; x += 176) {
-        ctx.beginPath();
-        ctx.moveTo(x, y - 48);
-        ctx.lineTo(x + 48, y);
-        ctx.lineTo(x, y + 48);
-        ctx.lineTo(x - 48, y);
-        ctx.closePath();
-        ctx.stroke();
-      }
-    }
+    // Crisp silver-white / light-grey safety step-nosing & tier border strips seen on the floor in the video
+    ctx.fillStyle = '#dde2ea';
+    ctx.fillRect(0, 0, 1024, 18);
+    ctx.fillRect(0, 504, 1024, 16);
+    ctx.fillStyle = '#363940';
+    ctx.fillRect(0, 18, 1024, 5);
+    ctx.fillRect(0, 520, 1024, 5);
   } else if (style === 'cyber') {
     // High-tech architectural slate with precision glowing grid
     ctx.fillStyle = '#0b1322';
@@ -460,23 +457,17 @@ export function getItemTexture(style: ItemTextureStyle): THREE.CanvasTexture {
   canvas.height = 512;
   const ctx = canvas.getContext('2d')!;
 
-  if (style === 'walnut_wood' || style === 'oak_wood') {
-    const isOak = style === 'oak_wood';
-    const grad = ctx.createLinearGradient(0, 0, 512, 512);
-    if (isOak) {
-      grad.addColorStop(0, '#7c471e');
-      grad.addColorStop(0.5, '#683a16');
-      grad.addColorStop(1, '#854e23');
-    } else {
-      grad.addColorStop(0, '#3e2313');
-      grad.addColorStop(0.5, '#2f190c');
-      grad.addColorStop(1, '#472816');
-    }
+  if (style === 'walnut_wood') {
+    // Warm Honey-Oak / Beech Architectural Veneer (matches the timber paneling & cabinetry in the video)
+    const grad = ctx.createLinearGradient(0, 0, 512, 0);
+    grad.addColorStop(0, '#b68655');
+    grad.addColorStop(0.5, '#c29260');
+    grad.addColorStop(1, '#a57444');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, 512, 512);
 
-    // Plank seams
-    ctx.strokeStyle = 'rgba(15, 8, 3, 0.55)';
+    // Vertical veneer plank seams
+    ctx.strokeStyle = 'rgba(74, 44, 18, 0.48)';
     ctx.lineWidth = 2;
     for (let x = 64; x < 512; x += 64) {
       ctx.beginPath();
@@ -485,75 +476,102 @@ export function getItemTexture(style: ItemTextureStyle): THREE.CanvasTexture {
       ctx.stroke();
     }
 
-    // Organic wood grain waves & knots
+    // Fine natural beech/oak wood grain waves
     for (let i = 0; i < 95; i++) {
       ctx.beginPath();
       ctx.strokeStyle =
         i % 3 === 0
-          ? 'rgba(255, 224, 178, 0.08)'
-          : 'rgba(18, 9, 4, 0.28)';
-      ctx.lineWidth = 1 + (i % 3) * 0.7;
+          ? 'rgba(255, 238, 210, 0.14)'
+          : 'rgba(85, 50, 20, 0.22)';
+      ctx.lineWidth = 1 + (i % 3) * 0.65;
       let gx = (i * 29) % 512;
       ctx.moveTo(gx, 0);
       for (let y = 0; y <= 512; y += 32) {
-        gx += Math.sin(y * 0.025 + i * 0.7) * 4.5;
+        gx += Math.sin(y * 0.025 + i * 0.7) * 3.8;
         ctx.lineTo(gx, y);
       }
       ctx.stroke();
     }
 
-    // Subtle brass border inlay
-    ctx.strokeStyle = 'rgba(212, 175, 55, 0.24)';
-    ctx.lineWidth = 3;
-    ctx.strokeRect(10, 10, 492, 492);
-  } else if (style === 'tufted_velvet') {
-    const grad = ctx.createRadialGradient(256, 256, 30, 256, 256, 360);
-    grad.addColorStop(0, '#881327');
-    grad.addColorStop(0.6, '#690f20');
-    grad.addColorStop(1, '#470914');
+    // Clean modern dark reveal border
+    ctx.strokeStyle = 'rgba(55, 34, 14, 0.45)';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(6, 6, 500, 500);
+  } else if (style === 'oak_wood') {
+    // Light-Grey / Off-White Matte Laminate Lecture Desk Surface with Dark Charcoal PVC Edge-Banding (matches the desks in the video)
+    const grad = ctx.createLinearGradient(0, 0, 512, 512);
+    grad.addColorStop(0, '#e6e9ef');
+    grad.addColorStop(0.5, '#dce1e8');
+    grad.addColorStop(1, '#d3d9e2');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, 512, 512);
 
-    // Diamond velvet tufting grid & deep button dimples
-    const step = 64;
-    ctx.strokeStyle = 'rgba(28, 4, 9, 0.65)';
-    ctx.lineWidth = 2.5;
-    for (let i = -512; i < 1024; i += step) {
+    // Subtle matte laminate micro-pebble grain
+    for (let i = 0; i < 1600; i++) {
+      const lx = (i * 317) % 512;
+      const ly = (i * 643) % 512;
+      ctx.fillStyle =
+        i % 2 === 0
+          ? 'rgba(255, 255, 255, 0.25)'
+          : 'rgba(148, 163, 184, 0.12)';
+      ctx.fillRect(lx, ly, 2, 2);
+    }
+
+    // Cable grommet / modularity seam lines
+    ctx.strokeStyle = 'rgba(100, 116, 139, 0.28)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(256, 0);
+    ctx.lineTo(256, 512);
+    ctx.stroke();
+
+    // Dark charcoal PVC protective edge-banding border seen on the lecture desks
+    ctx.strokeStyle = '#2d333b';
+    ctx.lineWidth = 14;
+    ctx.strokeRect(7, 7, 498, 498);
+  } else if (style === 'tufted_velvet') {
+    // Imperial Royal Cobalt Blue Woven Fabric Upholstery (matches all the blue auditorium seats & blue doors in the video)
+    const grad = ctx.createRadialGradient(256, 256, 30, 256, 256, 360);
+    grad.addColorStop(0, '#2558b8');
+    grad.addColorStop(0.65, '#1d4ba3');
+    grad.addColorStop(1, '#163b82');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 512, 512);
+
+    // Heavy-duty commercial woven upholstery cross-hatch fabric threads
+    for (let i = 0; i < 512; i += 4) {
+      ctx.strokeStyle =
+        i % 8 === 0
+          ? 'rgba(147, 197, 253, 0.12)'
+          : 'rgba(10, 25, 62, 0.22)';
+      ctx.lineWidth = 1.2;
       ctx.beginPath();
       ctx.moveTo(i, 0);
-      ctx.lineTo(i + 512, 512);
+      ctx.lineTo(i, 512);
       ctx.stroke();
 
       ctx.beginPath();
-      ctx.moveTo(i + 512, 0);
-      ctx.lineTo(i, 512);
+      ctx.moveTo(0, i);
+      ctx.lineTo(512, i);
       ctx.stroke();
     }
 
-    for (let y = step / 2; y < 512; y += step) {
-      for (let x = step / 2; x < 512; x += step) {
-        const rad = ctx.createRadialGradient(x, y, 2, x, y, 18);
-        rad.addColorStop(0, 'rgba(20, 3, 7, 0.85)');
-        rad.addColorStop(0.5, 'rgba(255, 190, 200, 0.12)');
-        rad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-        ctx.fillStyle = rad;
-        ctx.beginPath();
-        ctx.arc(x, y, 18, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Gold/brass tuft button
-        ctx.fillStyle = '#d4af37';
-        ctx.beginPath();
-        ctx.arc(x, y, 3.2, 0, Math.PI * 2);
-        ctx.fill();
-      }
+    // Ergonomic cushion contour seams matching the lecture theatre seats
+    ctx.strokeStyle = 'rgba(12, 30, 72, 0.65)';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(18, 18, 476, 476);
+    for (let x = 128; x < 512; x += 128) {
+      ctx.beginPath();
+      ctx.moveTo(x, 18);
+      ctx.lineTo(x, 494);
+      ctx.stroke();
     }
   } else if (style === 'quilted_linen') {
-    ctx.fillStyle = '#f5f3ef';
+    ctx.fillStyle = '#f3f4f6';
     ctx.fillRect(0, 0, 512, 512);
 
     // Woven fabric micro-threads
-    ctx.strokeStyle = 'rgba(203, 213, 225, 0.35)';
+    ctx.strokeStyle = 'rgba(203, 213, 225, 0.38)';
     ctx.lineWidth = 1;
     for (let i = 0; i < 512; i += 6) {
       ctx.beginPath();
@@ -566,27 +584,26 @@ export function getItemTexture(style: ItemTextureStyle): THREE.CanvasTexture {
       ctx.stroke();
     }
 
-    // Soft quilted diamond stitching
-    const step = 48;
-    ctx.strokeStyle = 'rgba(148, 163, 184, 0.45)';
-    ctx.lineWidth = 1.8;
-    ctx.setLineDash([4, 3]);
-    for (let i = -512; i < 1024; i += step) {
+    // Clean modern tailored seam grid
+    const step = 64;
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.42)';
+    ctx.lineWidth = 1.6;
+    for (let i = step; i < 512; i += step) {
       ctx.beginPath();
       ctx.moveTo(i, 0);
-      ctx.lineTo(i + 512, 512);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(i + 512, 0);
       ctx.lineTo(i, 512);
       ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(0, i);
+      ctx.lineTo(512, i);
+      ctx.stroke();
     }
-    ctx.setLineDash([]);
   } else if (style === 'brushed_steel') {
+    // Anthracite Grey & Brushed Anodized Aluminum AV Podium / Tech Console Finish (matches the front lectern & door hardware in the video)
     const grad = ctx.createLinearGradient(0, 0, 512, 512);
-    grad.addColorStop(0, '#1e293b');
-    grad.addColorStop(0.5, '#334155');
-    grad.addColorStop(1, '#0f172a');
+    grad.addColorStop(0, '#686e78');
+    grad.addColorStop(0.5, '#585e68');
+    grad.addColorStop(1, '#484d56');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, 512, 512);
 
@@ -594,24 +611,28 @@ export function getItemTexture(style: ItemTextureStyle): THREE.CanvasTexture {
     for (let y = 0; y < 512; y += 2) {
       ctx.strokeStyle =
         y % 4 === 0
-          ? 'rgba(255, 255, 255, 0.05)'
-          : 'rgba(0, 0, 0, 0.12)';
+          ? 'rgba(255, 255, 255, 0.08)'
+          : 'rgba(15, 23, 42, 0.14)';
       ctx.beginPath();
       ctx.moveTo(0, y);
       ctx.lineTo(512, y);
       ctx.stroke();
     }
 
-    // Modular panel seams & ventilation louvers
-    ctx.strokeStyle = 'rgba(15, 23, 42, 0.85)';
-    ctx.lineWidth = 3;
-    ctx.strokeRect(12, 12, 488, 488);
-    ctx.strokeRect(12, 256, 488, 244);
+    // Brushed silver aluminum outer corner extrusions & dark panel seams (like the AV lectern in the video)
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = 12;
+    ctx.strokeRect(8, 8, 496, 496);
 
-    ctx.fillStyle = 'rgba(56, 189, 248, 0.16)';
-    for (let y = 44; y < 220; y += 22) {
-      ctx.fillRect(48, y, 160, 8);
-      ctx.fillRect(304, y, 160, 8);
+    ctx.strokeStyle = 'rgba(30, 41, 59, 0.75)';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(20, 20, 472, 472);
+    ctx.strokeRect(20, 256, 472, 236);
+
+    ctx.fillStyle = 'rgba(30, 41, 59, 0.45)';
+    for (let y = 48; y < 220; y += 22) {
+      ctx.fillRect(52, y, 156, 7);
+      ctx.fillRect(304, y, 156, 7);
     }
   } else if (style === 'weathered_crate') {
     ctx.fillStyle = '#854d0e';

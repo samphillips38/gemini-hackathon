@@ -238,12 +238,14 @@ function WingScene({
   const W = floorGraph.width_m;
   const D = floorGraph.depth_m;
 
-  // Memory Palace Procedural Textures
+  // Lecture Theatre Procedural Textures
   const marbleTex = useMemo(() => getProceduralTexture("marble"), []);
   const marbleBump = useMemo(() => getProceduralBumpMap("marble"), []);
   const stoneTex = useMemo(() => getProceduralTexture("stone"), []);
   const stoneBump = useMemo(() => getProceduralBumpMap("stone"), []);
   const woodTex = useMemo(() => getProceduralTexture("wood"), []);
+  const carpetTex = useMemo(() => getProceduralTexture("carpet"), []);
+  const carpetBump = useMemo(() => getProceduralBumpMap("carpet"), []);
   const starTex = useMemo(() => getProceduralTexture("stars"), []);
 
   // Rich Procedural Item Surface Textures & Bump Maps
@@ -577,33 +579,39 @@ function WingScene({
         />
       </mesh>
 
-      {/* Calacatta Marble Outer Plinth & Brushed Gold Trim */}
+      {/* Concrete Outer Plinth & Anodized Aluminum Safety Trim */}
       <mesh position={[0, -0.18, 0]} receiveShadow>
         <boxGeometry args={[W + 1.8, 0.32, D + 1.8]} />
         <meshStandardMaterial
           map={marbleTex}
           bumpMap={marbleBump}
           bumpScale={0.015}
-          roughness={0.22}
-          metalness={0.12}
+          roughness={0.55}
+          metalness={0.08}
         />
       </mesh>
       <mesh position={[0, -0.01, 0]}>
         <boxGeometry args={[W + 0.6, 0.04, D + 0.6]} />
-        <meshStandardMaterial color="#d4af37" metalness={0.88} roughness={0.2} />
+        <meshStandardMaterial color="#dde2ea" metalness={0.45} roughness={0.32} />
       </mesh>
 
-      {/* Main Wing Versailles Wood & Calacatta Floor */}
+      {/* Main Wing Lecture Theatre Charcoal Loop-Pile Carpet Floor with Step Edging */}
       <mesh
         position={[0, 0.005, 0]}
         rotation={[-Math.PI / 2, 0, 0]}
         receiveShadow
       >
         <planeGeometry args={[W, D]} />
-        <meshStandardMaterial map={woodTex} roughness={0.32} metalness={0.08} />
+        <meshStandardMaterial
+          map={carpetTex}
+          bumpMap={carpetBump}
+          bumpScale={0.025}
+          roughness={0.82}
+          metalness={0.04}
+        />
       </mesh>
 
-      {/* Extruded Ashlar Stone Walls with Brushed Gold Crown Moldings */}
+      {/* Extruded Lecture Hall Walls (Off-White Plaster & Honey-Oak Veneer) */}
       {floorGraph.walls.map((w: WallSegment, idx: number) => {
         const x1 = w.x1_m - W / 2;
         const z1 = w.z1_m - D / 2;
@@ -616,24 +624,26 @@ function WingScene({
         const cz = (z1 + z2) / 2;
         const ang = Math.atan2(dz, dx);
         const wallH = walkthroughActive ? 3.1 : 2.1;
+        const isInteriorWall = Math.abs(cx) < W * 0.44 && Math.abs(cz) < D * 0.44;
 
         return (
           <group key={idx} position={[cx, 0, cz]} rotation={[0, -ang, 0]}>
             <mesh position={[0, wallH / 2, 0]} castShadow receiveShadow>
               <boxGeometry args={[len, wallH, 0.22]} />
               <meshStandardMaterial
-                map={stoneTex}
+                map={isInteriorWall ? woodTex : stoneTex}
                 bumpMap={stoneBump}
-                bumpScale={0.02}
-                roughness={0.55}
+                bumpScale={0.015}
+                roughness={isInteriorWall ? 0.48 : 0.68}
+                metalness={0.04}
               />
             </mesh>
             <mesh position={[0, wallH - 0.04, 0]}>
               <boxGeometry args={[len + 0.02, 0.08, 0.26]} />
               <meshStandardMaterial
-                color="#d4af37"
-                metalness={0.85}
-                roughness={0.2}
+                color="#e5e9f0"
+                metalness={0.35}
+                roughness={0.35}
               />
             </mesh>
           </group>
