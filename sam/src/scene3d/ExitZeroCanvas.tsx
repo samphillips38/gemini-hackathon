@@ -12,6 +12,14 @@ import {
 } from "@react-three/drei";
 import * as THREE from "three";
 import {
+  FALLBACK_ROUTE_A_SCENE,
+  RouteTwinObject,
+  RouteTwinScene,
+  buildModel as fallbackBuildModel,
+  makeMaterials as fallbackMakeMaterials,
+  toRouteTwinThreeCoords,
+} from "@/scene3d/cagbRouteTwinModels";
+import {
   BuildingFloorGraph,
   LiveHazardEvent,
   EvacuationVerificationResult,
@@ -942,6 +950,112 @@ function BuildingWalkthroughCamera({
   return null;
 }
 
+
+/**
+ * CAGB Route Twin R3F Renderer:
+ * Loads slava/route_A/scene.json and uses buildModel(THREE, obj, mats) / makeMaterials
+ * from slava/viewer/models.js for each object inside the existing R3F Canvas via <primitive object={group} />.
+ * Coordinates: three = [X - 150, Z, -(Y - 80)], rotation.y = -yaw°
+ */
+function CAGBRouteTwinGroup({
+  scene,
+  viewerModule,
+  onSelectObject,
+}: {
+  scene: RouteTwinScene;
+  viewerModule: {
+    makeMaterials?: (T: typeof THREE) => unknown;
+    buildModel?: (T: typeof THREE, obj: RouteTwinObject, mats: unknown) => THREE.Object3D;
+  } | null;
+  onSelectObject?: (obj: RouteTwinObject) => void;
+}) {
+  const mats = useMemo(() => {
+    try {
+      if (viewerModule && typeof viewerModule.makeMaterials === "function") {
+        return viewerModule.makeMaterials(THREE);
+      }
+    } catch {
+      // fallback
+    }
+    return fallbackMakeMaterials(THREE);
+  }, [viewerModule]);
+
+  const builtObjects = useMemo(() => {
+    const list = Array.isArray(scene?.objects) ? scene.objects : [];
+    return list.map((obj) => {
+      let group: THREE.Object3D;
+      try {
+        if (viewerModule && typeof viewerModule.buildModel === "function") {
+          group = viewerModule.buildModel(THREE, obj, mats);
+        } else {
+          group = fallbackBuildModel(
+            THREE,
+            obj,
+            mats as ReturnType<typeof fallbackMakeMaterials>
+          );
+        }
+      } catch {
+        group = fallbackBuildModel(
+          THREE,
+          obj,
+          fallbackMakeMaterials(THREE)
+        );
+      }
+
+      const yawDeg = Number(obj.yaw ?? obj.yaw_deg ?? 0);
+      const { position, rotationY } = toRouteTwinThreeCoords(obj.pos, yawDeg);
+      group.position.set(position[0], position[1], position[2]);
+      group.rotation.y = rotationY;
+      group.userData = { ...obj };
+      return { obj, group, position };
+    });
+  }, [scene, viewerModule, mats]);
+
+  const waypointPoints = useMemo(() => {
+    if (!Array.isArray(scene?.waypoints) || scene.waypoints.length < 2) {
+      return FALLBACK_ROUTE_A_SCENE.waypoints!.map((wp) => {
+        const { position } = toRouteTwinThreeCoords(wp, 0);
+        return [position[0], position[1] + 0.18, position[2]] as [number, number, number];
+      });
+    }
+    return scene.waypoints.map((wp) => {
+      const { position } = toRouteTwinThreeCoords(wp, 0);
+      return [position[0], position[1] + 0.18, position[2]] as [number, number, number];
+    });
+  }, [scene]);
+
+  return (
+    <group name="cagb-route-twin-root">
+      {/* Route A Waypoint Ribbon in [X-150, Z, -(Y-80)] space */}
+      {waypointPoints.length >= 2 && (
+        <AnimatedBuildingRoute points={waypointPoints} color="#10b981" />
+      )}
+
+      {/* Each object from slava/route_A/scene.json rendered via <primitive object={group} /> */}
+      {builtObjects.map(({ obj, group, position }) => (
+        <group
+          key={obj.id}
+          onClick={(e) => {
+            e.stopPropagation();
+            onSelectObject?.(obj);
+          }}
+        >
+          <primitive object={group} />
+          <Text
+            position={[position[0], position[1] + (obj.size_m?.[2] ?? 1.8) + 0.45, position[2]]}
+            fontSize={0.34}
+            color={obj.hazard ? "#fca5a5" : "#a7f3d0"}
+            anchorX="center"
+            anchorY="middle"
+          >
+            {obj.label || obj.id}
+          </Text>
+        </group>
+      ))}
+    </group>
+  );
+}
+
 export default function ExitZeroCanvas({
   floorGraph,
   hazards,
@@ -1038,7 +1152,36 @@ export default function ExitZeroCanvas({
           >
             {quakeActive ? "⚡ ACTIVE 6.8M QUAKE: ON" : "⚡ TRIGGER BUILDING QUAKE"}
           </button>
+          <button
+            onClick={() => setShowRouteTwin((prev) => !prev)}
+            className={`px-2.5 py-1 rounded font-bold text-[11px] transition border ${
+              showRouteTwin
+                ? "bg-emerald-600/30 border-emerald-400 text-emerald-200"
+                : "bg-slate-800 border-slate-600 text-slate-300 hover:bg-slate-700"
+            }`}
+          >
+            {showRouteTwin ? "🧭 CAGB ROUTE TWIN: ON" : "🧭 CAGB ROUTE TWIN"}
+          </button>
         </div>
+        {showRouteTwin && (
+          <div className="text-[11px] text-emerald-300 font-mono">
+            slava/route_A/scene.json ({routeTwinScene.objects.length} objs • 9.52 px/m • [X−150, Z, −(Y−80)], rot.y=−yaw°) [{routeTwinSource}]
+          </div>
+        )}
+        {showRouteTwin && selectedTwinObj && (
+          <div className="mt-1 p-2 rounded bg-slate-950/90 border border-emerald-500/40 text-[11px] space-y-1">
+            <div className="flex items-center justify-between">
+              <strong className="text-emerald-300">{selectedTwinObj.label || selectedTwinObj.id}</strong>
+              <span className="text-slate-400 font-mono">model: {selectedTwinObj.model || selectedTwinObj.type}</span>
+            </div>
+            <div className="text-slate-300">
+              pos={JSON.stringify(selectedTwinObj.pos)} • yaw={selectedTwinObj.yaw ?? selectedTwinObj.yaw_deg ?? 0}° • mass={selectedTwinObj.mass_kg ?? "?"}kg • {selectedTwinObj.anchored ? "Anchored" : "Unanchored"}
+            </div>
+            {selectedTwinObj.evidence?.quote && (
+              <div className="text-amber-300 italic">"{selectedTwinObj.evidence.quote}" (t={selectedTwinObj.evidence.t_s ?? 0}s)</div>
+            )}
+          </div>
+        )}
 
         <div className="flex flex-wrap gap-2 text-[11px] text-slate-300">
           <span>
@@ -1166,6 +1309,18 @@ export default function ExitZeroCanvas({
           args={[Math.max(width_m, depth_m), 36, "#1e293b", "#0f172a"]}
           position={[0, 0.02, 0]}
         />
+
+        {/* Slava CAGB Route Twin Objects rendered via <primitive object={group} /> */}
+        {showRouteTwin && (
+          <CAGBRouteTwinGroup
+            scene={routeTwinScene}
+            viewerModule={slavaViewerModule}
+            onSelectObject={(obj) => {
+              setSelectedTwinObj(obj);
+              onSelectRouteTwinObject?.(obj);
+            }}
+          />
+        )}
 
         {/* Complete 3D Room Interiors (Lecture Theatre, Robotics Lab, Breakout & Refuge R2, Lifts, Exits) */}
         <BuildingRoomInteriors

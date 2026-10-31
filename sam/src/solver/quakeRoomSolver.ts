@@ -632,12 +632,12 @@ export function runMonteCarloQuakeSimulation(
  * Stage 1 -> Stage 2 Coordinate Converter (Slava RECONSTRUCTION_PLAN.md)
  * Converts CAGB Level 2 floorplan pixels (u, v) on cagb-L2.jpg (1934x1366)
  * into right-handed Building Metric coordinates (X_b, Y_b) using
- * AccessAble scale reference (2.10m Exhibition Rd doors = 24px -> 11.43 px/m).
+ * AccessAble scale reference (2.10m Exhibition Rd doors = 24px -> 9.52 px/m).
  */
 export function floorplanPxToBuildingMetric(
   u_px: number,
   v_px: number,
-  planPxPerM = 11.43,
+  planPxPerM = 9.52,
   imageHeightPx = 1366
 ): { x_m: number; y_m: number } {
   return {

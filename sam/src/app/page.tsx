@@ -131,6 +131,7 @@ export default function SeismicCommandCenter() {
   >("walking_running");
   const [askedForLift, setAskedForLift] = useState(true);
   const [buildingWalkthrough, setBuildingWalkthrough] = useState(false);
+  const [routeTwinMode, setRouteTwinMode] = useState(true);
   const [planCVoiceText, setPlanCVoiceText] = useState(
     "I'm outside Lecture Theatre 1 (Room 302)! The main east corridor just collapsed—what's the fastest route to the lift?!"
   );
@@ -394,7 +395,10 @@ export default function SeismicCommandCenter() {
             Plan B: QuakeRoom (3D Room Collapse & Fix)
           </button>
           <button
-            onClick={() => setActivePlan("PLAN_C")}
+            onClick={() => {
+              setActivePlan("PLAN_C");
+              setRouteTwinMode(false);
+            }}
             className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
               activePlan === "PLAN_C"
                 ? "bg-cyan-500 text-slate-950 shadow-md"
@@ -403,6 +407,20 @@ export default function SeismicCommandCenter() {
           >
             <Building2 className="h-4 w-4" />
             Plan C: ExitZero (3D Floor-Plan Evacuation Twin)
+          </button>
+          <button
+            onClick={() => {
+              setActivePlan("PLAN_C");
+              setRouteTwinMode(true);
+            }}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
+              activePlan === "PLAN_C" && routeTwinMode
+                ? "bg-amber-400 text-slate-950 shadow-md"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <Compass className="h-4 w-4" />
+            CAGB Route Twin (slava/route_A)
           </button>
         </div>
       </header>
@@ -1129,7 +1147,7 @@ export default function SeismicCommandCenter() {
                     CAGB Level 2 Venue & Routes A–D
                   </div>
                   <div className="text-[11px] text-slate-400">
-                    Scale Lock (<code className="text-cyan-300">11.43 px/m</code>): Exhibition Rd ={" "}
+                    Scale Lock (<code className="text-cyan-300">9.52 px/m</code>): Exhibition Rd ={" "}
                     <strong className="text-emerald-300">2.10m</strong>; Dalby Ct ={" "}
                     <strong className="text-amber-300">1.12m</strong>
                   </div>
