@@ -710,19 +710,102 @@ export default function SeismicCommandCenter() {
               )}
             </div>
 
-            {/* Deterministic Physics & A* Pathfinder Telemetry Cards */}
+            {/* Deterministic Physics, N=50 Monte Carlo & A* Pathfinder Telemetry Cards */}
             <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4 space-y-3">
+              {/* 2-Phase Official Seismic Safety Protocol Banner (Slava + Ana Spec) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                <div className="p-2.5 rounded-lg bg-cyan-950/30 border border-cyan-500/30 flex items-center justify-between text-xs">
+                  <div>
+                    <span className="font-bold text-cyan-300 uppercase tracking-wider text-[10px] block">
+                      Phase 1 — DURING Shaking (Do Not Run to Door)
+                    </span>
+                    <span className="text-slate-200 font-medium">
+                      {currentEvaluation.safe_shelter_spot_m?.label ||
+                        "Drop, Cover & Hold On Under Study Desk"}
+                    </span>
+                  </div>
+                  <span className="px-2 py-1 rounded bg-cyan-500/20 text-cyan-300 font-bold whitespace-nowrap">
+                    {currentEvaluation.shelter_reach_time_s}s reach
+                  </span>
+                </div>
+
+                <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-between text-xs">
+                  <div>
+                    <span className="font-bold text-emerald-300 uppercase tracking-wider text-[10px] block">
+                      Phase 2 — AFTER Shaking Stops (Post-Collapse A* Egress)
+                    </span>
+                    <span className="text-slate-300">
+                      Walk (0.4m):{" "}
+                      <strong
+                        className={
+                          currentEvaluation.exit_reachable_post_quake
+                            ? "text-emerald-400"
+                            : "text-rose-400"
+                        }
+                      >
+                        {currentEvaluation.exit_reachable_post_quake
+                          ? "CLEAR"
+                          : "BLOCKED"}
+                      </strong>{" "}
+                      | Wheelchair (0.9m):{" "}
+                      <strong
+                        className={
+                          currentEvaluation.wheelchair_reachable_post_quake
+                            ? "text-emerald-400"
+                            : "text-rose-400"
+                        }
+                      >
+                        {currentEvaluation.wheelchair_reachable_post_quake
+                          ? "CLEAR"
+                          : "BLOCKED"}
+                      </strong>
+                    </span>
+                  </div>
+                  {currentEvaluation.monte_carlo && (
+                    <div className="text-right">
+                      <span className="text-[10px] text-slate-400 block">
+                        N={currentEvaluation.monte_carlo.runs} Monte Carlo (Seed{" "}
+                        {currentEvaluation.monte_carlo.seed})
+                      </span>
+                      <span className="font-bold text-amber-300">
+                        Walk:{" "}
+                        {Math.round(
+                          currentEvaluation.monte_carlo.exit_reachable_p.walk *
+                            100
+                        )}
+                        % ({currentEvaluation.monte_carlo.exit_clear_walk_count}/
+                        {currentEvaluation.monte_carlo.runs})
+                        {splitScreenCompare &&
+                          remediatedEvaluation.monte_carlo && (
+                            <span className="text-emerald-400 ml-1">
+                              →{" "}
+                              {Math.round(
+                                remediatedEvaluation.monte_carlo
+                                  .exit_reachable_p.walk * 100
+                              )}
+                              %
+                            </span>
+                          )}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
                   Deterministic Housner Overturning ($SF = (b/h_&#123;\text&#123;CoM&#125;&#125;)/(a_&#123;\text&#123;floor&#125;&#125;/g)$) & Post-Collapse A* Egress Telemetry
                 </h3>
                 <div className="flex items-center gap-3 text-xs">
-                  <span className="text-slate-400">
-                    Safe Shelter Reach:{" "}
-                    <strong className="text-emerald-400">
-                      {currentEvaluation.shelter_reach_time_s}s (Under Desk)
-                    </strong>
-                  </span>
+                  {currentEvaluation.monte_carlo && (
+                    <span className="text-slate-400">
+                      PGA Ensemble:{" "}
+                      <strong className="text-cyan-300">
+                        {currentEvaluation.monte_carlo.pga_g_range[0]}g–
+                        {currentEvaluation.monte_carlo.pga_g_range[1]}g
+                      </strong>
+                    </span>
+                  )}
                   <span
                     className={`px-2.5 py-0.5 rounded font-bold ${
                       currentEvaluation.exit_reachable_post_quake
@@ -1019,13 +1102,62 @@ export default function SeismicCommandCenter() {
 
           {/* RIGHT 3D BUILDING TWIN COLUMN (8 COLS) */}
           <div className="lg:col-span-8 flex flex-col gap-4">
-            <div className="flex-1 min-h-[520px]">
+            <div className="flex-1 min-h-[460px]">
               <ExitZeroCanvas
                 floorGraph={floorGraph}
                 hazards={liveHazards}
                 verification={evacuationResult}
                 walkthroughActive={buildingWalkthrough}
               />
+            </div>
+
+            {/* Official CAGB Level 2 Floorplan Calibration + Video Evidence & Macro-to-Micro Bridge */}
+            <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4 grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+              <div className="md:col-span-4 flex items-center gap-3">
+                <img
+                  src="/floorplans/cagb-L2-preview.jpg"
+                  alt="Imperial CAGB Level 2 Official Map"
+                  className="h-20 w-28 object-cover rounded-lg border border-slate-700 bg-slate-950"
+                />
+                <div className="text-xs space-y-1">
+                  <div className="font-bold text-white">
+                    CAGB Level 2 Venue Map
+                  </div>
+                  <div className="text-[11px] text-slate-400">
+                    Scale Lock: Exhibition Rd Double Doors ={" "}
+                    <strong className="text-emerald-300">2.10m clear</strong>;
+                    Dalby Court = <strong className="text-amber-300">1.12m</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div className="md:col-span-5 text-xs space-y-1 bg-slate-950 p-3 rounded-lg border border-slate-800">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-rose-400">
+                    Multimodal Video Hazard Evidence
+                  </span>
+                  {liveHazards[0]?.video_evidence && (
+                    <span className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-mono text-[10px]">
+                      {liveHazards[0].video_evidence.video_file} @ t=
+                      {liveHazards[0].video_evidence.timestamp_s}s
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-slate-300">
+                  {liveHazards[0]?.video_evidence?.quote ||
+                    liveHazards[0]?.description}
+                </p>
+              </div>
+
+              <div className="md:col-span-3 flex flex-col gap-2">
+                <button
+                  onClick={() => setActivePlan("PLAN_B")}
+                  className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-bold text-xs shadow-md flex items-center justify-center gap-1.5 transition"
+                >
+                  <Layers className="h-4 w-4" />
+                  Zoom Inside Room 3D Shake Table →
+                </button>
+              </div>
             </div>
           </div>
         </main>

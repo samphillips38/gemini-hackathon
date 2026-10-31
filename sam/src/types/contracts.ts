@@ -67,9 +67,25 @@ export interface ObjectHazardResult {
   resting_bbox_2d: { min_x: number; max_x: number; min_z: number; max_z: number };
 }
 
+export type MobilityClearanceMode = "walk" | "wheelchair";
+
+export interface MonteCarloQuakeSummary {
+  runs: number; // e.g., 50 simulated quakes
+  seed: number; // e.g., 42
+  pga_g_range: [number, number]; // e.g., [0.3, 0.5] scaled by floor amplification
+  exit_clear_walk_count: number; // 0.4m clearance
+  exit_clear_wheelchair_count: number; // 0.9m clearance
+  exit_reachable_p: {
+    walk: number; // Probability [0..1]
+    wheelchair: number; // Probability [0..1]
+  };
+  top_blocking_objects: Array<{ id: string; block_rate: number }>;
+}
+
 export interface EgressAndShelterResult {
   survivable: boolean;
   exit_reachable_post_quake: boolean;
+  wheelchair_reachable_post_quake?: boolean;
   // Shortest A* path (0.2m grid cells) from occupant_start to exit_door AFTER furniture collapses
   escape_path_points_m: Array<{ x_m: number; z_m: number }>;
   // Shortest A* path from occupant_start to safe shelter spot
@@ -80,6 +96,8 @@ export interface EgressAndShelterResult {
   blocking_object_ids: string[];
   glass_hazard_zones_m: Array<{ x_m: number; z_m: number; radius_m: number }>;
   object_results: ObjectHazardResult[];
+  // N=50 Monte Carlo seismic ensemble verification (from Slava + Ana synthesis)
+  monte_carlo?: MonteCarloQuakeSummary;
 }
 
 export interface RemediationProposal {
@@ -153,6 +171,11 @@ export interface LiveHazardEvent {
   severity: "blocked" | "slow_crawl";
   detected_from: "live_camera" | "voice_report";
   description: string;
+  video_evidence?: {
+    video_file: string;
+    timestamp_s: number;
+    quote: string;
+  };
 }
 
 export interface EvacuationVerificationResult {

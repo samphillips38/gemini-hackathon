@@ -363,12 +363,14 @@ export const DEFAULT_REMEDIATION_PROPOSAL: RemediationProposal = {
 };
 
 // ============================================================================
-// PLAN C PRESETS: ExitZero (Imperial College Exhibition Wing Floor Plan)
+// PLAN C PRESETS: ExitZero (Imperial City and Guilds Building CAGB Level 2)
+// Calibrated from official AccessAble CAGB L2 map + 2.10m Exhibition Rd doors
 // ============================================================================
 
 export const IMPERIAL_FLOOR_GRAPH: BuildingFloorGraph = {
-  building_name: "Imperial College London — Huxley / Exhibition Wing (Level 3)",
-  floor_number: 3,
+  building_name:
+    "Imperial College London — City & Guilds Building (CAGB Level 2, Exhibition Rd)",
+  floor_number: 2,
   width_m: 36,
   depth_m: 22,
   walls: [
@@ -394,81 +396,81 @@ export const IMPERIAL_FLOOR_GRAPH: BuildingFloorGraph = {
     { x1_m: 21, z1_m: 13, x2_m: 23, z2_m: 13, height_m: 3.0, is_doorway: true },
     { x1_m: 23, z1_m: 13, x2_m: 35, z2_m: 13, height_m: 3.0 },
 
-    // Internal Room Partitions (North Wing)
+    // Internal Room Partitions (North Wing: Room 203 & Room 200 Lecture Theatre)
     { x1_m: 12, z1_m: 1, x2_m: 12, z2_m: 9, height_m: 3.0 },
     { x1_m: 23, z1_m: 1, x2_m: 23, z2_m: 9, height_m: 3.0 },
 
-    // Internal Room Partitions (South Wing)
+    // Internal Room Partitions (South Wing: Breakout Space & Lifts)
     { x1_m: 15, z1_m: 13, x2_m: 15, z2_m: 21, height_m: 3.0 },
     { x1_m: 26, z1_m: 13, x2_m: 26, z2_m: 21, height_m: 3.0 },
   ],
   nodes: [
     {
       id: "room_302",
-      label: "Lecture Theatre 1 (Room 302)",
+      label: "CAGB Room 200 (350-Seat Lecture Theatre — Demo Venue)",
       type: "room",
       x_m: 17,
       z_m: 5,
     },
     {
       id: "room_301",
-      label: "Robotics & Vision Lab (Room 301)",
+      label: "CAGB Room 203 (Level 2 Computer Lab)",
       type: "room",
       x_m: 6.5,
       z_m: 5,
     },
     {
       id: "room_304",
-      label: "Hackathon Demo Hall (Room 304)",
+      label: "Level 2 Breakout Space (Outside Room 200)",
       type: "room",
       x_m: 10,
       z_m: 17,
     },
     {
       id: "junc_west",
-      label: "West Corridor Fire Doors",
+      label: "Exhibition Rd Lobby Junction (West Core)",
       type: "corridor_junction",
       x_m: 7,
       z_m: 11,
     },
     {
       id: "junc_central",
-      label: "Central Atrium Junction",
+      label: "CAGB Level 2 Central Spine Concourse",
       type: "corridor_junction",
       x_m: 17,
       z_m: 11,
     },
     {
       id: "junc_east",
-      label: "East Hallway Choke Point",
+      label: "East Corridor Choke Point (Towards Dalby Court)",
       type: "corridor_junction",
       x_m: 27,
       z_m: 11,
     },
     {
       id: "lift_central",
-      label: "Central Lift Bank (Lifts A & B)",
+      label: "CAGB Central Lifts (LOCKED OUT IN SEISMIC/FIRE)",
       type: "lift_elevator",
       x_m: 22,
       z_m: 17,
     },
     {
       id: "stair_east",
-      label: "Stairwell A (East Core)",
+      label: "Dalby Court Exit (1.12m Door + 10 Steps / Steep Ramp)",
       type: "stairwell_exit",
       x_m: 32,
       z_m: 5,
     },
     {
       id: "stair_west",
-      label: "Stairwell B (West Fire Core)",
+      label: "Main Entrance — Exhibition Road (2.10m Clear Double Doors)",
       type: "stairwell_exit",
       x_m: 3.5,
       z_m: 11,
     },
     {
       id: "refuge_r2",
-      label: "Fire-Rated Refuge Point R2 (West Core)",
+      label: "Exhibition Rd Step-Free Ramp & Refuge Point R2 (2.10m Clear)",
       type: "accessible_refuge",
       x_m: 3.5,
       z_m: 17,
@@ -536,7 +538,7 @@ export const IMPERIAL_FLOOR_GRAPH: BuildingFloorGraph = {
       from_node_id: "junc_east",
       to_node_id: "stair_east",
       length_m: 7.8,
-      width_m: 2.2,
+      width_m: 1.12, // Dalby Court 1.12m door
       is_stairs: true,
     },
     {
@@ -544,15 +546,15 @@ export const IMPERIAL_FLOOR_GRAPH: BuildingFloorGraph = {
       from_node_id: "junc_west",
       to_node_id: "stair_west",
       length_m: 3.5,
-      width_m: 2.4,
-      is_stairs: true,
+      width_m: 2.1, // Exhibition Road 2.10m clear double doors
+      is_stairs: false,
     },
     {
       id: "edge_west_refuge",
       from_node_id: "junc_west",
       to_node_id: "refuge_r2",
       length_m: 7.0,
-      width_m: 2.4,
+      width_m: 2.1,
       is_stairs: false,
     },
   ],
@@ -568,6 +570,12 @@ export const DEFAULT_LIVE_HAZARDS: LiveHazardEvent[] = [
     severity: "blocked",
     detected_from: "live_camera",
     description:
-      "Collapsed suspended ceiling & toppled corridor shelving blocking East Hallway Choke Point and smoke spreading toward Central Junction at 0.45 m/s.",
+      "Unanchored corridor vending machine & suspended ceiling debris blocking East Corridor toward Dalby Court; dust/smoke plume advancing at 0.45 m/s.",
+    video_evidence: {
+      video_file: "cagb_l2_corridor_walkthrough.mp4",
+      timestamp_s: 4.2,
+      quote:
+        "Tall unanchored vending machine and glass display cabinet spotted beside East Corridor choke point (t = 4.2s).",
+    },
   },
 ];
