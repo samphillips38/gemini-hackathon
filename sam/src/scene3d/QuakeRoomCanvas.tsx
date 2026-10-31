@@ -1,253 +1,746 @@
 "use client";
 
-import React, { useRef, useMemo, useEffect, useState } from "react";
+import React, { useRef, useMemo, useState, useEffect } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import {
   OrbitControls,
   Text,
   Line,
+  PerspectiveCamera,
   RoundedBox,
   ContactShadows,
-  Sky,
 } from "@react-three/drei";
 import * as THREE from "three";
 import {
   RoomSceneGraph,
-  RoomObjectNode,
   EgressAndShelterResult,
+  RoomObjectNode,
   ObjectHazardResult,
 } from "@/types/contracts";
+import {
+  getProceduralTexture,
+  getProceduralBumpMap,
+  getGlassPillTexture,
+} from "./proceduralTextures";
 
-interface QuakeRoomCanvasProps {
+export interface QuakeRoomCanvasProps {
   scene: RoomSceneGraph;
-  evaluation: EgressAndShelterResult;
+  simReport: EgressAndShelterResult;
   isShaking: boolean;
-  hasCollapsed: boolean;
-  walkthroughActive: boolean;
-  titleBadge?: string;
+  remediated: boolean;
+  firstPersonMode?: boolean;
+  onToggleFirstPerson?: () => void;
+  compact?: boolean;
+  label?: string;
 }
 
 /**
- * Interactive First-Person Walkthrough Controller
- * Supports:
- * 1) Auto-Guided 2-Phase Seismic Drill (Phase 1: Duck under Desk -> Phase 2: Follow A* Path to Exit)
- * 2) Free WASD / Arrow Key Movement + Mouse-Drag 360° Look + Crouch (C / Shift) + Seismic Camera Shake
+ * Memory Palace Starfield Sky Dome & Ambient Sanctuary Dust Motes
  */
-function WalkthroughController({
-  active,
-  autoGuide,
+function SanctuaryAtmosphere({ isShaking }: { isShaking: boolean }) {
+  const dustRef = useRef<THREE.Points>(null);
+
+  const starMap = useMemo(() => {
+    const tex = getProceduralTexture("stars").clone();
+    tex.repeat.set(4, 2);
+    tex.needsUpdate = true;
+    return tex;
+  }, []);
+
+  const { positions, phases, colors } = useMemo(() => {
+    const count = 260;
+    const pos = new Float32Array(count * 3);
+    const ph = new Float32Array(count);
+    const col = new Float32Array(count * 3);
+    const gold = new THREE.Color("#fde68a");
+    const cyan = new THREE.Color("#38bdf8");
+    const ember = new THREE.Color("#f97316");
+
+    for (let i = 0; i < count; i++) {
+      pos[i * 3] = (Math.sin(i * 73.1) - 0.5) * 14;
+      pos[i * 3 + 1] = ((i * 19.7) % 5.2) + 0.2;
+      pos[i * 3 + 2] = (Math.cos(i * 41.3) - 0.5) * 14;
+      ph[i] = i * 0.43;
+
+      const c = i % 5 === 0 ? cyan : i % 7 === 0 ? ember : gold;
+      col[i * 3] = c.r;
+      col[i * 3 + 1] = c.g;
+      col[i * 3 + 2] = c.b;
+    }
+    return { positions: pos, phases: ph, colors: col };
+  }, []);
+
+  useFrame(({ clock }) => {
+    if (!dustRef.current) return;
+    const t = clock.getElapsedTime();
+    const posAttr = dustRef.current.geometry.attributes
+      .position as THREE.BufferAttribute;
+    const speed = isShaking ? 3.8 : 0.45;
+    for (let i = 0; i < phases.length; i++) {
+      const p = phases[i];
+      const x =
+        posAttr.getX(i) +
+        Math.sin(t * speed + p) * (isShaking ? 0.014 : 0.0018);
+      let y = posAttr.getY(i) + (isShaking ? 0.012 : 0.0015);
+      const z =
+        posAttr.getZ(i) +
+        Math.cos(t * speed + p) * (isShaking ? 0.014 : 0.0018);
+      if (y > 5.4) y = 0.2;
+      posAttr.setXYZ(i, x, y, z);
+    }
+    posAttr.needsUpdate = true;
+  });
+
+  return (
+    <group>
+      {/* Nocturnal Starfield Sky Dome */}
+      <mesh>
+        <sphereGeometry args={[55, 32, 24]} />
+        <meshBasicMaterial map={starMap} side={THREE.BackSide} fog={false} />
+      </mesh>
+
+      {/* Floating Golden & Cyan Sanctuary Dust Motes */}
+      <points ref={dustRef}>
+        <bufferGeometry>
+          <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+          <bufferAttribute attach="attributes-color" args={[colors, 3]} />
+        </bufferGeometry>
+        <pointsMaterial
+          size={isShaking ? 0.065 : 0.045}
+          vertexColors
+          transparent
+          opacity={isShaking ? 0.85 : 0.55}
+          blending={THREE.AdditiveBlending}
+          depthWrite={false}
+        />
+      </points>
+    </group>
+  );
+}
+
+/**
+ * Memory Palace Multi-Tier Brass & Crystal Chandelier with Seismic Sway
+ */
+function OrnateChandelier({
+  heightM,
   isShaking,
-  magnitudeMw,
+}: {
+  heightM: number;
+  isShaking: boolean;
+}) {
+  const groupRef = useRef<THREE.Group>(null);
+  const crystalRef = useRef<THREE.Mesh>(null);
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    if (groupRef.current) {
+      const swayX = isShaking
+        ? Math.sin(t * 16) * 0.22 + Math.cos(t * 23) * 0.08
+        : Math.sin(t * 1.2) * 0.012;
+      const swayZ = isShaking
+        ? Math.cos(t * 14) * 0.19
+        : Math.cos(t * 1.1) * 0.01;
+      groupRef.current.rotation.x = THREE.MathUtils.lerp(
+        groupRef.current.rotation.x,
+        swayX,
+        0.18
+      );
+      groupRef.current.rotation.z = THREE.MathUtils.lerp(
+        groupRef.current.rotation.z,
+        swayZ,
+        0.18
+      );
+    }
+    if (crystalRef.current) {
+      crystalRef.current.rotation.y = t * 0.9;
+    }
+  });
+
+  return (
+    <group ref={groupRef} position={[0, heightM, 0]}>
+      {/* Ceiling Medallion Rose */}
+      <mesh position={[0, -0.02, 0]}>
+        <cylinderGeometry args={[0.24, 0.18, 0.04, 24]} />
+        <meshStandardMaterial color="#d4af37" metalness={0.88} roughness={0.2} />
+      </mesh>
+      {/* Suspension Rod */}
+      <mesh position={[0, -0.26, 0]}>
+        <cylinderGeometry args={[0.018, 0.018, 0.48, 12]} />
+        <meshStandardMaterial
+          color="#d4af37"
+          metalness={0.88}
+          roughness={0.22}
+        />
+      </mesh>
+      {/* Upper Brass Tier Ring */}
+      <mesh position={[0, -0.42, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[0.26, 0.016, 12, 32]} />
+        <meshStandardMaterial color="#d4af37" metalness={0.9} roughness={0.18} />
+      </mesh>
+      {/* Lower Grand Brass Tier Ring */}
+      <mesh position={[0, -0.52, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[0.46, 0.022, 14, 36]} />
+        <meshStandardMaterial color="#d4af37" metalness={0.9} roughness={0.18} />
+      </mesh>
+      {/* 6 Perimeter Warm Candle Bulbs */}
+      {[0, 1, 2, 3, 4, 5].map((idx) => {
+        const angle = (idx / 6) * Math.PI * 2;
+        const rx = Math.cos(angle) * 0.46;
+        const rz = Math.sin(angle) * 0.46;
+        return (
+          <group key={idx} position={[rx, -0.47, rz]}>
+            <mesh position={[0, -0.02, 0]}>
+              <cylinderGeometry args={[0.016, 0.02, 0.06, 10]} />
+              <meshStandardMaterial
+                color="#d4af37"
+                metalness={0.85}
+                roughness={0.2}
+              />
+            </mesh>
+            <mesh position={[0, 0.03, 0]}>
+              <sphereGeometry args={[0.028, 12, 12]} />
+              <meshStandardMaterial
+                color="#fffbeb"
+                emissive="#fbbf24"
+                emissiveIntensity={isShaking ? 1.8 : 1.3}
+              />
+            </mesh>
+          </group>
+        );
+      })}
+      {/* Rotating Crystal Octahedron Pendant */}
+      <mesh ref={crystalRef} position={[0, -0.62, 0]}>
+        <octahedronGeometry args={[0.09, 0]} />
+        <meshStandardMaterial
+          color="#fef3c7"
+          emissive={isShaking ? "#ef4444" : "#f59e0b"}
+          emissiveIntensity={isShaking ? 1.6 : 0.95}
+          metalness={0.2}
+          roughness={0.1}
+        />
+      </mesh>
+      {/* Warm Sanctuary Point Light */}
+      <pointLight
+        position={[0, -0.68, 0]}
+        intensity={isShaking ? 1.35 : 1.75}
+        distance={11}
+        color={isShaking ? "#fca5a5" : "#fde68a"}
+        castShadow
+        shadow-mapSize-width={1024}
+        shadow-mapSize-height={1024}
+      />
+    </group>
+  );
+}
+
+/**
+ * Memory Palace Architectural Room Shell:
+ * - Versailles Parquet Oak Floor with Bump Map & Specular Polish
+ * - Outer Calacatta Marble Plinth & Brushed Gold Compass Medallion Inlay
+ * - Ashlar Stone/Plaster Walls with Slate Baseboards, Gold Dado Rails & Crown Moldings
+ * - Coffered Ceiling Perimeter Beams & Corner Fluted Pilasters
+ */
+function ArchitecturalRoomShell({
+  widthM,
+  depthM,
+  heightM,
+  remediated,
+}: {
+  widthM: number;
+  depthM: number;
+  heightM: number;
+  remediated: boolean;
+}) {
+  const {
+    woodTex,
+    woodBump,
+    stoneTex,
+    stoneBump,
+    marbleTex,
+    carpetTex,
+    carpetBump,
+  } = useMemo(() => {
+    const wTex = getProceduralTexture("wood").clone();
+    wTex.repeat.set(2.5, 2.5);
+    wTex.needsUpdate = true;
+
+    const wBump = getProceduralBumpMap("wood").clone();
+    wBump.repeat.set(2.5, 2.5);
+    wBump.needsUpdate = true;
+
+    const sTex = getProceduralTexture("stone").clone();
+    sTex.repeat.set(2, 1.4);
+    sTex.needsUpdate = true;
+
+    const sBump = getProceduralBumpMap("stone").clone();
+    sBump.repeat.set(2, 1.4);
+    sBump.needsUpdate = true;
+
+    const mTex = getProceduralTexture("marble").clone();
+    mTex.repeat.set(3, 3);
+    mTex.needsUpdate = true;
+
+    const cTex = getProceduralTexture("carpet").clone();
+    cTex.repeat.set(1, 1);
+    cTex.needsUpdate = true;
+
+    const cBump = getProceduralBumpMap("carpet").clone();
+    cBump.repeat.set(1, 1);
+    cBump.needsUpdate = true;
+
+    return {
+      woodTex: wTex,
+      woodBump: wBump,
+      stoneTex: sTex,
+      stoneBump: sBump,
+      marbleTex: mTex,
+      carpetTex: cTex,
+      carpetBump: cBump,
+    };
+  }, []);
+
+  return (
+    <group>
+      {/* Monumental Calacatta Marble Outer Plinth Foundation */}
+      <RoundedBox
+        args={[widthM + 0.56, 0.16, depthM + 0.56]}
+        radius={0.04}
+        smoothness={4}
+        position={[0, -0.14, 0]}
+        receiveShadow
+      >
+        <meshStandardMaterial
+          map={marbleTex}
+          color="#cbd5e1"
+          roughness={0.32}
+          metalness={0.12}
+        />
+      </RoundedBox>
+
+      {/* Brushed Gold Plinth Trim Ring */}
+      <mesh position={[0, -0.055, 0]}>
+        <boxGeometry args={[widthM + 0.42, 0.022, depthM + 0.42]} />
+        <meshStandardMaterial
+          color="#d4af37"
+          metalness={0.88}
+          roughness={0.22}
+        />
+      </mesh>
+
+      {/* Royal Versailles Parquet Hardwood Floor */}
+      <mesh position={[0, -0.025, 0]} receiveShadow>
+        <boxGeometry args={[widthM, 0.05, depthM]} />
+        <meshStandardMaterial
+          map={woodTex}
+          bumpMap={woodBump}
+          bumpScale={0.015}
+          roughness={0.34}
+          metalness={0.08}
+        />
+      </mesh>
+
+      {/* Central Memory-Palace Gold Compass Medallion Inlay */}
+      <group position={[0.15, 0.003, 0.1]}>
+        <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+          <ringGeometry args={[0.62, 0.68, 48]} />
+          <meshStandardMaterial
+            color="#d4af37"
+            metalness={0.88}
+            roughness={0.2}
+          />
+        </mesh>
+        <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+          <ringGeometry args={[0.32, 0.35, 36]} />
+          <meshStandardMaterial
+            color={remediated ? "#10b981" : "#d4af37"}
+            emissive={remediated ? "#059669" : "#b45309"}
+            emissiveIntensity={0.35}
+            metalness={0.85}
+            roughness={0.22}
+          />
+        </mesh>
+      </group>
+
+      {/* Royal Woven Tapestry Area Rug */}
+      <mesh position={[-0.55, 0.005, 0.15]} receiveShadow>
+        <boxGeometry args={[2.35, 0.012, 2.65]} />
+        <meshStandardMaterial
+          map={carpetTex}
+          bumpMap={carpetBump}
+          bumpScale={0.012}
+          roughness={0.78}
+        />
+      </mesh>
+
+      {/* NORTH BACK WALL (Ashlar Stone + Baseboard + Gold Dado + Crown Molding) */}
+      <group position={[0, 0, -depthM / 2 - 0.06]}>
+        <mesh position={[0, heightM / 2, 0]} receiveShadow castShadow>
+          <boxGeometry args={[widthM + 0.24, heightM, 0.12]} />
+          <meshStandardMaterial
+            map={stoneTex}
+            bumpMap={stoneBump}
+            bumpScale={0.018}
+            roughness={0.62}
+            metalness={0.08}
+          />
+        </mesh>
+        <mesh position={[0, 0.09, 0.068]} receiveShadow>
+          <boxGeometry args={[widthM + 0.12, 0.18, 0.025]} />
+          <meshStandardMaterial
+            color="#0f172a"
+            roughness={0.4}
+            metalness={0.25}
+          />
+        </mesh>
+        <mesh position={[0, 0.92, 0.068]}>
+          <boxGeometry args={[widthM + 0.08, 0.032, 0.028]} />
+          <meshStandardMaterial
+            color="#d4af37"
+            metalness={0.86}
+            roughness={0.22}
+          />
+        </mesh>
+        <mesh position={[0, heightM - 0.04, 0.072]}>
+          <boxGeometry args={[widthM + 0.24, 0.075, 0.045]} />
+          <meshStandardMaterial
+            color="#d4af37"
+            metalness={0.86}
+            roughness={0.2}
+          />
+        </mesh>
+      </group>
+
+      {/* WEST LEFT WALL (Ashlar Stone + Baseboard + Gold Dado + Crown Molding) */}
+      <group position={[-widthM / 2 - 0.06, 0, 0]}>
+        <mesh position={[0, heightM / 2, 0]} receiveShadow castShadow>
+          <boxGeometry args={[0.12, heightM, depthM + 0.24]} />
+          <meshStandardMaterial
+            map={stoneTex}
+            bumpMap={stoneBump}
+            bumpScale={0.018}
+            roughness={0.62}
+            metalness={0.08}
+          />
+        </mesh>
+        <mesh position={[0.068, 0.09, 0]} receiveShadow>
+          <boxGeometry args={[0.025, 0.18, depthM + 0.12]} />
+          <meshStandardMaterial
+            color="#0f172a"
+            roughness={0.4}
+            metalness={0.25}
+          />
+        </mesh>
+        <mesh position={[0.068, 0.92, 0]}>
+          <boxGeometry args={[0.028, 0.032, depthM + 0.08]} />
+          <meshStandardMaterial
+            color="#d4af37"
+            metalness={0.86}
+            roughness={0.22}
+          />
+        </mesh>
+        <mesh position={[0.072, heightM - 0.04, 0]}>
+          <boxGeometry args={[0.045, 0.075, depthM + 0.24]} />
+          <meshStandardMaterial
+            color="#d4af37"
+            metalness={0.86}
+            roughness={0.2}
+          />
+        </mesh>
+      </group>
+
+      {/* CUTAWAY SOUTH & EAST LOW CURB + UPPER CORNICE FRAME */}
+      <mesh position={[0, 0.05, depthM / 2 + 0.04]} receiveShadow>
+        <boxGeometry args={[widthM + 0.24, 0.1, 0.08]} />
+        <meshStandardMaterial color="#0f172a" roughness={0.4} metalness={0.3} />
+      </mesh>
+      <mesh position={[widthM / 2 + 0.04, 0.05, 0]} receiveShadow>
+        <boxGeometry args={[0.08, 0.1, depthM + 0.24]} />
+        <meshStandardMaterial color="#0f172a" roughness={0.4} metalness={0.3} />
+      </mesh>
+
+      <mesh position={[0, heightM - 0.03, depthM / 2 + 0.04]}>
+        <boxGeometry args={[widthM + 0.24, 0.06, 0.08]} />
+        <meshStandardMaterial color="#1e293b" roughness={0.4} metalness={0.4} />
+      </mesh>
+      <mesh position={[widthM / 2 + 0.04, heightM - 0.03, 0]}>
+        <boxGeometry args={[0.08, 0.06, depthM + 0.24]} />
+        <meshStandardMaterial color="#1e293b" roughness={0.4} metalness={0.4} />
+      </mesh>
+
+      {/* 3 Corner Architectural Pilasters with Gold Capitals */}
+      {[
+        [-widthM / 2 - 0.02, -depthM / 2 - 0.02],
+        [widthM / 2 + 0.02, -depthM / 2 - 0.02],
+        [-widthM / 2 - 0.02, depthM / 2 + 0.02],
+      ].map(([cx, cz], idx) => (
+        <group key={idx} position={[cx, 0, cz]}>
+          <mesh position={[0, heightM / 2, 0]} castShadow>
+            <boxGeometry args={[0.16, heightM, 0.16]} />
+            <meshStandardMaterial
+              color="#1e293b"
+              roughness={0.45}
+              metalness={0.2}
+            />
+          </mesh>
+          <mesh position={[0, heightM - 0.06, 0]}>
+            <boxGeometry args={[0.2, 0.08, 0.2]} />
+            <meshStandardMaterial
+              color="#d4af37"
+              metalness={0.88}
+              roughness={0.2}
+            />
+          </mesh>
+          <mesh position={[0, 0.06, 0]}>
+            <boxGeometry args={[0.2, 0.1, 0.2]} />
+            <meshStandardMaterial
+              color="#d4af37"
+              metalness={0.88}
+              roughness={0.2}
+            />
+          </mesh>
+        </group>
+      ))}
+
+      {/* Warm Architectural Wall Sconces on North Wall */}
+      {[
+        { pos: [-1.15, 1.95, -depthM / 2 + 0.04] as [number, number, number] },
+        { pos: [1.15, 1.95, -depthM / 2 + 0.04] as [number, number, number] },
+      ].map((sconce, idx) => (
+        <group key={idx} position={sconce.pos}>
+          <mesh position={[0, -0.06, 0]}>
+            <boxGeometry args={[0.08, 0.18, 0.04]} />
+            <meshStandardMaterial
+              color="#d4af37"
+              metalness={0.88}
+              roughness={0.2}
+            />
+          </mesh>
+          <mesh position={[0, 0.04, 0.04]}>
+            <cylinderGeometry args={[0.06, 0.04, 0.14, 14]} />
+            <meshStandardMaterial
+              color="#fffbeb"
+              emissive="#f59e0b"
+              emissiveIntensity={1.15}
+            />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
+
+/**
+ * First-Person Interactive Escape & Shelter Camera Controller
+ */
+function FirstPersonEscapeController({
+  active,
+  freeWalkMode,
+  isShaking,
+  shelterZone,
   escapePath,
-  shelterSpot,
-  roomWidth,
-  roomDepth,
-  onPhaseChange,
+  widthM,
+  depthM,
+  onHudUpdate,
 }: {
   active: boolean;
-  autoGuide: boolean;
+  freeWalkMode: boolean;
   isShaking: boolean;
-  magnitudeMw: number;
+  shelterZone: { x_m: number; z_m: number; label: string } | null;
   escapePath: Array<{ x_m: number; z_m: number }>;
-  shelterSpot: { x_m: number; z_m: number; label: string } | null;
-  roomWidth: number;
-  roomDepth: number;
-  onPhaseChange?: (phaseText: string) => void;
+  widthM: number;
+  depthM: number;
+  onHudUpdate: (msg: string) => void;
 }) {
   const { camera, gl } = useThree();
-  const keys = useRef<{ [key: string]: boolean }>({});
-  const yawRef = useRef(0);
-  const pitchRef = useRef(-0.08);
-  const isPointerDown = useRef(false);
-  const lastMouse = useRef({ x: 0, y: 0 });
   const progressRef = useRef(0);
+  const keysRef = useRef<Record<string, boolean>>({});
+  const yawRef = useRef(0.4);
+  const pitchRef = useRef(-0.1);
+  const draggingRef = useRef(false);
+  const lastMsgRef = useRef("");
 
   useEffect(() => {
+    if (!active) {
+      progressRef.current = 0;
+      return;
+    }
+    const startPt = escapePath[0] ?? { x_m: 0.95, z_m: 1.9 };
+    camera.position.set(
+      startPt.x_m - widthM / 2,
+      1.62,
+      startPt.z_m - depthM / 2
+    );
+    yawRef.current = 0.65;
+    pitchRef.current = -0.08;
+  }, [active, escapePath, widthM, depthM, camera]);
+
+  useEffect(() => {
+    if (!active) return;
     const onKeyDown = (e: KeyboardEvent) => {
-      keys.current[e.code] = true;
+      keysRef.current[e.code] = true;
     };
     const onKeyUp = (e: KeyboardEvent) => {
-      keys.current[e.code] = false;
+      keysRef.current[e.code] = false;
     };
-    const onPointerDown = (e: PointerEvent) => {
-      isPointerDown.current = true;
-      lastMouse.current = { x: e.clientX, y: e.clientY };
+    const onMouseDown = () => {
+      draggingRef.current = true;
     };
-    const onPointerUp = () => {
-      isPointerDown.current = false;
+    const onMouseUp = () => {
+      draggingRef.current = false;
     };
-    const onPointerMove = (e: PointerEvent) => {
-      if (!active || !isPointerDown.current) return;
-      const dx = e.clientX - lastMouse.current.x;
-      const dy = e.clientY - lastMouse.current.y;
-      lastMouse.current = { x: e.clientX, y: e.clientY };
-      yawRef.current -= dx * 0.005;
+    const onMouseMove = (e: MouseEvent) => {
+      if (!draggingRef.current) return;
+      yawRef.current -= e.movementX * 0.0035;
       pitchRef.current = THREE.MathUtils.clamp(
-        pitchRef.current - dy * 0.004,
-        -Math.PI / 2.4,
-        Math.PI / 2.4
+        pitchRef.current - e.movementY * 0.0028,
+        -Math.PI / 2.6,
+        Math.PI / 2.6
       );
     };
 
-    const dom = gl.domElement;
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("keyup", onKeyUp);
-    dom.addEventListener("pointerdown", onPointerDown);
-    window.addEventListener("pointerup", onPointerUp);
-    window.addEventListener("pointermove", onPointerMove);
+    const dom = gl.domElement;
+    dom.addEventListener("mousedown", onMouseDown);
+    window.addEventListener("mouseup", onMouseUp);
+    window.addEventListener("mousemove", onMouseMove);
 
     return () => {
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
-      dom.removeEventListener("pointerdown", onPointerDown);
-      window.removeEventListener("pointerup", onPointerUp);
-      window.removeEventListener("pointermove", onPointerMove);
+      dom.removeEventListener("mousedown", onMouseDown);
+      window.removeEventListener("mouseup", onMouseUp);
+      window.removeEventListener("mousemove", onMouseMove);
     };
-  }, [active, gl.domElement]);
+  }, [active, gl]);
 
-  useEffect(() => {
-    if (active) {
-      progressRef.current = 0;
-      const startPt = escapePath[0] || { x_m: 1.4, z_m: 2.2 };
-      camera.position.set(
-        startPt.x_m - roomWidth / 2,
-        1.58,
-        startPt.z_m - roomDepth / 2
-      );
-      yawRef.current = -0.6;
-      pitchRef.current = -0.12;
-    } else {
-      camera.position.set(0, 4.5, 5.1);
-      camera.lookAt(0, 0.6, 0);
-    }
-  }, [active, camera, escapePath, roomWidth, roomDepth]);
-
-  useFrame((state, delta) => {
+  useFrame((_, delta) => {
     if (!active) return;
 
-    const t = state.clock.getElapsedTime();
-    const isCrouching =
-      keys.current["KeyC"] || keys.current["ShiftLeft"] || isShaking;
-    const baseEyeHeight = isCrouching ? 0.62 : 1.58;
+    const crouch =
+      keysRef.current["KeyC"] ||
+      keysRef.current["ShiftLeft"] ||
+      keysRef.current["ControlLeft"];
+    const baseEyeHeight = crouch ? 0.62 : 1.62;
 
-    // Keyboard rotation (Q / E)
-    if (keys.current["KeyQ"]) yawRef.current += 1.6 * delta;
-    if (keys.current["KeyE"]) yawRef.current -= 1.6 * delta;
+    if (freeWalkMode) {
+      const speed = (crouch ? 1.6 : 2.8) * delta;
+      const forward = new THREE.Vector3(
+        -Math.sin(yawRef.current),
+        0,
+        -Math.cos(yawRef.current)
+      ).normalize();
+      const right = new THREE.Vector3(
+        Math.cos(yawRef.current),
+        0,
+        -Math.sin(yawRef.current)
+      ).normalize();
 
-    const forward = new THREE.Vector3(
-      -Math.sin(yawRef.current),
-      0,
-      -Math.cos(yawRef.current)
-    ).normalize();
-    const right = new THREE.Vector3().crossVectors(
-      forward,
-      new THREE.Vector3(0, 1, 0)
-    );
-
-    const moveSpeed = (isCrouching ? 1.5 : 2.5) * delta;
-    let manualMoved = false;
-
-    if (keys.current["KeyW"] || keys.current["ArrowUp"]) {
-      camera.position.addScaledVector(forward, moveSpeed);
-      manualMoved = true;
-    }
-    if (keys.current["KeyS"] || keys.current["ArrowDown"]) {
-      camera.position.addScaledVector(forward, -moveSpeed);
-      manualMoved = true;
-    }
-    if (keys.current["KeyA"] || keys.current["ArrowLeft"]) {
-      camera.position.addScaledVector(right, -moveSpeed);
-      manualMoved = true;
-    }
-    if (keys.current["KeyD"] || keys.current["ArrowRight"]) {
-      camera.position.addScaledVector(right, moveSpeed);
-      manualMoved = true;
-    }
-
-    // Clamp position inside room interior walls
-    const margin = 0.32;
-    camera.position.x = THREE.MathUtils.clamp(
-      camera.position.x,
-      -roomWidth / 2 + margin,
-      roomWidth / 2 - margin
-    );
-    camera.position.z = THREE.MathUtils.clamp(
-      camera.position.z,
-      -roomDepth / 2 + margin,
-      roomDepth / 2 - margin
-    );
-
-    if (!manualMoved && autoGuide) {
-      if (isShaking && shelterSpot) {
-        // Phase 1: Move to & crouch under sturdy study desk during shaking
-        onPhaseChange?.(
-          "PHASE 1 (DURING QUAKE): Ducking under sturdy Steel Study Desk — Drop, Cover & Hold On!"
-        );
-        const sx = shelterSpot.x_m - roomWidth / 2;
-        const sz = shelterSpot.z_m - roomDepth / 2;
-        camera.position.lerp(new THREE.Vector3(sx, 0.56, sz), 0.08);
-        const lookQuat = new THREE.Quaternion().setFromEuler(
-          new THREE.Euler(-0.05, yawRef.current + Math.sin(t * 1.5) * 0.25, 0, "YXZ")
-        );
-        camera.quaternion.slerp(lookQuat, 0.15);
-      } else if (escapePath.length > 1) {
-        // Phase 2: Glide along the verified green A* path to the exit door
-        onPhaseChange?.(
-          "PHASE 2 (POST-SHAKE EGRESS): Following verified A* green chevron corridor to Exit Door"
-        );
-        progressRef.current = (progressRef.current + delta * 0.22) % 1;
-        const floatIdx = progressRef.current * (escapePath.length - 1);
-        const idx = Math.floor(floatIdx);
-        const nextIdx = Math.min(escapePath.length - 1, idx + 1);
-        const alpha = floatIdx - idx;
-
-        const p1 = escapePath[idx];
-        const p2 = escapePath[nextIdx];
-        const wx = THREE.MathUtils.lerp(p1.x_m, p2.x_m, alpha) - roomWidth / 2;
-        const wz = THREE.MathUtils.lerp(p1.z_m, p2.z_m, alpha) - roomDepth / 2;
-
-        const bob = Math.sin(t * 9) * 0.03;
-        camera.position.lerp(new THREE.Vector3(wx, 1.52 + bob, wz), 0.14);
-
-        const lookTarget = escapePath[Math.min(escapePath.length - 1, nextIdx + 2)];
-        const targetVec = new THREE.Vector3(
-          lookTarget.x_m - roomWidth / 2,
-          1.25,
-          lookTarget.z_m - roomDepth / 2
-        );
-        const m = new THREE.Matrix4().lookAt(
-          camera.position,
-          targetVec,
-          new THREE.Vector3(0, 1, 0)
-        );
-        const targetQuat = new THREE.Quaternion().setFromRotationMatrix(m);
-        camera.quaternion.slerp(targetQuat, 0.12);
+      let moved = false;
+      if (keysRef.current["KeyW"] || keysRef.current["ArrowUp"]) {
+        camera.position.addScaledVector(forward, speed);
+        moved = true;
       }
-    } else {
-      // Free-walk camera look + head bob
-      onPhaseChange?.(
-        isCrouching
-          ? "FREE WALK (CROUCHING): Protected low stance — use WASD to move, drag mouse to look"
-          : "FREE WALK ACTIVE: Use WASD / Arrows to walk room, drag mouse to look, press C to crouch"
+      if (keysRef.current["KeyS"] || keysRef.current["ArrowDown"]) {
+        camera.position.addScaledVector(forward, -speed);
+        moved = true;
+      }
+      if (keysRef.current["KeyA"] || keysRef.current["ArrowLeft"]) {
+        camera.position.addScaledVector(right, -speed);
+        moved = true;
+      }
+      if (keysRef.current["KeyD"] || keysRef.current["ArrowRight"]) {
+        camera.position.addScaledVector(right, speed);
+        moved = true;
+      }
+
+      camera.position.x = THREE.MathUtils.clamp(
+        camera.position.x,
+        -widthM / 2 + 0.25,
+        widthM / 2 - 0.25
       );
-      const bob = manualMoved ? Math.sin(t * 11) * 0.035 : 0;
+      camera.position.z = THREE.MathUtils.clamp(
+        camera.position.z,
+        -depthM / 2 + 0.25,
+        depthM / 2 - 0.25
+      );
+
+      const bob = moved ? Math.sin(performance.now() * 0.012) * 0.035 : 0;
+      const tremor = isShaking ? Math.sin(performance.now() * 0.045) * 0.06 : 0;
       camera.position.y = THREE.MathUtils.lerp(
         camera.position.y,
-        baseEyeHeight + bob,
-        0.18
+        baseEyeHeight + bob + tremor,
+        0.22
       );
-      const euler = new THREE.Euler(pitchRef.current, yawRef.current, 0, "YXZ");
-      camera.quaternion.setFromEuler(euler);
+
+      const lookTarget = new THREE.Vector3(
+        camera.position.x -
+          Math.sin(yawRef.current) * Math.cos(pitchRef.current),
+        camera.position.y + Math.sin(pitchRef.current),
+        camera.position.z -
+          Math.cos(yawRef.current) * Math.cos(pitchRef.current)
+      );
+      camera.lookAt(lookTarget);
+
+      const statusMsg = crouch
+        ? "CROUCHED UNDER DESK SHELTER (0.62m) — Protected from falling debris"
+        : "FREE-WALK 1ST-PERSON — WASD/Arrows to walk, Hold C/Shift to crouch under desk, Drag mouse to look";
+      if (lastMsgRef.current !== statusMsg) {
+        lastMsgRef.current = statusMsg;
+        onHudUpdate(statusMsg);
+      }
+      return;
     }
 
-    // Add realistic seismic camera tremor if earthquake is active
-    if (isShaking) {
-      const tremor = 0.015 * Math.pow(1.35, magnitudeMw - 5.5);
-      camera.position.x += Math.sin(t * 43) * tremor;
-      camera.position.y += Math.cos(t * 37) * tremor * 0.8;
-      camera.rotation.z = Math.sin(t * 29) * tremor * 1.4;
+    progressRef.current = (progressRef.current + delta * 0.22) % 1;
+    const p = progressRef.current;
+
+    const startPt = escapePath[0] ?? { x_m: 0.95, z_m: 1.9 };
+    const shelterPt = shelterZone
+      ? { x_m: shelterZone.x_m, z_m: shelterZone.z_m }
+      : { x_m: 2.85, z_m: 0.72 };
+    const doorPt = escapePath[escapePath.length - 1] ?? { x_m: 3.6, z_m: 3.7 };
+
+    if (p < 0.48) {
+      const localT = Math.min(1, p / 0.32);
+      const cx =
+        THREE.MathUtils.lerp(startPt.x_m, shelterPt.x_m, localT) - widthM / 2;
+      const cz =
+        THREE.MathUtils.lerp(startPt.z_m, shelterPt.z_m, localT) - depthM / 2;
+      const eyeY = THREE.MathUtils.lerp(1.62, 0.58, Math.min(1, p / 0.36));
+      const tremor = isShaking
+        ? Math.sin(performance.now() * 0.05) * 0.055
+        : 0;
+
+      camera.position.set(cx, eyeY + tremor, cz + 0.18);
+      camera.lookAt(cx, 0.55, cz - 0.6);
+
+      const msg =
+        localT < 0.95
+          ? "PHASE 1 (DURING QUAKE): Dropping & crawling under reinforced study desk shelter..."
+          : "PHASE 1 (HOLD ON): Crouched at 0.58m under study desk — shielded from toppling hazards!";
+      if (lastMsgRef.current !== msg) {
+        lastMsgRef.current = msg;
+        onHudUpdate(msg);
+      }
     } else {
-      camera.rotation.z = THREE.MathUtils.lerp(camera.rotation.z, 0, 0.2);
+      const localT = (p - 0.48) / 0.52;
+      const cx =
+        THREE.MathUtils.lerp(shelterPt.x_m, doorPt.x_m, localT) - widthM / 2;
+      const cz =
+        THREE.MathUtils.lerp(shelterPt.z_m, doorPt.z_m, localT) - depthM / 2;
+      const eyeY = THREE.MathUtils.lerp(0.58, 1.62, Math.min(1, localT * 3.0));
+      const bob = Math.sin(localT * Math.PI * 10) * 0.035;
+
+      camera.position.set(cx, eyeY + bob, cz);
+      camera.lookAt(doorPt.x_m - widthM / 2, 1.35, doorPt.z_m - depthM / 2);
+
+      const msg =
+        "PHASE 2 (SHAKING STOPPED): Standing up & evacuating along verified A* path to Bedroom Exit Door";
+      if (lastMsgRef.current !== msg) {
+        lastMsgRef.current = msg;
+        onHudUpdate(msg);
+      }
     }
   });
 
@@ -255,198 +748,126 @@ function WalkthroughController({
 }
 
 /**
- * Animated Glowing 3D Floor Chevrons + Volumetric Guidance Ribbon
- */
-function AnimatedEscapePath({
-  points,
-  color = "#10b981",
-}: {
-  points: THREE.Vector3[];
-  color?: string;
-}) {
-  const chevronsRef = useRef<THREE.Group>(null);
-
-  const chevronTransforms = useMemo(() => {
-    if (points.length < 2) return [];
-    const list: Array<{ pos: THREE.Vector3; rotY: number; index: number }> = [];
-    for (let i = 0; i < points.length - 1; i++) {
-      const p1 = points[i];
-      const p2 = points[i + 1];
-      const mid = new THREE.Vector3().lerpVectors(p1, p2, 0.5);
-      mid.y = 0.035;
-      const dx = p2.x - p1.x;
-      const dz = p2.z - p1.z;
-      const rotY = Math.atan2(dx, dz);
-      list.push({ pos: mid, rotY, index: i });
-    }
-    return list;
-  }, [points]);
-
-  useFrame((state) => {
-    if (!chevronsRef.current) return;
-    const t = state.clock.getElapsedTime();
-    chevronsRef.current.children.forEach((child, idx) => {
-      const mesh = child as THREE.Mesh;
-      const mat = mesh.material as THREE.MeshStandardMaterial;
-      if (mat) {
-        const wave = 0.5 + 0.5 * Math.sin(t * 6 - idx * 0.7);
-        mat.emissiveIntensity = 0.5 + wave * 1.4;
-        mesh.position.y = 0.035 + wave * 0.02;
-      }
-    });
-  });
-
-  if (points.length < 2) return null;
-
-  return (
-    <group>
-      {/* Raised Glowing Path Ribbon */}
-      <Line points={points} color={color} lineWidth={7} />
-      <Line
-        points={points.map((p) => new THREE.Vector3(p.x, 0.015, p.z))}
-        color="#ffffff"
-        lineWidth={2.5}
-      />
-
-      {/* Directional Pulsing Floor Chevrons */}
-      <group ref={chevronsRef}>
-        {chevronTransforms.map((c, i) => (
-          <mesh
-            key={i}
-            position={c.pos}
-            rotation={[Math.PI / 2, 0, -c.rotY]}
-          >
-            <coneGeometry args={[0.11, 0.22, 3]} />
-            <meshStandardMaterial
-              color={color}
-              emissive={color}
-              emissiveIntensity={1.1}
-              transparent
-              opacity={0.9}
-            />
-          </mesh>
-        ))}
-      </group>
-    </group>
-  );
-}
-
-/**
- * Falling Ceiling Dust & Plaster Debris Particles during Quake
- */
-function SeismicDebrisParticles({
-  active,
-  roomWidth,
-  roomDepth,
-  roomHeight,
-}: {
-  active: boolean;
-  roomWidth: number;
-  roomDepth: number;
-  roomHeight: number;
-}) {
-  const groupRef = useRef<THREE.Group>(null);
-  const particles = useMemo(() => {
-    return Array.from({ length: 42 }).map((_, i) => ({
-      x: ((i * 73) % 100) / 100 * (roomWidth - 0.4) - (roomWidth - 0.4) / 2,
-      y: ((i * 37) % 100) / 100 * roomHeight,
-      z: ((i * 53) % 100) / 100 * (roomDepth - 0.4) - (roomDepth - 0.4) / 2,
-      speed: 0.9 + ((i * 19) % 10) * 0.18,
-      size: 0.02 + ((i * 11) % 5) * 0.008,
-    }));
-  }, [roomWidth, roomDepth, roomHeight]);
-
-  useFrame((_, delta) => {
-    if (!groupRef.current || !active) return;
-    groupRef.current.children.forEach((child, idx) => {
-      const p = particles[idx];
-      child.position.y -= p.speed * delta;
-      child.rotation.x += delta * 3;
-      child.rotation.z += delta * 2;
-      if (child.position.y < 0.04) {
-        child.position.y = roomHeight - 0.1;
-      }
-    });
-  });
-
-  if (!active) return null;
-
-  return (
-    <group ref={groupRef}>
-      {particles.map((p, i) => (
-        <mesh key={i} position={[p.x, p.y, p.z]}>
-          <dodecahedronGeometry args={[p.size, 0]} />
-          <meshStandardMaterial
-            color="#cbd5e1"
-            emissive="#94a3b8"
-            emissiveIntensity={0.3}
-            transparent
-            opacity={0.75}
-          />
-        </mesh>
-      ))}
-    </group>
-  );
-}
-
-/**
- * High-Detail Procedural 3D Furniture & Interior Prefabs
+ * Memory Palace-Grade 3D Furniture Prefabs with Procedural Textures, Double Floor Aura Rings,
+ * and Crisp Glassmorphic Floating Telemetry Sprites
  */
 function FurniturePrefab({
   obj,
   allObjects,
-  hazard,
   roomWidth,
   roomDepth,
+  hazard,
   isShaking,
-  hasCollapsed,
+  remediated,
 }: {
   obj: RoomObjectNode;
   allObjects: RoomObjectNode[];
-  hazard?: ObjectHazardResult;
   roomWidth: number;
   roomDepth: number;
+  hazard?: ObjectHazardResult;
   isShaking: boolean;
-  hasCollapsed: boolean;
+  remediated: boolean;
 }) {
   const groupRef = useRef<THREE.Group>(null);
-  const rotRad = (obj.rotation_deg * Math.PI) / 180;
-  const isRotated = obj.rotation_deg === 90 || obj.rotation_deg === 270;
-  const effW = isRotated ? obj.depth_m : obj.width_m;
-  const effD = isRotated ? obj.width_m : obj.depth_m;
+  const auraRingRef = useRef<THREE.Mesh>(null);
+  const spriteRef = useRef<THREE.Sprite>(null);
 
-  const centerX = obj.x_m + effW / 2 - roomWidth / 2;
-  const centerZ = obj.z_m + effD / 2 - roomDepth / 2;
+  const centerX = obj.x_m + obj.width_m / 2 - roomWidth / 2;
+  const centerZ = obj.z_m + obj.depth_m / 2 - roomDepth / 2;
+  const rotRad = ((obj.rotation_deg || 0) * Math.PI) / 180;
 
   const childrenItems = useMemo(
-    () => allObjects.filter((c) => c.parent_id === obj.id),
+    () => allObjects.filter((child) => child.parent_id === obj.id),
     [allObjects, obj.id]
   );
 
-  useFrame((state) => {
-    if (!groupRef.current) return;
-    const t = state.clock.getElapsedTime();
-    const shouldTip = Boolean(
-      hazard?.tipped_over && (isShaking || hasCollapsed)
-    );
+  const sf = hazard?.analytical_safety_factor ?? 1.5;
+  const isDanger = sf < 1.0 && !obj.anchored_to_wall;
 
-    if (shouldTip) {
-      const targetAngle =
-        obj.category === "wardrobe" ? -Math.PI * 0.46 : Math.PI * 0.45;
-      if (obj.category === "wardrobe") {
+  const pillTexture = useMemo(() => {
+    if (obj.category === "window" || obj.category === "chair") return null;
+    if (obj.category === "exit_door") {
+      return getGlassPillTexture({
+        badge: "EXIT",
+        title: "Primary Egress Door",
+        subtitle: "ISO 85cm Clear Passageway",
+        accentColor: "#10b981",
+        badgeBg: "#059669",
+      });
+    }
+    if (obj.category === "desk") {
+      return getGlassPillTexture({
+        badge: "SAFE",
+        title: obj.label,
+        subtitle: `Phase 1 Shelter • SF ${sf.toFixed(2)}`,
+        accentColor: "#38bdf8",
+        badgeBg: "#0284c7",
+      });
+    }
+    if (obj.category === "bed") {
+      return getGlassPillTexture({
+        badge: "BED",
+        title: obj.label,
+        subtitle: remediated ? "Clear of Tip Arcs • Safe" : "Occupancy Zone",
+        accentColor: remediated ? "#10b981" : "#f59e0b",
+        badgeBg: remediated ? "#059669" : "#d97706",
+      });
+    }
+    return getGlassPillTexture({
+      badge: isDanger ? "RISK" : obj.anchored_to_wall ? "LOCK" : "SAFE",
+      title: obj.label,
+      subtitle: `SF ${sf.toFixed(2)} • ${
+        obj.anchored_to_wall
+          ? "Anchored"
+          : isDanger
+            ? "TOPPLE HAZARD"
+            : "Stable"
+      }`,
+      accentColor: isDanger
+        ? "#ef4444"
+        : obj.anchored_to_wall
+          ? "#10b981"
+          : "#d4af37",
+      badgeBg: isDanger
+        ? "#dc2626"
+        : obj.anchored_to_wall
+          ? "#059669"
+          : "#b45309",
+    });
+  }, [obj.category, obj.label, obj.anchored_to_wall, sf, isDanger, remediated]);
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+
+    if (auraRingRef.current) {
+      const pulse = 1 + Math.sin(t * (isDanger ? 5.5 : 2.4)) * 0.06;
+      auraRingRef.current.scale.set(pulse, pulse, 1);
+    }
+
+    if (spriteRef.current) {
+      spriteRef.current.position.y =
+        Math.max(obj.height_m + 0.38, 1.25) +
+        Math.sin(t * 2.2 + centerX) * 0.035;
+    }
+
+    if (!groupRef.current) return;
+
+    if (isShaking && hazard?.tipped_over && !remediated) {
+      const targetAngle = Math.PI / 2.15;
+      if (obj.category === "bookshelf") {
         groupRef.current.rotation.z = THREE.MathUtils.lerp(
           groupRef.current.rotation.z,
-          targetAngle,
+          -targetAngle,
           0.08
         );
         groupRef.current.position.y = THREE.MathUtils.lerp(
           groupRef.current.position.y,
-          0.32,
+          0.25,
           0.08
         );
         groupRef.current.position.x = THREE.MathUtils.lerp(
           groupRef.current.position.x,
-          centerX + 0.55,
+          centerX + 0.65,
           0.08
         );
       } else {
@@ -500,8 +921,12 @@ function FurniturePrefab({
 
   if (obj.parent_id !== null) return null;
 
-  const sf = hazard?.analytical_safety_factor ?? 1.5;
-  const isDanger = sf < 1.0 && !obj.anchored_to_wall;
+  const auraRadius = Math.max(obj.width_m, obj.depth_m) * 0.58;
+  const auraColor = isDanger
+    ? "#ef4444"
+    : obj.category === "desk"
+      ? "#38bdf8"
+      : "#10b981";
 
   return (
     <group
@@ -509,51 +934,87 @@ function FurniturePrefab({
       position={[centerX, 0, centerZ]}
       rotation={[0, rotRad, 0]}
     >
-      {/* ==================== BED PREFAB WITH NIGHTSTAND & LAMP ==================== */}
+      {/* Memory Palace Double Concentric Floor Aura Rings */}
+      {(isDanger ||
+        obj.anchored_to_wall ||
+        obj.category === "desk" ||
+        obj.category === "bookshelf" ||
+        obj.category === "wardrobe") && (
+        <group position={[0, 0.008, 0]}>
+          <mesh ref={auraRingRef} rotation={[-Math.PI / 2, 0, 0]}>
+            <ringGeometry args={[auraRadius * 0.86, auraRadius, 40]} />
+            <meshBasicMaterial
+              color={auraColor}
+              transparent
+              opacity={isDanger ? 0.65 : 0.38}
+              side={THREE.DoubleSide}
+            />
+          </mesh>
+          <mesh rotation={[-Math.PI / 2, 0, 0]}>
+            <ringGeometry args={[auraRadius * 0.62, auraRadius * 0.66, 36]} />
+            <meshBasicMaterial
+              color="#d4af37"
+              transparent
+              opacity={0.32}
+              side={THREE.DoubleSide}
+            />
+          </mesh>
+        </group>
+      )}
+
+      {/* ==================== BED PREFAB ==================== */}
       {obj.category === "bed" && (
         <group>
-          {/* Soft Woven Area Rug Under Bed */}
-          <mesh position={[0.25, 0.008, 0]} receiveShadow>
-            <boxGeometry args={[obj.width_m + 0.7, 0.012, obj.depth_m + 0.35]} />
-            <meshStandardMaterial color="#1e293b" roughness={0.95} />
-          </mesh>
-
-          {/* Warm Oak Bed Frame */}
           <RoundedBox
             args={[obj.width_m, 0.24, obj.depth_m]}
-            radius={0.03}
+            radius={0.035}
             smoothness={4}
-            position={[0, 0.16, 0]}
+            position={[0, 0.15, 0]}
             castShadow
             receiveShadow
           >
-            <meshStandardMaterial color="#78350f" roughness={0.65} />
+            <meshStandardMaterial
+              color="#451a03"
+              roughness={0.42}
+              metalness={0.12}
+            />
           </RoundedBox>
+          <mesh position={[0, 0.275, 0]}>
+            <boxGeometry
+              args={[obj.width_m + 0.015, 0.015, obj.depth_m + 0.015]}
+            />
+            <meshStandardMaterial
+              color="#d4af37"
+              metalness={0.88}
+              roughness={0.2}
+            />
+          </mesh>
 
-          {/* Tufted Mattress */}
           <RoundedBox
             args={[obj.width_m * 0.94, 0.22, obj.depth_m * 0.94]}
-            radius={0.05}
+            radius={0.055}
             smoothness={4}
             position={[0, 0.36, 0.03]}
             castShadow
             receiveShadow
           >
-            <meshStandardMaterial color="#f8fafc" roughness={0.8} />
+            <meshStandardMaterial color="#f8fafc" roughness={0.68} />
           </RoundedBox>
 
-          {/* Quilted Duvet Blanket */}
           <RoundedBox
             args={[obj.width_m * 0.96, 0.23, obj.depth_m * 0.64]}
-            radius={0.05}
+            radius={0.055}
             smoothness={4}
             position={[0, 0.39, 0.28]}
             castShadow
           >
-            <meshStandardMaterial color="#1d4ed8" roughness={0.75} />
+            <meshStandardMaterial
+              color="#1e3a8a"
+              roughness={0.62}
+              metalness={0.08}
+            />
           </RoundedBox>
 
-          {/* Accent Folded Throw Blanket at Foot of Bed */}
           <RoundedBox
             args={[obj.width_m * 0.97, 0.24, 0.34]}
             radius={0.04}
@@ -561,116 +1022,144 @@ function FurniturePrefab({
             position={[0, 0.41, obj.depth_m * 0.38]}
             castShadow
           >
-            <meshStandardMaterial color="#0284c7" roughness={0.8} />
+            <meshStandardMaterial
+              color="#b45309"
+              roughness={0.55}
+              metalness={0.2}
+            />
           </RoundedBox>
 
-          {/* Dual Plush Pillows */}
           {[-0.24, 0.24].map((px, idx) => (
             <RoundedBox
               key={idx}
               args={[obj.width_m * 0.38, 0.11, 0.34]}
               radius={0.04}
               smoothness={4}
-              position={[px, 0.51, -obj.depth_m * 0.32]}
-              rotation={[0.12, 0, 0]}
+              position={[px, 0.52, -obj.depth_m * 0.32]}
+              rotation={[0.14, 0, 0]}
               castShadow
             >
-              <meshStandardMaterial color="#ffffff" roughness={0.6} />
+              <meshStandardMaterial color="#ffffff" roughness={0.55} />
             </RoundedBox>
           ))}
 
-          {/* Upholstered Headboard */}
           <RoundedBox
-            args={[obj.width_m, 0.95, 0.09]}
-            radius={0.03}
+            args={[obj.width_m, 1.02, 0.1]}
+            radius={0.035}
             smoothness={4}
-            position={[0, 0.52, -obj.depth_m / 2 + 0.04]}
+            position={[0, 0.54, -obj.depth_m / 2 + 0.04]}
             castShadow
           >
-            <meshStandardMaterial color="#334155" roughness={0.7} />
+            <meshStandardMaterial color="#1e293b" roughness={0.55} />
           </RoundedBox>
+          <mesh position={[0, 1.06, -obj.depth_m / 2 + 0.04]}>
+            <boxGeometry args={[obj.width_m + 0.02, 0.03, 0.11]} />
+            <meshStandardMaterial
+              color="#d4af37"
+              metalness={0.88}
+              roughness={0.2}
+            />
+          </mesh>
 
-          {/* Bedside Nightstand + Warm Table Lamp */}
-          <group position={[obj.width_m / 2 + 0.24, 0, -obj.depth_m / 2 + 0.24]}>
+          {/* Bedside Nightstand + Warm Brass Sanctuary Lamp */}
+          <group
+            position={[obj.width_m / 2 + 0.25, 0, -obj.depth_m / 2 + 0.24]}
+          >
             <RoundedBox
               args={[0.38, 0.48, 0.36]}
-              radius={0.02}
+              radius={0.025}
               position={[0, 0.24, 0]}
               castShadow
             >
-              <meshStandardMaterial color="#451a03" roughness={0.6} />
+              <meshStandardMaterial color="#3b1d0a" roughness={0.45} />
             </RoundedBox>
-            {/* Lamp Base */}
-            <mesh position={[0, 0.54, 0]}>
-              <cylinderGeometry args={[0.05, 0.07, 0.12, 16]} />
-              <meshStandardMaterial color="#d97706" metalness={0.6} roughness={0.3} />
+            <mesh position={[0, 0.49, 0]}>
+              <boxGeometry args={[0.4, 0.02, 0.38]} />
+              <meshStandardMaterial color="#f1efe9" roughness={0.25} />
             </mesh>
-            {/* Glowing Warm Lamp Shade */}
-            <mesh position={[0, 0.68, 0]}>
-              <coneGeometry args={[0.13, 0.18, 20, 1, true]} />
+            <mesh position={[0, 0.56, 0]}>
+              <cylinderGeometry args={[0.045, 0.075, 0.13, 18]} />
+              <meshStandardMaterial
+                color="#d4af37"
+                metalness={0.85}
+                roughness={0.2}
+              />
+            </mesh>
+            <mesh position={[0, 0.7, 0]}>
+              <coneGeometry args={[0.135, 0.19, 24, 1, true]} />
               <meshStandardMaterial
                 color="#fef3c7"
                 emissive="#f59e0b"
-                emissiveIntensity={0.9}
+                emissiveIntensity={1.1}
                 side={THREE.DoubleSide}
               />
             </mesh>
             <pointLight
-              position={[0, 0.66, 0]}
-              intensity={0.45}
-              distance={2.6}
+              position={[0, 0.68, 0]}
+              intensity={0.65}
+              distance={3.2}
               color="#fbbf24"
             />
           </group>
         </group>
       )}
 
-      {/* ==================== BOOKSHELF PREFAB WITH BOOKS & CoM GIZMO ==================== */}
+      {/* ==================== BOOKSHELF PREFAB ==================== */}
       {obj.category === "bookshelf" && (
         <group>
-          {/* Left, Right & Back Oak Frame Panels */}
           <mesh
             position={[0, obj.height_m / 2, -obj.depth_m / 2 + 0.02]}
             castShadow
             receiveShadow
           >
-            <boxGeometry args={[obj.width_m, obj.height_m, 0.03]} />
+            <boxGeometry args={[obj.width_m, obj.height_m, 0.035]} />
             <meshStandardMaterial
-              color={isDanger ? "#7f1d1d" : "#713f12"}
-              roughness={0.55}
+              color={isDanger ? "#6b1426" : "#4a2511"}
+              roughness={0.42}
             />
           </mesh>
           <mesh
-            position={[-obj.width_m / 2 + 0.02, obj.height_m / 2, 0]}
+            position={[-obj.width_m / 2 + 0.025, obj.height_m / 2, 0]}
             castShadow
           >
-            <boxGeometry args={[0.04, obj.height_m, obj.depth_m]} />
+            <boxGeometry args={[0.045, obj.height_m, obj.depth_m]} />
             <meshStandardMaterial
-              color={isDanger ? "#991b1b" : "#854d0e"}
-              roughness={0.55}
+              color={isDanger ? "#7f1d1d" : "#5c2d0c"}
+              roughness={0.42}
             />
           </mesh>
           <mesh
-            position={[obj.width_m / 2 - 0.02, obj.height_m / 2, 0]}
+            position={[obj.width_m / 2 - 0.025, obj.height_m / 2, 0]}
             castShadow
           >
-            <boxGeometry args={[0.04, obj.height_m, obj.depth_m]} />
+            <boxGeometry args={[0.045, obj.height_m, obj.depth_m]} />
             <meshStandardMaterial
-              color={isDanger ? "#991b1b" : "#854d0e"}
-              roughness={0.55}
+              color={isDanger ? "#7f1d1d" : "#5c2d0c"}
+              roughness={0.42}
             />
           </mesh>
 
-          {/* 5 Horizontal Shelves + Decorative Book Rows */}
+          <mesh position={[0, obj.height_m + 0.015, 0]}>
+            <boxGeometry
+              args={[obj.width_m + 0.04, 0.035, obj.depth_m + 0.04]}
+            />
+            <meshStandardMaterial
+              color={obj.anchored_to_wall ? "#10b981" : "#d4af37"}
+              emissive={obj.anchored_to_wall ? "#059669" : "#000000"}
+              emissiveIntensity={obj.anchored_to_wall ? 0.55 : 0}
+              metalness={0.85}
+              roughness={0.22}
+            />
+          </mesh>
+
           {[0.12, 0.52, 0.92, 1.34, 1.76, obj.height_m - 0.02].map((sy, i) => (
             <group key={i}>
               <mesh position={[0, sy, 0]} castShadow>
                 <boxGeometry
-                  args={[obj.width_m * 0.96, 0.035, obj.depth_m * 0.96]}
+                  args={[obj.width_m * 0.95, 0.035, obj.depth_m * 0.96]}
                 />
-                <meshStandardMaterial color="#a16207" roughness={0.5} />
+                <meshStandardMaterial color="#78350f" roughness={0.42} />
               </mesh>
-              {/* Decorative Individual Book Spines on Middle Shelves */}
               {i >= 1 && i <= 3 && (
                 <group position={[0, sy + 0.11, 0]}>
                   {[-0.18, -0.11, -0.04, 0.04, 0.12].map((bz, bIdx) => (
@@ -679,16 +1168,21 @@ function FurniturePrefab({
                         args={[
                           obj.width_m * 0.72,
                           0.18 + (bIdx % 2) * 0.03,
-                          0.045,
+                          0.048,
                         ]}
                       />
                       <meshStandardMaterial
                         color={
-                          ["#3b82f6", "#f59e0b", "#10b981", "#ec4899", "#8b5cf6"][
-                            (i + bIdx) % 5
-                          ]
+                          [
+                            "#1e3a8a",
+                            "#b45309",
+                            "#065f46",
+                            "#831843",
+                            "#4c1d95",
+                          ][(i + bIdx) % 5]
                         }
-                        roughness={0.6}
+                        roughness={0.48}
+                        metalness={0.15}
                       />
                     </mesh>
                   ))}
@@ -697,32 +1191,32 @@ function FurniturePrefab({
             </group>
           ))}
 
-          {/* Stacked Heavy Items (20kg Engineering Textbooks & Lab Gear) */}
           {childrenItems.map((child) => {
             const cy =
               child.shelf_level === "top"
                 ? obj.height_m * 0.88
                 : child.shelf_level === "middle"
-                ? obj.height_m * 0.52
-                : 0.24;
+                  ? obj.height_m * 0.52
+                  : 0.24;
             const isTop = child.shelf_level === "top";
             return (
               <group key={child.id} position={[0, cy, 0]}>
                 <RoundedBox
-                  args={[obj.width_m * 0.82, 0.25, obj.depth_m * 0.72]}
-                  radius={0.02}
+                  args={[obj.width_m * 0.82, 0.24, obj.depth_m * 0.74]}
+                  radius={0.025}
                   castShadow
                 >
                   <meshStandardMaterial
                     color={isTop ? "#ef4444" : "#10b981"}
                     emissive={isTop ? "#991b1b" : "#065f46"}
-                    emissiveIntensity={0.45}
+                    emissiveIntensity={0.5}
+                    roughness={0.35}
                   />
                 </RoundedBox>
                 <Text
                   position={[obj.width_m / 2 + 0.06, 0, 0]}
                   rotation={[0, Math.PI / 2, 0]}
-                  fontSize={0.095}
+                  fontSize={0.09}
                   color="#ffffff"
                   anchorX="center"
                   anchorY="middle"
@@ -733,103 +1227,122 @@ function FurniturePrefab({
             );
           })}
 
-          {/* Center-of-Mass (h_CoM) Holographic Sphere */}
           {hazard?.com_height_m && (
             <group position={[0, hazard.com_height_m, obj.depth_m / 2 + 0.09]}>
               <mesh>
-                <sphereGeometry args={[0.085, 20, 20]} />
+                <sphereGeometry args={[0.075, 20, 20]} />
                 <meshStandardMaterial
-                  color={isDanger ? "#ff2222" : "#22c55e"}
-                  emissive={isDanger ? "#ff0000" : "#16a34a"}
-                  emissiveIntensity={0.95}
+                  color={isDanger ? "#ef4444" : "#10b981"}
+                  emissive={isDanger ? "#dc2626" : "#059669"}
+                  emissiveIntensity={1.1}
                 />
               </mesh>
-              <Text
-                position={[0, 0.14, 0]}
-                fontSize={0.085}
-                color={isDanger ? "#fca5a5" : "#86efac"}
-              >
-                {`CoM: ${hazard.com_height_m}m`}
-              </Text>
+              <mesh rotation={[Math.PI / 2, 0, 0]}>
+                <ringGeometry args={[0.095, 0.115, 24]} />
+                <meshBasicMaterial color="#d4af37" side={THREE.DoubleSide} />
+              </mesh>
             </group>
           )}
         </group>
       )}
 
-      {/* ==================== WARDROBE PREFAB WITH DOORS & HANDLES ==================== */}
+      {/* ==================== WARDROBE PREFAB ==================== */}
       {obj.category === "wardrobe" && (
         <group>
           <RoundedBox
             args={[obj.width_m, obj.height_m, obj.depth_m]}
-            radius={0.025}
+            radius={0.03}
             position={[0, obj.height_m / 2, 0]}
             castShadow
             receiveShadow
           >
             <meshStandardMaterial
-              color={isDanger ? "#7f1d1d" : "#5c2d0c"}
-              roughness={0.55}
+              color={isDanger ? "#6b1426" : "#3b1d0a"}
+              roughness={0.42}
+              metalness={0.1}
             />
           </RoundedBox>
-          {/* Twin Recessed Door Panels */}
+          <mesh position={[0, obj.height_m + 0.018, 0]}>
+            <boxGeometry
+              args={[obj.width_m + 0.04, 0.036, obj.depth_m + 0.04]}
+            />
+            <meshStandardMaterial
+              color={obj.anchored_to_wall ? "#10b981" : "#d4af37"}
+              emissive={obj.anchored_to_wall ? "#059669" : "#000000"}
+              emissiveIntensity={obj.anchored_to_wall ? 0.6 : 0}
+              metalness={0.88}
+              roughness={0.2}
+            />
+          </mesh>
           {[-obj.width_m * 0.23, obj.width_m * 0.23].map((dx, i) => (
+            <group
+              key={i}
+              position={[dx, obj.height_m * 0.52, -obj.depth_m / 2 - 0.01]}
+            >
+              <mesh castShadow>
+                <boxGeometry
+                  args={[obj.width_m * 0.42, obj.height_m * 0.86, 0.02]}
+                />
+                <meshStandardMaterial
+                  color={isDanger ? "#881337" : "#5c2d0c"}
+                  roughness={0.38}
+                />
+              </mesh>
+              <mesh position={[0, 0, -0.012]}>
+                <boxGeometry
+                  args={[obj.width_m * 0.36, obj.height_m * 0.78, 0.006]}
+                />
+                <meshStandardMaterial
+                  color="#d4af37"
+                  metalness={0.85}
+                  roughness={0.22}
+                />
+              </mesh>
+            </group>
+          ))}
+          {[-0.048, 0.048].map((hx, i) => (
             <mesh
               key={i}
-              position={[dx, obj.height_m * 0.52, -obj.depth_m / 2 - 0.008]}
-              castShadow
+              position={[hx, obj.height_m * 0.5, -obj.depth_m / 2 - 0.03]}
             >
-              <boxGeometry
-                args={[obj.width_m * 0.42, obj.height_m * 0.88, 0.018]}
-              />
+              <cylinderGeometry args={[0.012, 0.012, 0.22, 14]} />
               <meshStandardMaterial
-                color={isDanger ? "#991b1b" : "#78350f"}
-                roughness={0.5}
+                color="#d4af37"
+                metalness={0.92}
+                roughness={0.15}
               />
             </mesh>
           ))}
-          {/* Brushed Brass Handles */}
-          {[-0.045, 0.045].map((hx, i) => (
-            <mesh
-              key={i}
-              position={[hx, obj.height_m * 0.5, -obj.depth_m / 2 - 0.025]}
-            >
-              <cylinderGeometry args={[0.01, 0.01, 0.18, 12]} />
-              <meshStandardMaterial
-                color="#fbbf24"
-                metalness={0.85}
-                roughness={0.2}
-              />
-            </mesh>
-          ))}
-          {/* Non-Drill Seismic Wedge Strap Indicator when Anchored */}
-          {obj.anchored_to_wall && (
-            <mesh position={[0, obj.height_m + 0.02, 0]}>
-              <boxGeometry args={[obj.width_m * 0.9, 0.04, obj.depth_m * 0.9]} />
-              <meshStandardMaterial
-                color="#10b981"
-                emissive="#059669"
-                emissiveIntensity={0.7}
-              />
-            </mesh>
-          )}
         </group>
       )}
 
-      {/* ==================== DESK PREFAB (SAFE SHELTER) WITH WORKSTATION ==================== */}
+      {/* ==================== DESK PREFAB ==================== */}
       {obj.category === "desk" && (
         <group>
-          {/* Wood-Grain Tabletop with Rounded Edges */}
           <RoundedBox
-            args={[obj.width_m, 0.055, obj.depth_m]}
-            radius={0.018}
+            args={[obj.width_m, 0.058, obj.depth_m]}
+            radius={0.02}
             position={[0, obj.height_m, 0]}
             castShadow
             receiveShadow
           >
-            <meshStandardMaterial color="#0f766e" roughness={0.45} />
+            <meshStandardMaterial
+              color="#0f766e"
+              roughness={0.32}
+              metalness={0.18}
+            />
           </RoundedBox>
+          <mesh position={[0, obj.height_m - 0.032, 0]}>
+            <boxGeometry
+              args={[obj.width_m + 0.01, 0.014, obj.depth_m + 0.01]}
+            />
+            <meshStandardMaterial
+              color="#d4af37"
+              metalness={0.88}
+              roughness={0.2}
+            />
+          </mesh>
 
-          {/* 4 Powder-Coated Steel Frame Legs + Crossbar */}
           {[
             [-obj.width_m / 2 + 0.05, -obj.depth_m / 2 + 0.05],
             [obj.width_m / 2 - 0.05, -obj.depth_m / 2 + 0.05],
@@ -839,55 +1352,59 @@ function FurniturePrefab({
             <mesh key={idx} position={[lx, obj.height_m / 2, lz]} castShadow>
               <boxGeometry args={[0.055, obj.height_m, 0.055]} />
               <meshStandardMaterial
-                color="#cbd5e1"
-                metalness={0.6}
-                roughness={0.3}
+                color="#e2e8f0"
+                metalness={0.78}
+                roughness={0.22}
               />
             </mesh>
           ))}
 
-          {/* Keyboard, Mousepad & Desk Task Lamp */}
-          <mesh position={[0, obj.height_m + 0.032, 0.14]} castShadow>
+          <mesh position={[0, obj.height_m + 0.034, 0.14]} castShadow>
             <boxGeometry args={[0.38, 0.015, 0.14]} />
-            <meshStandardMaterial color="#1e293b" />
+            <meshStandardMaterial color="#0f172a" roughness={0.4} />
           </mesh>
           <group position={[-obj.width_m * 0.36, obj.height_m + 0.03, -0.15]}>
             <mesh position={[0, 0.18, 0]}>
-              <cylinderGeometry args={[0.015, 0.04, 0.36, 12]} />
-              <meshStandardMaterial color="#64748b" metalness={0.7} />
+              <cylinderGeometry args={[0.016, 0.045, 0.36, 14]} />
+              <meshStandardMaterial
+                color="#d4af37"
+                metalness={0.88}
+                roughness={0.2}
+              />
             </mesh>
             <mesh position={[0.06, 0.36, 0.04]} rotation={[0.4, 0, -0.3]}>
-              <coneGeometry args={[0.08, 0.12, 16]} />
+              <coneGeometry args={[0.085, 0.13, 18]} />
               <meshStandardMaterial
-                color="#38bdf8"
-                emissive="#0284c7"
-                emissiveIntensity={0.8}
+                color="#10b981"
+                emissive="#059669"
+                emissiveIntensity={0.95}
               />
             </mesh>
           </group>
 
-          {/* Ultrawide Monitor on Desk */}
           {childrenItems.map((child) => (
-            <group
-              key={child.id}
-              position={[0, obj.height_m + 0.27, -0.12]}
-            >
-              {/* Monitor Stand */}
+            <group key={child.id} position={[0, obj.height_m + 0.27, -0.12]}>
               <mesh position={[0, -0.15, -0.04]}>
-                <cylinderGeometry args={[0.025, 0.035, 0.22, 12]} />
-                <meshStandardMaterial color="#334155" metalness={0.7} />
-              </mesh>
-              {/* Monitor Bezel */}
-              <RoundedBox args={[0.72, 0.38, 0.035]} radius={0.01} castShadow>
-                <meshStandardMaterial color="#0f172a" roughness={0.3} />
-              </RoundedBox>
-              {/* Glowing Display Screen */}
-              <mesh position={[0, 0, 0.019]}>
-                <planeGeometry args={[0.68, 0.34]} />
+                <cylinderGeometry args={[0.025, 0.04, 0.22, 14]} />
                 <meshStandardMaterial
-                  color="#0ea5e9"
-                  emissive="#0369a1"
-                  emissiveIntensity={0.65}
+                  color="#94a3b8"
+                  metalness={0.8}
+                  roughness={0.2}
+                />
+              </mesh>
+              <RoundedBox args={[0.74, 0.39, 0.035]} radius={0.012} castShadow>
+                <meshStandardMaterial
+                  color="#0f172a"
+                  roughness={0.25}
+                  metalness={0.5}
+                />
+              </RoundedBox>
+              <mesh position={[0, 0, 0.019]}>
+                <planeGeometry args={[0.7, 0.35]} />
+                <meshStandardMaterial
+                  color="#38bdf8"
+                  emissive="#0284c7"
+                  emissiveIntensity={0.85}
                 />
               </mesh>
             </group>
@@ -898,583 +1415,633 @@ function FurniturePrefab({
       {/* ==================== ERGONOMIC CHAIR PREFAB ==================== */}
       {obj.category === "chair" && (
         <group>
-          {/* 5-Star Base & Gas Cylinder */}
-          <mesh position={[0, 0.22, 0]}>
-            <cylinderGeometry args={[0.03, 0.03, 0.38, 12]} />
-            <meshStandardMaterial color="#1e293b" metalness={0.7} />
-          </mesh>
-          <mesh position={[0, 0.04, 0]}>
-            <cylinderGeometry args={[0.26, 0.26, 0.03, 6]} />
-            <meshStandardMaterial color="#0f172a" metalness={0.6} />
-          </mesh>
-          {/* Seat Cushion */}
           <RoundedBox
-            args={[0.48, 0.07, 0.46]}
+            args={[obj.width_m * 0.85, 0.075, obj.depth_m * 0.85]}
             radius={0.025}
-            position={[0, 0.44, 0]}
+            position={[0, 0.46, 0]}
             castShadow
           >
-            <meshStandardMaterial color="#334155" roughness={0.7} />
+            <meshStandardMaterial color="#1e293b" roughness={0.45} />
           </RoundedBox>
-          {/* Mesh Backrest */}
           <RoundedBox
-            args={[0.44, 0.48, 0.05]}
-            radius={0.02}
-            position={[0, 0.72, -0.21]}
+            args={[obj.width_m * 0.8, 0.44, 0.06]}
+            radius={0.025}
+            position={[0, 0.72, obj.depth_m * 0.36]}
             castShadow
           >
-            <meshStandardMaterial color="#1e293b" roughness={0.6} />
+            <meshStandardMaterial color="#334155" roughness={0.45} />
           </RoundedBox>
-        </group>
-      )}
-
-      {/* ==================== EXTERIOR WINDOW PREFAB WITH MULLIONS & SKYLINE GLOW ==================== */}
-      {obj.category === "window" && (
-        <group position={[0, 1.45, 0]}>
-          {/* Outer Window Frame */}
-          <mesh>
-            <boxGeometry args={[obj.width_m + 0.08, obj.height_m + 0.08, 0.12]} />
-            <meshStandardMaterial color="#334155" metalness={0.5} />
-          </mesh>
-          {/* Glass Pane */}
-          <mesh position={[0, 0, 0.01]}>
-            <boxGeometry args={[obj.width_m, obj.height_m, 0.04]} />
+          <mesh position={[0, 0.23, 0]}>
+            <cylinderGeometry args={[0.03, 0.03, 0.42, 14]} />
             <meshStandardMaterial
-              color={
-                hazard?.shattered_or_fell && (hasCollapsed || isShaking)
-                  ? "#f87171"
-                  : "#38bdf8"
-              }
-              emissive={
-                hazard?.shattered_or_fell && (hasCollapsed || isShaking)
-                  ? "#dc2626"
-                  : "#0284c7"
-              }
-              emissiveIntensity={0.45}
-              transparent
-              opacity={0.55}
-            />
-          </mesh>
-          {/* Center Mullion Bar */}
-          <mesh position={[0, 0, 0.03]}>
-            <boxGeometry args={[0.04, obj.height_m, 0.05]} />
-            <meshStandardMaterial color="#1e293b" />
-          </mesh>
-        </group>
-      )}
-
-      {/* ==================== ILLUMINATED FIRE EXIT DOOR PREFAB ==================== */}
-      {obj.category === "exit_door" && (
-        <group position={[0, obj.height_m / 2, 0]}>
-          {/* Door Frame */}
-          <mesh>
-            <boxGeometry args={[obj.width_m + 0.1, obj.height_m + 0.06, 0.14]} />
-            <meshStandardMaterial color="#1e293b" />
-          </mesh>
-          {/* Fire-Rated Door Leaf */}
-          <RoundedBox args={[obj.width_m, obj.height_m, 0.09]} radius={0.01}>
-            <meshStandardMaterial
-              color="#059669"
-              emissive="#047857"
-              emissiveIntensity={0.35}
-              roughness={0.4}
-            />
-          </RoundedBox>
-          {/* Stainless Panic Push-Bar */}
-          <mesh position={[0, -0.05, -0.06]}>
-            <boxGeometry args={[obj.width_m * 0.78, 0.045, 0.04]} />
-            <meshStandardMaterial
-              color="#e2e8f0"
+              color="#d4af37"
               metalness={0.85}
               roughness={0.2}
             />
           </mesh>
-          {/* Illuminated ISO Green EXIT Lightbox Above Door */}
-          <group position={[0, obj.height_m / 2 + 0.18, -0.06]}>
-            <mesh>
-              <boxGeometry args={[0.52, 0.18, 0.06]} />
+          {[0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2].map((ang, i) => (
+            <mesh
+              key={i}
+              position={[Math.sin(ang) * 0.14, 0.04, Math.cos(ang) * 0.14]}
+              rotation={[0, ang, Math.PI / 2]}
+            >
+              <cylinderGeometry args={[0.015, 0.015, 0.28, 10]} />
               <meshStandardMaterial
-                color="#10b981"
-                emissive="#10b981"
-                emissiveIntensity={1.4}
+                color="#d4af37"
+                metalness={0.85}
+                roughness={0.2}
               />
             </mesh>
-            <Text
-              position={[0, 0, -0.035]}
-              rotation={[0, Math.PI, 0]}
-              fontSize={0.1}
-              color="#ffffff"
-              anchorX="center"
-              anchorY="middle"
-            >
-              EXIT ➔
-            </Text>
-            <pointLight
-              position={[0, -0.1, -0.2]}
-              intensity={0.7}
-              distance={2.8}
-              color="#10b981"
-            />
-          </group>
+          ))}
         </group>
       )}
 
-      {/* Floating Safety Factor Telemetry Pill */}
-      {obj.category !== "window" &&
-        obj.category !== "exit_door" &&
-        obj.category !== "chair" && (
-          <Text
-            position={[0, obj.height_m + 0.28, 0]}
-            fontSize={0.12}
-            color={isDanger ? "#fca5a5" : "#86efac"}
-            anchorX="center"
-            anchorY="middle"
+      {/* ==================== GRAND PORTAL EXIT DOOR PREFAB ==================== */}
+      {obj.category === "exit_door" && (
+        <group>
+          {[-obj.width_m / 2 - 0.07, obj.width_m / 2 + 0.07].map((px, idx) => (
+            <mesh key={idx} position={[px, obj.height_m / 2, 0]} castShadow>
+              <boxGeometry args={[0.1, obj.height_m + 0.12, 0.14]} />
+              <meshStandardMaterial
+                color="#d4af37"
+                metalness={0.88}
+                roughness={0.22}
+              />
+            </mesh>
+          ))}
+          <mesh position={[0, obj.height_m + 0.08, 0]} castShadow>
+            <boxGeometry args={[obj.width_m + 0.28, 0.12, 0.18]} />
+            <meshStandardMaterial
+              color="#d4af37"
+              metalness={0.88}
+              roughness={0.2}
+            />
+          </mesh>
+
+          <RoundedBox
+            args={[obj.width_m, obj.height_m, 0.075]}
+            radius={0.015}
+            position={[0, obj.height_m / 2, 0]}
+            castShadow
           >
-            {`${obj.id} | SF=${sf.toFixed(2)}`}
-          </Text>
-        )}
+            <meshStandardMaterial
+              color="#064e3b"
+              emissive="#059669"
+              emissiveIntensity={0.45}
+              roughness={0.35}
+            />
+          </RoundedBox>
+          <RoundedBox
+            args={[0.48, 0.16, 0.06]}
+            radius={0.02}
+            position={[0, obj.height_m + 0.24, 0]}
+          >
+            <meshStandardMaterial
+              color="#10b981"
+              emissive="#34d399"
+              emissiveIntensity={1.6}
+            />
+          </RoundedBox>
+          <mesh
+            position={[-obj.width_m * 0.34, 1.02, -0.055]}
+            rotation={[0, 0, Math.PI / 2]}
+          >
+            <cylinderGeometry args={[0.016, 0.016, 0.13, 14]} />
+            <meshStandardMaterial
+              color="#fde047"
+              metalness={0.95}
+              roughness={0.12}
+            />
+          </mesh>
+        </group>
+      )}
+
+      {/* ==================== TEMPERED GLASS CASEMENT WINDOW PREFAB ==================== */}
+      {obj.category === "window" && (
+        <group position={[0, 0.9, 0]}>
+          <mesh>
+            <boxGeometry
+              args={[
+                obj.width_m + 0.08,
+                obj.height_m + 0.08,
+                obj.depth_m + 0.04,
+              ]}
+            />
+            <meshStandardMaterial
+              color="#d4af37"
+              metalness={0.82}
+              roughness={0.25}
+            />
+          </mesh>
+          <mesh>
+            <boxGeometry args={[obj.width_m, obj.height_m, obj.depth_m]} />
+            <meshStandardMaterial
+              color="#38bdf8"
+              emissive="#0284c7"
+              emissiveIntensity={0.35}
+              transparent
+              opacity={0.42}
+              metalness={0.85}
+              roughness={0.08}
+            />
+          </mesh>
+        </group>
+      )}
+
+      {/* ==================== HIGH-DPI GLASSMORPHIC FLOATING TELEMETRY SPRITE ==================== */}
+      {pillTexture && (
+        <sprite
+          ref={spriteRef}
+          position={[0, Math.max(obj.height_m + 0.38, 1.25), 0]}
+          scale={[1.45, 0.36, 1]}
+        >
+          <spriteMaterial
+            map={pillTexture}
+            transparent
+            depthTest={false}
+            depthWrite={false}
+          />
+        </sprite>
+      )}
     </group>
   );
 }
 
 /**
- * Fully Formed 3D Room Interior with Swaying Ceiling Light, Baseboards, Wall Art & Glass Shards
+ * Memory Palace Catmull-Rom 3D Glowing Tube Threads & Floating Octahedron Diamond Beacons
  */
-function ShakeTableRoom({
-  scene,
-  evaluation,
-  isShaking,
-  hasCollapsed,
-  walkthroughActive,
+function AnimatedEscapePath({
+  path,
+  shelterZone,
+  roomWidth,
+  roomDepth,
+  exitClear,
 }: {
-  scene: RoomSceneGraph;
-  evaluation: EgressAndShelterResult;
-  isShaking: boolean;
-  hasCollapsed: boolean;
-  walkthroughActive: boolean;
+  path: Array<{ x_m: number; z_m: number }>;
+  shelterZone: {
+    x_m: number;
+    z_m: number;
+    label: string;
+  } | null;
+  roomWidth: number;
+  roomDepth: number;
+  exitClear: boolean;
 }) {
-  const tableRef = useRef<THREE.Group>(null);
-  const pendantRef = useRef<THREE.Group>(null);
-  const { width_m, depth_m, height_m, floor_level } = scene.room;
-  const { magnitude_mw } = scene.earthquake;
+  const beaconGroupRef = useRef<THREE.Group>(null);
+  const shelterDomeRef = useRef<THREE.Mesh>(null);
 
-  useFrame((state) => {
-    const t = state.clock.getElapsedTime();
-    if (tableRef.current) {
-      if (isShaking) {
-        const amp =
-          0.035 *
-          Math.pow(1.45, magnitude_mw - 5.5) *
-          (1 + floor_level * 0.05);
-        tableRef.current.position.x =
-          Math.sin(t * 28) * amp + Math.cos(t * 17) * amp * 0.6;
-        tableRef.current.position.z =
-          Math.cos(t * 23) * amp + Math.sin(t * 31) * amp * 0.5;
-      } else {
-        tableRef.current.position.lerp(new THREE.Vector3(0, 0, 0), 0.18);
-      }
+  const points3D = useMemo(() => {
+    if (!path || path.length < 2) return [];
+    return path.map(
+      (pt) =>
+        new THREE.Vector3(pt.x_m - roomWidth / 2, 0.055, pt.z_m - roomDepth / 2)
+    );
+  }, [path, roomWidth, roomDepth]);
+
+  const shelterTarget3D = useMemo(() => {
+    if (!shelterZone) return null;
+    return new THREE.Vector3(
+      shelterZone.x_m - roomWidth / 2,
+      0.06,
+      shelterZone.z_m - roomDepth / 2
+    );
+  }, [shelterZone, roomWidth, roomDepth]);
+
+  const phase1TubeGeo = useMemo(() => {
+    if (!shelterTarget3D) return null;
+    const start =
+      points3D.length > 0
+        ? points3D[0]
+        : new THREE.Vector3(0.95 - roomWidth / 2, 0.055, 2.2 - roomDepth / 2);
+    const mid = new THREE.Vector3(
+      (start.x + shelterTarget3D.x) * 0.5,
+      0.08,
+      start.z * 0.65 + shelterTarget3D.z * 0.35
+    );
+    const curve = new THREE.CatmullRomCurve3([start, mid, shelterTarget3D]);
+    return new THREE.TubeGeometry(curve, 36, 0.028, 12, false);
+  }, [points3D, shelterTarget3D, roomWidth, roomDepth]);
+
+  const phase2TubeGeo = useMemo(() => {
+    if (points3D.length < 2) return null;
+    const curve = new THREE.CatmullRomCurve3(points3D);
+    return new THREE.TubeGeometry(curve, 64, 0.036, 14, false);
+  }, [points3D]);
+
+  const beaconNodes = useMemo(() => {
+    if (points3D.length < 2) return [];
+    const curve = new THREE.CatmullRomCurve3(points3D);
+    const totalLen = curve.getLength();
+    const count = Math.max(4, Math.min(9, Math.floor(totalLen / 0.55)));
+    const nodes: THREE.Vector3[] = [];
+    for (let i = 1; i <= count; i++) {
+      nodes.push(curve.getPointAt(i / (count + 1)));
     }
+    return nodes;
+  }, [points3D]);
 
-    // Swaying overhead ceiling pendant light during quake
-    if (pendantRef.current) {
-      if (isShaking) {
-        pendantRef.current.rotation.x = Math.sin(t * 9.5) * 0.38;
-        pendantRef.current.rotation.z = Math.cos(t * 8.2) * 0.34;
-      } else {
-        pendantRef.current.rotation.x = THREE.MathUtils.lerp(
-          pendantRef.current.rotation.x,
-          0,
-          0.08
-        );
-        pendantRef.current.rotation.z = THREE.MathUtils.lerp(
-          pendantRef.current.rotation.z,
-          0,
-          0.08
-        );
-      }
+  const shelterSpriteTex = useMemo(
+    () =>
+      getGlassPillTexture({
+        badge: "P1",
+        title: "Drop, Cover & Hold On",
+        subtitle: "Under-Desk Safe Shelter Zone",
+        accentColor: "#38bdf8",
+        badgeBg: "#0284c7",
+      }),
+    []
+  );
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    if (beaconGroupRef.current) {
+      beaconGroupRef.current.children.forEach((child, idx) => {
+        child.position.y = 0.16 + Math.sin(t * 3.8 - idx * 0.7) * 0.045;
+        child.rotation.y = t * 1.8 + idx * 0.5;
+      });
+    }
+    if (shelterDomeRef.current) {
+      const s = 1 + Math.sin(t * 3.2) * 0.05;
+      shelterDomeRef.current.scale.set(s, 1, s);
     }
   });
 
-  const escapeLinePoints = useMemo(() => {
-    if (
-      !evaluation.escape_path_points_m ||
-      evaluation.escape_path_points_m.length < 2
-    ) {
-      return [];
-    }
-    return evaluation.escape_path_points_m.map(
-      (p) => new THREE.Vector3(p.x_m - width_m / 2, 0.04, p.z_m - depth_m / 2)
-    );
-  }, [evaluation.escape_path_points_m, width_m, depth_m]);
-
-  // Direct Phase-1 Shelter Path from Bed to Under-Desk Safe Zone
-  const shelterLinePoints = useMemo(() => {
-    if (!evaluation.safe_shelter_spot_m) return [];
-    const startPt = evaluation.escape_path_points_m[0] || {
-      x_m: 1.5,
-      z_m: 2.2,
-    };
-    return [
-      new THREE.Vector3(
-        startPt.x_m - width_m / 2,
-        0.04,
-        startPt.z_m - depth_m / 2
-      ),
-      new THREE.Vector3(
-        evaluation.safe_shelter_spot_m.x_m - width_m / 2,
-        0.04,
-        evaluation.safe_shelter_spot_m.z_m - depth_m / 2
-      ),
-    ];
-  }, [evaluation.safe_shelter_spot_m, evaluation.escape_path_points_m, width_m, depth_m]);
+  const mainColor = exitClear ? "#10b981" : "#ef4444";
 
   return (
-    <group ref={tableRef}>
-      {/* ==================== HARDWOOD FLOOR & BASEBOARDS ==================== */}
-      <mesh position={[0, -0.08, 0]} receiveShadow>
-        <boxGeometry args={[width_m + 0.25, 0.16, depth_m + 0.25]} />
-        <meshStandardMaterial
-          color="#3b2314"
-          roughness={0.55}
-          metalness={0.08}
-        />
-      </mesh>
-      <gridHelper
-        args={[Math.max(width_m, depth_m), 22, "#475569", "#1e293b"]}
-        position={[0, 0.005, 0]}
-      />
+    <group>
+      {/* PHASE 1: Glowing Cyan/Gold Tube Thread to Under-Desk Safe Shelter */}
+      {phase1TubeGeo && shelterTarget3D && (
+        <group>
+          <mesh geometry={phase1TubeGeo}>
+            <meshStandardMaterial
+              color="#38bdf8"
+              emissive="#0284c7"
+              emissiveIntensity={1.4}
+              roughness={0.2}
+            />
+          </mesh>
 
-      {/* ==================== 4 ARCHITECTURAL WALLS + CEILING ==================== */}
-      {/* North Back Wall */}
-      <mesh position={[0, height_m / 2, -depth_m / 2]} receiveShadow>
-        <boxGeometry args={[width_m, height_m, 0.1]} />
-        <meshStandardMaterial color="#1e293b" roughness={0.85} />
-      </mesh>
-      {/* West Left Wall */}
-      <mesh position={[-width_m / 2, height_m / 2, 0]} receiveShadow>
-        <boxGeometry args={[0.1, height_m, depth_m]} />
-        <meshStandardMaterial color="#1e293b" roughness={0.85} />
-      </mesh>
-
-      {/* East & South Walls: Solid in 1st-Person Walkthrough, Translucent Cutaway in Orbit View */}
-      <mesh position={[width_m / 2, height_m / 2, 0]} receiveShadow>
-        <boxGeometry args={[0.08, height_m, depth_m]} />
-        <meshStandardMaterial
-          color="#0f172a"
-          transparent={!walkthroughActive}
-          opacity={walkthroughActive ? 0.96 : 0.12}
-        />
-      </mesh>
-      <mesh position={[0, height_m / 2, depth_m / 2]} receiveShadow>
-        <boxGeometry args={[width_m, height_m, 0.08]} />
-        <meshStandardMaterial
-          color="#0f172a"
-          transparent={!walkthroughActive}
-          opacity={walkthroughActive ? 0.96 : 0.15}
-        />
-      </mesh>
-
-      {/* Framed Architectural Poster on West Wall */}
-      <group position={[-width_m / 2 + 0.06, 1.65, 0.6]} rotation={[0, Math.PI / 2, 0]}>
-        <mesh>
-          <boxGeometry args={[0.85, 0.6, 0.02]} />
-          <meshStandardMaterial color="#0f172a" />
-        </mesh>
-        <mesh position={[0, 0, 0.012]}>
-          <planeGeometry args={[0.76, 0.52]} />
-          <meshStandardMaterial
-            color="#0284c7"
-            emissive="#0369a1"
-            emissiveIntensity={0.25}
-          />
-        </mesh>
-      </group>
-
-      {/* Swaying Overhead Pendant Ceiling Fixture + Dynamic Emergency Strobe */}
-      <group ref={pendantRef} position={[0, height_m, 0]}>
-        <mesh position={[0, -0.28, 0]}>
-          <cylinderGeometry args={[0.01, 0.01, 0.56, 8]} />
-          <meshStandardMaterial color="#475569" />
-        </mesh>
-        <mesh position={[0, -0.56, 0]}>
-          <coneGeometry args={[0.24, 0.16, 24, 1, true]} />
-          <meshStandardMaterial
-            color="#1e293b"
-            side={THREE.DoubleSide}
-            metalness={0.5}
-          />
-        </mesh>
-        <mesh position={[0, -0.58, 0]}>
-          <sphereGeometry args={[0.07, 16, 16]} />
-          <meshStandardMaterial
-            color={isShaking ? "#f97316" : "#fef08a"}
-            emissive={isShaking ? "#ef4444" : "#facc15"}
-            emissiveIntensity={1.6}
-          />
-        </mesh>
-        <pointLight
-          position={[0, -0.65, 0]}
-          intensity={isShaking ? 1.4 : 0.9}
-          distance={8}
-          color={isShaking ? "#fb923c" : "#fef9c3"}
-        />
-      </group>
-
-      {/* Falling Plaster & Dust Particles During Shaking */}
-      <SeismicDebrisParticles
-        active={isShaking}
-        roomWidth={width_m}
-        roomDepth={depth_m}
-        roomHeight={height_m}
-      />
-
-      {/* ==================== GLASS SHATTER HAZARD ZONE + 3D GLASS SHARDS ==================== */}
-      {evaluation.glass_hazard_zones_m.map((gz, i) => {
-        const gx = gz.x_m - width_m / 2;
-        const gzCoord = gz.z_m - depth_m / 2;
-        return (
-          <group key={i} position={[gx, 0.02, gzCoord]}>
+          <group position={[shelterTarget3D.x, 0.015, shelterTarget3D.z]}>
             <mesh rotation={[-Math.PI / 2, 0, 0]}>
-              <circleGeometry args={[gz.radius_m, 36]} />
+              <ringGeometry args={[0.32, 0.44, 40]} />
+              <meshBasicMaterial
+                color="#38bdf8"
+                transparent
+                opacity={0.85}
+                side={THREE.DoubleSide}
+              />
+            </mesh>
+            <mesh ref={shelterDomeRef} position={[0, 0.32, 0]}>
+              <cylinderGeometry args={[0.38, 0.42, 0.62, 28, 1, true]} />
               <meshStandardMaterial
                 color="#38bdf8"
                 emissive="#0284c7"
-                emissiveIntensity={0.55}
+                emissiveIntensity={0.6}
                 transparent
-                opacity={hasCollapsed || isShaking ? 0.42 : 0.18}
+                opacity={0.18}
+                side={THREE.DoubleSide}
               />
             </mesh>
-            {/* Scattered 3D Crystalline Glass Shards when Shattered */}
-            {(hasCollapsed || isShaking) &&
-              Array.from({ length: 14 }).map((_, sIdx) => {
-                const angle = (sIdx / 14) * Math.PI * 2;
-                const r = 0.2 + ((sIdx * 37) % 10) * 0.085;
-                return (
-                  <mesh
-                    key={sIdx}
-                    position={[Math.cos(angle) * r, 0.02, Math.sin(angle) * r]}
-                    rotation={[0.2, angle, 0.4]}
-                  >
-                    <coneGeometry args={[0.06, 0.02, 3]} />
-                    <meshStandardMaterial
-                      color="#bae6fd"
-                      emissive="#38bdf8"
-                      emissiveIntensity={0.8}
-                    />
-                  </mesh>
-                );
-              })}
+            <sprite position={[0, 1.18, 0]} scale={[1.38, 0.34, 1]}>
+              <spriteMaterial
+                map={shelterSpriteTex}
+                transparent
+                depthTest={false}
+                depthWrite={false}
+              />
+            </sprite>
           </group>
-        );
-      })}
-
-      {/* ==================== POST-QUAKE FALL SHADOW BOUNDING BOXES ==================== */}
-      {evaluation.object_results
-        .filter((r) => r.tipped_over || r.analytical_safety_factor < 1.0)
-        .map((r) => {
-          const w = r.resting_bbox_2d.max_x - r.resting_bbox_2d.min_x;
-          const d = r.resting_bbox_2d.max_z - r.resting_bbox_2d.min_z;
-          const cx =
-            (r.resting_bbox_2d.min_x + r.resting_bbox_2d.max_x) / 2 -
-            width_m / 2;
-          const cz =
-            (r.resting_bbox_2d.min_z + r.resting_bbox_2d.max_z) / 2 -
-            depth_m / 2;
-          return (
-            <mesh key={`shadow_${r.object_id}`} position={[cx, 0.022, cz]}>
-              <boxGeometry args={[w, 0.035, d]} />
-              <meshStandardMaterial
-                color="#ef4444"
-                emissive="#dc2626"
-                emissiveIntensity={0.65}
-                transparent
-                opacity={0.42}
-              />
-            </mesh>
-          );
-        })}
-
-      {/* ==================== PHASE 1: SAFE DROP-COVER-HOLD SHELTER SPOT ==================== */}
-      {evaluation.safe_shelter_spot_m && (
-        <group
-          position={[
-            evaluation.safe_shelter_spot_m.x_m - width_m / 2,
-            0.04,
-            evaluation.safe_shelter_spot_m.z_m - depth_m / 2,
-          ]}
-        >
-          <mesh rotation={[-Math.PI / 2, 0, 0]}>
-            <ringGeometry args={[0.28, 0.46, 32]} />
-            <meshStandardMaterial
-              color="#06b6d4"
-              emissive="#0891b2"
-              emissiveIntensity={1.1}
-              side={THREE.DoubleSide}
-            />
-          </mesh>
-          <Text position={[0, 0.24, 0]} fontSize={0.105} color="#67e8f9">
-            PHASE 1: DROP-COVER-HOLD SHELTER
-          </Text>
         </group>
       )}
 
-      {/* Phase 1 Shelter Guidance Line (Cyan Dashed) */}
-      {shelterLinePoints.length > 1 && (
-        <Line
-          points={shelterLinePoints}
-          color="#06b6d4"
-          lineWidth={3}
-          dashed
-          dashSize={0.18}
-          gapSize={0.12}
-        />
+      {/* PHASE 2: Glowing Catmull-Rom 3D Tube Thread to Bedroom Exit Door */}
+      {phase2TubeGeo && (
+        <mesh geometry={phase2TubeGeo}>
+          <meshStandardMaterial
+            color={mainColor}
+            emissive={mainColor}
+            emissiveIntensity={1.5}
+            roughness={0.18}
+          />
+        </mesh>
       )}
 
-      {/* ==================== PHASE 2: ANIMATED 3D A* ESCAPE PATH ==================== */}
-      <AnimatedEscapePath points={escapeLinePoints} color="#10b981" />
-
-      {/* Blocked Door Alert Banner */}
-      {!evaluation.exit_reachable_post_quake && (
-        <Text
-          position={[width_m / 2 - 0.65, 1.15, depth_m / 2 - 0.35]}
-          fontSize={0.17}
-          color="#ef4444"
-          anchorX="center"
-        >
-          EXIT BLOCKED BY WARDROBE!
-        </Text>
+      {points3D.length > 0 && (
+        <group position={[points3D[0].x, 0.015, points3D[0].z]}>
+          <mesh rotation={[-Math.PI / 2, 0, 0]}>
+            <ringGeometry args={[0.14, 0.22, 32]} />
+            <meshBasicMaterial color="#d4af37" side={THREE.DoubleSide} />
+          </mesh>
+        </group>
       )}
 
-      {/* Render All High-Detail Furniture Prefabs */}
-      {scene.objects.map((obj) => (
-        <FurniturePrefab
-          key={obj.id}
-          obj={obj}
-          allObjects={scene.objects}
-          hazard={evaluation.object_results.find((r) => r.object_id === obj.id)}
-          roomWidth={width_m}
-          roomDepth={depth_m}
-          isShaking={isShaking}
-          hasCollapsed={hasCollapsed}
-        />
-      ))}
+      <group ref={beaconGroupRef}>
+        {beaconNodes.map((pt, idx) => (
+          <mesh key={idx} position={[pt.x, 0.16, pt.z]}>
+            <octahedronGeometry args={[0.055, 0]} />
+            <meshStandardMaterial
+              color={exitClear ? "#fde68a" : "#fca5a5"}
+              emissive={mainColor}
+              emissiveIntensity={1.4}
+              metalness={0.4}
+              roughness={0.15}
+            />
+          </mesh>
+        ))}
+      </group>
     </group>
   );
 }
 
-export default function QuakeRoomCanvas({
+/**
+ * Tipping Danger Arc Overlay on Floor
+ */
+function TippingDangerZones({
   scene,
-  evaluation,
-  isShaking,
-  hasCollapsed,
-  walkthroughActive,
-  titleBadge,
-}: QuakeRoomCanvasProps) {
-  const [autoGuide, setAutoGuide] = useState(true);
-  const [phaseBanner, setPhaseBanner] = useState(
-    "PHASE 2 (POST-SHAKE EGRESS): Following verified A* green chevron corridor to Exit Door"
-  );
+  simReport,
+  remediated,
+}: {
+  scene: RoomSceneGraph;
+  simReport: EgressAndShelterResult;
+  remediated: boolean;
+}) {
+  if (remediated) return null;
+
+  const { width_m, depth_m } = scene.room;
 
   return (
-    <div className="relative w-full h-full min-h-[440px] bg-slate-950 rounded-xl overflow-hidden border border-slate-800 shadow-2xl">
-      {titleBadge && (
-        <div className="absolute top-3 left-3 z-10 px-3 py-1.5 rounded-lg bg-slate-900/90 backdrop-blur border border-slate-700 text-xs font-semibold text-slate-200 flex items-center gap-2">
-          <span>{titleBadge}</span>
-          <span
-            className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-              evaluation.survivable
-                ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
-                : "bg-red-500/20 text-red-300 border border-red-500/40"
+    <group>
+      {simReport.object_results.map((h: ObjectHazardResult) => {
+        if (!h.tipped_over) return null;
+        const bbox = h.resting_bbox_2d;
+        const zoneW = Math.max(0.4, bbox.max_x - bbox.min_x);
+        const zoneD = Math.max(0.4, bbox.max_z - bbox.min_z);
+        const dzX = (bbox.min_x + bbox.max_x) / 2 - width_m / 2;
+        const dzZ = (bbox.min_z + bbox.max_z) / 2 - depth_m / 2;
+
+        return (
+          <group key={h.object_id} position={[dzX, 0.012, dzZ]}>
+            <mesh rotation={[-Math.PI / 2, 0, 0]}>
+              <planeGeometry args={[zoneW, zoneD]} />
+              <meshBasicMaterial
+                color="#ef4444"
+                transparent
+                opacity={0.22}
+                side={THREE.DoubleSide}
+              />
+            </mesh>
+            <Line
+              points={[
+                [-zoneW / 2, 0.015, -zoneD / 2],
+                [zoneW / 2, 0.015, -zoneD / 2],
+                [zoneW / 2, 0.015, zoneD / 2],
+                [-zoneW / 2, 0.015, zoneD / 2],
+                [-zoneW / 2, 0.015, -zoneD / 2],
+              ]}
+              color="#f87171"
+              lineWidth={2}
+            />
+          </group>
+        );
+      })}
+    </group>
+  );
+}
+
+/**
+ * Global Seismic Ground-Motion Shake Wrapper
+ */
+function SeismicTableGroup({
+  isShaking,
+  pgaG,
+  children,
+}: {
+  isShaking: boolean;
+  pgaG: number;
+  children: React.ReactNode;
+}) {
+  const tableRef = useRef<THREE.Group>(null);
+
+  useFrame(({ clock }) => {
+    if (!tableRef.current) return;
+    if (isShaking) {
+      const t = clock.getElapsedTime();
+      const amp = Math.min(0.14, pgaG * 0.14);
+      tableRef.current.position.x =
+        Math.sin(t * 34) * amp + Math.cos(t * 19) * (amp * 0.5);
+      tableRef.current.position.z =
+        Math.cos(t * 29) * amp + Math.sin(t * 15) * (amp * 0.4);
+    } else {
+      tableRef.current.position.x = THREE.MathUtils.lerp(
+        tableRef.current.position.x,
+        0,
+        0.2
+      );
+      tableRef.current.position.z = THREE.MathUtils.lerp(
+        tableRef.current.position.z,
+        0,
+        0.2
+      );
+    }
+  });
+
+  return <group ref={tableRef}>{children}</group>;
+}
+
+export default function QuakeRoomCanvas({
+  scene,
+  simReport,
+  isShaking,
+  remediated,
+  firstPersonMode = false,
+  onToggleFirstPerson,
+  compact = false,
+  label,
+}: QuakeRoomCanvasProps) {
+  const { width_m, depth_m, height_m } = scene.room;
+  const [freeWalkMode, setFreeWalkMode] = useState(false);
+  const [fpHudStatus, setFpHudStatus] = useState(
+    "PHASE 1 (DURING QUAKE): Dropping & crawling under reinforced study desk shelter..."
+  );
+
+  const floorPgaG =
+    simReport.object_results[0]?.pga_ratio_g ??
+    simReport.monte_carlo?.pga_g_range[0] ??
+    0.45;
+
+  return (
+    <div className="relative w-full h-full overflow-hidden bg-[#050811]">
+      {/* Split-Screen Comparison Pill */}
+      {label && (
+        <div className="pointer-events-none absolute top-20 left-5 z-20">
+          <div
+            className={`px-3.5 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase backdrop-blur-md border shadow-xl ${
+              remediated
+                ? "bg-emerald-950/85 border-emerald-400/60 text-emerald-200"
+                : "bg-red-950/85 border-red-400/60 text-red-200"
             }`}
           >
-            {evaluation.survivable
-              ? "VERIFIED SURVIVABLE"
-              : "FATAL / EXIT BLOCKED"}
-          </span>
+            {label}
+          </div>
         </div>
       )}
 
-      {/* Interactive First-Person Controls HUD Overlay */}
-      {walkthroughActive && (
-        <div className="absolute bottom-3 left-3 right-3 z-10 flex flex-wrap items-center justify-between gap-2 px-3.5 py-2 rounded-xl bg-slate-900/95 backdrop-blur border border-emerald-500/40 text-xs">
-          <div className="flex items-center gap-2 text-emerald-200 font-medium">
-            <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-ping" />
-            <span>{phaseBanner}</span>
-          </div>
-          <div className="flex items-center gap-2">
+      {/* 1st-Person Interactive Sub-Bar */}
+      {firstPersonMode && (
+        <div className="pointer-events-auto absolute top-20 left-1/2 -translate-x-1/2 z-20 flex flex-wrap items-center gap-2 bg-slate-950/90 backdrop-blur-xl border border-amber-400/40 px-4 py-2 rounded-2xl shadow-2xl">
+          <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+          <span className="text-xs font-semibold text-amber-100">
+            {fpHudStatus}
+          </span>
+          <div className="flex items-center gap-1.5 ml-2">
             <button
-              onClick={() => setAutoGuide((g) => !g)}
-              className={`px-2.5 py-1 rounded-lg font-bold text-[11px] border transition ${
-                autoGuide
-                  ? "bg-emerald-500 text-slate-950 border-emerald-400"
-                  : "bg-slate-800 text-slate-200 border-slate-700"
+              onClick={() => setFreeWalkMode(false)}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition ${
+                !freeWalkMode
+                  ? "bg-amber-500 text-slate-950"
+                  : "bg-slate-800 text-slate-300 hover:bg-slate-700"
               }`}
             >
-              {autoGuide ? "Mode: Auto-Guided Path" : "Mode: Free WASD + Mouse"}
+              Auto-Drill (P1 → P2)
             </button>
-            <span className="text-[11px] text-slate-400 hidden sm:inline">
-              WASD: Walk | Drag Mouse / Q,E: Look | C: Crouch Under Desk
-            </span>
+            <button
+              onClick={() => setFreeWalkMode(true)}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition ${
+                freeWalkMode
+                  ? "bg-sky-500 text-slate-950"
+                  : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+              }`}
+            >
+              WASD Free-Walk
+            </button>
+            {onToggleFirstPerson && (
+              <button
+                onClick={onToggleFirstPerson}
+                className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600"
+              >
+                Orbital View
+              </button>
+            )}
           </div>
         </div>
       )}
 
-      <Canvas shadows camera={{ position: [0, 4.5, 5.1], fov: 50 }}>
-        <color attach="background" args={["#050a14"]} />
-        <fog attach="fog" args={["#050a14", 7, 22]} />
-        <Sky
-          distance={450000}
-          sunPosition={[-5, -0.5, -10]}
-          inclination={0.48}
-          azimuth={0.25}
+      <Canvas
+        shadows
+        dpr={[1, 2]}
+        gl={{
+          antialias: true,
+          toneMapping: THREE.ACESFilmicToneMapping,
+          toneMappingExposure: 1.18,
+          powerPreference: "high-performance",
+        }}
+      >
+        <color attach="background" args={["#050811"]} />
+        <fogExp2 attach="fog" args={["#050811", 0.032]} />
+
+        <PerspectiveCamera
+          makeDefault
+          position={compact ? [2.8, 3.6, 3.8] : [2.6, 3.35, 3.75]}
+          fov={compact ? 48 : 44}
         />
 
-        <ambientLight intensity={0.65} />
+        {!firstPersonMode && (
+          <OrbitControls
+            makeDefault
+            enablePan
+            enableZoom
+            enableRotate
+            minDistance={1.8}
+            maxDistance={11.5}
+            maxPolarAngle={Math.PI / 2 - 0.03}
+            target={[0, 0.85, 0]}
+            dampingFactor={0.06}
+          />
+        )}
+
+        <FirstPersonEscapeController
+          active={firstPersonMode}
+          freeWalkMode={freeWalkMode}
+          isShaking={isShaking}
+          shelterZone={simReport.safe_shelter_spot_m}
+          escapePath={simReport.escape_path_points_m}
+          widthM={width_m}
+          depthM={depth_m}
+          onHudUpdate={setFpHudStatus}
+        />
+
+        {/* Memory Palace Sanctuary Lighting Rig */}
+        <ambientLight intensity={0.58} color="#e2e8f0" />
+        <hemisphereLight
+          intensity={0.55}
+          color="#fef3c7"
+          groundColor="#0f172a"
+        />
         <directionalLight
-          position={[5, 9, 5]}
-          intensity={1.25}
+          position={[5.5, 9.5, 6.5]}
+          intensity={1.65}
+          color="#fffbeb"
           castShadow
           shadow-mapSize-width={2048}
           shadow-mapSize-height={2048}
+          shadow-bias={-0.0002}
         />
-        <pointLight position={[-3, 2.5, -2]} intensity={0.45} color="#38bdf8" />
+        <directionalLight
+          position={[-5, 5, -4]}
+          intensity={0.55}
+          color="#38bdf8"
+        />
 
-        <ShakeTableRoom
-          scene={scene}
-          evaluation={evaluation}
-          isShaking={isShaking}
-          hasCollapsed={hasCollapsed}
-          walkthroughActive={walkthroughActive}
-        />
+        <SanctuaryAtmosphere isShaking={isShaking} />
 
         <ContactShadows
-          position={[0, 0.01, 0]}
-          opacity={0.5}
+          position={[0, 0.002, 0]}
+          opacity={0.55}
           scale={10}
           blur={1.8}
           far={4}
         />
 
-        <WalkthroughController
-          active={walkthroughActive}
-          autoGuide={autoGuide}
-          isShaking={isShaking}
-          magnitudeMw={scene.earthquake.magnitude_mw}
-          escapePath={evaluation.escape_path_points_m}
-          shelterSpot={evaluation.safe_shelter_spot_m}
-          roomWidth={scene.room.width_m}
-          roomDepth={scene.room.depth_m}
-          onPhaseChange={setPhaseBanner}
-        />
-
-        {!walkthroughActive && (
-          <OrbitControls
-            makeDefault
-            enablePan
-            enableZoom
-            maxPolarAngle={Math.PI / 2 - 0.04}
+        <SeismicTableGroup isShaking={isShaking} pgaG={floorPgaG}>
+          <ArchitecturalRoomShell
+            widthM={width_m}
+            depthM={depth_m}
+            heightM={height_m}
+            remediated={remediated}
           />
-        )}
+
+          <OrnateChandelier heightM={height_m} isShaking={isShaking} />
+
+          <TippingDangerZones
+            scene={scene}
+            simReport={simReport}
+            remediated={remediated}
+          />
+
+          <AnimatedEscapePath
+            path={simReport.escape_path_points_m}
+            shelterZone={simReport.safe_shelter_spot_m}
+            roomWidth={width_m}
+            roomDepth={depth_m}
+            exitClear={simReport.exit_reachable_post_quake}
+          />
+
+          {scene.objects.map((obj) => (
+            <FurniturePrefab
+              key={obj.id}
+              obj={obj}
+              allObjects={scene.objects}
+              roomWidth={width_m}
+              roomDepth={depth_m}
+              hazard={simReport.object_results.find(
+                (h: ObjectHazardResult) => h.object_id === obj.id
+              )}
+              isShaking={isShaking}
+              remediated={remediated}
+            />
+          ))}
+        </SeismicTableGroup>
       </Canvas>
     </div>
   );
