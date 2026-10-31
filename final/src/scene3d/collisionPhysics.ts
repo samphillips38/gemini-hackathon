@@ -49,6 +49,16 @@ export interface PhysicsBody {
   friction: number;
   restitution: number;
   collidingWithId: string | null;
+  /** Elapsed time under seismic excitation (used for pre-tip rocking threshold) */
+  shakeDuration?: number;
+  /** Normalized tipping progress from 0 (upright) to 1 (horizontal on floor) */
+  tipProgress?: number;
+  /** Decaying impact shockwave intensity (0..1) triggered upon hitting the floor */
+  impactIntensity?: number;
+  /** Bottom-edge hinge pivot offsets so tipping furniture pivots on its base edge instead of sinking into the floor */
+  pivotOffsetX?: number;
+  pivotOffsetY?: number;
+  pivotOffsetZ?: number;
 }
 
 /**
@@ -92,11 +102,14 @@ export function stepObjectPhysics(
 ): void {
   const dt = Math.min(delta, 0.05);
 
-  // 1. Apply seismic ground excitation & tipping dynamics
+  // 1. Apply seismic ground excitation & inverted-pendulum tipping dynamics
   for (const b of bodies) {
     b.collidingWithId = null;
+    b.impactIntensity = Math.max(0, (b.impactIntensity ?? 0) - dt * 1.65);
 
     if (isShaking) {
+      b.shakeDuration = (b.shakeDuration ?? 0) + dt;
+
       // Seismic ground acceleration wave
       const waveX =
         Math.sin(elapsedTime * 19.5 + b.x * 1.7) *
@@ -111,66 +124,179 @@ export function stepObjectPhysics(
 
       if (!b.isAnchored && b.movable) {
         // Sliding acceleration if seismic force overcomes friction
-        const slideFactor = Math.max(0, pgaG - b.friction * 0.45);
-        b.vx += waveX * slideFactor * dt * 1.65;
-        b.vz += waveZ * slideFactor * dt * 1.65;
+        const slideFactor = Math.max(0, pgaG - b.friction * 0.42);
+        b.vx += waveX * slideFactor * dt * 1.75;
+        b.vz += waveZ * slideFactor * dt * 1.75;
       }
 
       if (b.willTip && !b.isAnchored) {
-        // Accelerate tipping toward targetRotX / targetRotZ
-        const diffX = b.targetRotX - b.rotX;
-        const diffZ = b.targetRotZ - b.rotZ;
-        b.angVelX += diffX * 4.5 * dt;
-        b.angVelZ += diffZ * 4.5 * dt;
+        // Staggered critical rocking window before center of mass crosses tipping threshold
+        const staggerDelay =
+          0.22 + Math.abs(Math.sin(b.x * 2.7 + b.z * 1.9)) * 0.28;
+
+        if (b.shakeDuration < staggerDelay && (b.tipProgress ?? 0) < 0.12) {
+          // Stage 1: Violent pre-tip rocking on bottom base corners
+          const rockRamp = b.shakeDuration / staggerDelay;
+          const rockFreq = 24.0;
+          const signX = Math.sign(b.targetRotX);
+          const signZ = Math.sign(b.targetRotZ);
+          b.rotX =
+            signX *
+            (0.03 * rockRamp +
+              Math.sin(elapsedTime * rockFreq + b.x) * 0.065 * rockRamp);
+          b.rotZ =
+            signZ *
+            (0.03 * rockRamp +
+              Math.cos(elapsedTime * rockFreq + b.z) * 0.065 * rockRamp);
+        } else {
+          // Stage 2: Inverted-pendulum gravitational overturning torque
+          if (Math.abs(b.targetRotX) > 0.01) {
+            const signX = Math.sign(b.targetRotX);
+            const absX = Math.abs(b.rotX);
+            const gravAccelX =
+              signX *
+              (2.2 + 12.8 * Math.sin(Math.min(Math.PI * 0.5, Math.max(0.14, absX))));
+            b.angVelX += gravAccelX * dt;
+          }
+          if (Math.abs(b.targetRotZ) > 0.01) {
+            const signZ = Math.sign(b.targetRotZ);
+            const absZ = Math.abs(b.rotZ);
+            const gravAccelZ =
+              signZ *
+              (2.2 + 12.8 * Math.sin(Math.min(Math.PI * 0.5, Math.max(0.14, absZ))));
+            b.angVelZ += gravAccelZ * dt;
+          }
+        }
       } else {
         // Elastic rocking during shaking
-        const rockAmp = b.isAnchored ? 0.012 : 0.055;
-        const targetRockX = Math.sin(elapsedTime * 22 + b.x * 2) * rockAmp;
-        const targetRockZ = Math.cos(elapsedTime * 20 + b.z * 2) * rockAmp;
-        b.rotX = THREE.MathUtils.lerp(b.rotX, targetRockX, 0.25);
-        b.rotZ = THREE.MathUtils.lerp(b.rotZ, targetRockZ, 0.25);
+        const rockAmp = b.isAnchored ? 0.012 : b.movable ? 0.075 : 0.045;
+        const targetRockX =
+          Math.sin(elapsedTime * 23 + b.x * 2.3) *
+          Math.cos(elapsedTime * 9.5) *
+          rockAmp;
+        const targetRockZ =
+          Math.cos(elapsedTime * 21 + b.z * 2.1) *
+          Math.sin(elapsedTime * 11.2) *
+          rockAmp;
+        b.rotX = THREE.MathUtils.lerp(b.rotX, targetRockX, 0.3);
+        b.rotZ = THREE.MathUtils.lerp(b.rotZ, targetRockZ, 0.3);
       }
     } else if (hasCollapsed) {
       if (b.willTip && !b.isAnchored) {
-        const diffX = b.targetRotX - b.rotX;
-        const diffZ = b.targetRotZ - b.rotZ;
-        b.angVelX += diffX * 6.0 * dt;
-        b.angVelZ += diffZ * 6.0 * dt;
+        if (Math.abs(b.targetRotX) > 0.01) {
+          const signX = Math.sign(b.targetRotX);
+          const absX = Math.abs(b.rotX);
+          const gravAccelX =
+            signX *
+            (2.8 + 13.5 * Math.sin(Math.min(Math.PI * 0.5, Math.max(0.15, absX))));
+          b.angVelX += gravAccelX * dt;
+        }
+        if (Math.abs(b.targetRotZ) > 0.01) {
+          const signZ = Math.sign(b.targetRotZ);
+          const absZ = Math.abs(b.rotZ);
+          const gravAccelZ =
+            signZ *
+            (2.8 + 13.5 * Math.sin(Math.min(Math.PI * 0.5, Math.max(0.15, absZ))));
+          b.angVelZ += gravAccelZ * dt;
+        }
       } else {
         b.rotX = THREE.MathUtils.lerp(b.rotX, 0, 0.18);
         b.rotZ = THREE.MathUtils.lerp(b.rotZ, 0, 0.18);
       }
     } else {
       // Reset state when neither shaking nor collapsed
+      b.shakeDuration = 0;
       b.rotX = THREE.MathUtils.lerp(b.rotX, 0, 0.2);
       b.rotZ = THREE.MathUtils.lerp(b.rotZ, 0, 0.2);
       b.angVelX = 0;
       b.angVelZ = 0;
+      b.impactIntensity = 0;
     }
 
-    // Integrate angular velocity for tipping objects
+    // Integrate angular velocity & Stage 3 floor impact restitution bounce
     if ((isShaking || hasCollapsed) && b.willTip && !b.isAnchored) {
-      b.angVelX *= 0.9;
-      b.angVelZ *= 0.9;
+      b.angVelX *= Math.pow(0.96, dt * 60);
+      b.angVelZ *= Math.pow(0.96, dt * 60);
       b.rotX += b.angVelX * dt;
       b.rotZ += b.angVelZ * dt;
 
-      // Clamp to floor impact angle
+      // Floor impact & multi-bounce restitution along X rotation axis
       if (Math.abs(b.targetRotX) > 0.01) {
-        if (b.targetRotX > 0) b.rotX = Math.min(b.rotX, b.targetRotX);
-        else b.rotX = Math.max(b.rotX, b.targetRotX);
+        const signX = Math.sign(b.targetRotX);
+        if (signX > 0 && b.rotX >= b.targetRotX) {
+          b.rotX = b.targetRotX;
+          if (b.angVelX > 0.55) {
+            b.impactIntensity = Math.max(
+              b.impactIntensity ?? 0,
+              Math.min(1.0, b.angVelX / 3.8)
+            );
+            b.angVelX = -b.angVelX * 0.27;
+          } else {
+            b.angVelX = 0;
+          }
+        } else if (signX < 0 && b.rotX <= b.targetRotX) {
+          b.rotX = b.targetRotX;
+          if (b.angVelX < -0.55) {
+            b.impactIntensity = Math.max(
+              b.impactIntensity ?? 0,
+              Math.min(1.0, Math.abs(b.angVelX) / 3.8)
+            );
+            b.angVelX = -b.angVelX * 0.27;
+          } else {
+            b.angVelX = 0;
+          }
+        }
       }
+
+      // Floor impact & multi-bounce restitution along Z rotation axis
       if (Math.abs(b.targetRotZ) > 0.01) {
-        if (b.targetRotZ > 0) b.rotZ = Math.min(b.rotZ, b.targetRotZ);
-        else b.rotZ = Math.max(b.rotZ, b.targetRotZ);
+        const signZ = Math.sign(b.targetRotZ);
+        if (signZ > 0 && b.rotZ >= b.targetRotZ) {
+          b.rotZ = b.targetRotZ;
+          if (b.angVelZ > 0.55) {
+            b.impactIntensity = Math.max(
+              b.impactIntensity ?? 0,
+              Math.min(1.0, b.angVelZ / 3.8)
+            );
+            b.angVelZ = -b.angVelZ * 0.27;
+          } else {
+            b.angVelZ = 0;
+          }
+        } else if (signZ < 0 && b.rotZ <= b.targetRotZ) {
+          b.rotZ = b.targetRotZ;
+          if (b.angVelZ < -0.55) {
+            b.impactIntensity = Math.max(
+              b.impactIntensity ?? 0,
+              Math.min(1.0, Math.abs(b.angVelZ) / 3.8)
+            );
+            b.angVelZ = -b.angVelZ * 0.27;
+          } else {
+            b.angVelZ = 0;
+          }
+        }
       }
     }
 
+    // Compute normalized tipping progress (0..1) and bottom-edge hinge pivot offsets
+    const maxTargetAngle = Math.max(
+      0.01,
+      Math.hypot(b.targetRotX, b.targetRotZ)
+    );
+    const currentTiltAngle = Math.hypot(b.rotX, b.rotZ);
+    b.tipProgress = b.willTip
+      ? THREE.MathUtils.clamp(currentTiltAngle / maxTargetAngle, 0, 1)
+      : 0;
+
+    // Hinge pivot offset keeps the bottom leading edge pinned on the floor (y >= 0)
+    const absSinX = Math.abs(Math.sin(b.rotX));
+    const absSinZ = Math.abs(Math.sin(b.rotZ));
+    b.pivotOffsetY = absSinX * b.halfD + absSinZ * b.halfW;
+    b.pivotOffsetZ = Math.sign(b.rotX) * (1 - Math.cos(b.rotX)) * b.halfD;
+    b.pivotOffsetX = -Math.sign(b.rotZ) * (1 - Math.cos(b.rotZ)) * b.halfW;
+
     // Dynamically expand footprint AABB as tall furniture tips over
-    const tiltSinX = Math.abs(Math.sin(b.rotX));
-    const tiltSinZ = Math.abs(Math.sin(b.rotZ));
-    b.currHalfW = b.halfW + tiltSinZ * (b.height * 0.48);
-    b.currHalfD = b.halfD + tiltSinX * (b.height * 0.48);
+    b.currHalfW = b.halfW + absSinZ * (b.height * 0.48);
+    b.currHalfD = b.halfD + absSinX * (b.height * 0.48);
 
     // Integrate linear velocity & apply floor friction damping
     b.x += b.vx * dt;

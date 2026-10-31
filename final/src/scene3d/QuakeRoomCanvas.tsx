@@ -1071,6 +1071,13 @@ function Room1FurnitureMesh({
   showItemLabels: boolean;
 }) {
   const groupRef = useRef<THREE.Group>(null);
+  const leftDoorPivotRef = useRef<THREE.Group>(null);
+  const rightDoorPivotRef = useRef<THREE.Group>(null);
+  const tumbleBookRefs = useRef<Array<THREE.Mesh | null>>([]);
+  const monitorGroupRef = useRef<THREE.Group>(null);
+  const monitorAngleRef = useRef<number>(0);
+  const monitorVelRef = useRef<number>(0);
+  const impactRingRef = useRef<THREE.Mesh>(null);
   const rotRad = (obj.rotation_deg * Math.PI) / 180;
 
   // High-detail item textures & bump maps
@@ -1090,10 +1097,108 @@ function Room1FurnitureMesh({
     [allObjects, obj.id]
   );
 
-  useFrame(() => {
-    if (!groupRef.current || !body) return;
-    groupRef.current.position.set(body.x, body.y, body.z);
-    groupRef.current.rotation.set(body.rotX, rotRad, body.rotZ);
+  useFrame(({ clock }, delta) => {
+    const dt = Math.min(delta, 0.05);
+    const t = clock.getElapsedTime();
+
+    if (groupRef.current && body) {
+      // Apply bottom-edge hinge pivot offsets so tipping furniture pivots around its floor edge and rests ON the carpet
+      groupRef.current.position.set(
+        body.x + (body.pivotOffsetX ?? 0),
+        body.y + (body.pivotOffsetY ?? 0),
+        body.z + (body.pivotOffsetZ ?? 0)
+      );
+      groupRef.current.rotation.set(body.rotX, rotRad, body.rotZ);
+
+      const tipProg = body.tipProgress ?? 0;
+
+      // 1. Articulated Wardrobe Doors: swing/burst open on hinges as the wardrobe rocks and tips
+      if (obj.category === "wardrobe") {
+        const shakeWobble =
+          isShaking && !body.isAnchored ? Math.sin(t * 16) * 0.12 : 0;
+        const leftOpenAngle = -(tipProg * 1.65 + Math.max(0, shakeWobble));
+        const rightOpenAngle = tipProg * 1.38 + Math.max(0, -shakeWobble);
+        if (leftDoorPivotRef.current) {
+          leftDoorPivotRef.current.rotation.y = THREE.MathUtils.lerp(
+            leftDoorPivotRef.current.rotation.y,
+            leftOpenAngle,
+            0.22
+          );
+        }
+        if (rightDoorPivotRef.current) {
+          rightDoorPivotRef.current.rotation.y = THREE.MathUtils.lerp(
+            rightDoorPivotRef.current.rotation.y,
+            rightOpenAngle,
+            0.22
+          );
+        }
+      }
+
+      // 2. Articulated Bookshelf Volumes: individual books slide out and scatter as the bookcase tips
+      if (obj.category === "bookshelf") {
+        for (let i = 0; i < 6; i++) {
+          const bookMesh = tumbleBookRefs.current[i];
+          if (!bookMesh) continue;
+          const row = i < 3 ? 0 : 1;
+          const col = (i % 3) - 1;
+          const baseX = col * (obj.width_m * 0.25);
+          const baseY = row === 0 ? 1.32 : 0.94;
+          const slideOut = Math.pow(tipProg, 1.35) * (0.38 + (i % 3) * 0.16);
+          const scatterX = tipProg * col * (0.14 + (i % 2) * 0.09);
+          const dropY = tipProg * (0.12 + row * 0.15);
+          bookMesh.position.set(
+            baseX + scatterX,
+            baseY - dropY,
+            0.04 + slideOut
+          );
+          bookMesh.rotation.set(
+            tipProg * (1.1 + i * 0.28),
+            tipProg * (col * 0.65),
+            tipProg * ((i % 2 === 0 ? 1 : -1) * 0.45)
+          );
+        }
+      }
+
+      // 3. Floor Impact Shockwave & Dust Halo Ring
+      if (impactRingRef.current) {
+        const impact = Math.max(
+          body.impactIntensity ?? 0,
+          tipProg > 0.92 ? 0.38 : 0
+        );
+        impactRingRef.current.visible = impact > 0.02;
+        const scale = 0.7 + tipProg * 0.85 + (body.impactIntensity ?? 0) * 0.45;
+        impactRingRef.current.scale.set(scale, scale, 1);
+      }
+    }
+
+    // 4. Articulated Desk Monitor: gravitational topple + bounce onto the desk mat
+    if (obj.category === "desk" && monitorGroupRef.current) {
+      const shouldFall =
+        Boolean(hazard?.shattered_or_fell) && (isShaking || hasCollapsed);
+      if (shouldFall) {
+        const grav = 3.2 + 11.5 * Math.sin(Math.max(0.15, monitorAngleRef.current));
+        monitorVelRef.current += grav * dt;
+        monitorAngleRef.current += monitorVelRef.current * dt;
+        if (monitorAngleRef.current >= 1.42) {
+          monitorAngleRef.current = 1.42;
+          if (monitorVelRef.current > 0.5) {
+            monitorVelRef.current = -monitorVelRef.current * 0.3;
+          } else {
+            monitorVelRef.current = 0;
+          }
+        }
+      } else {
+        monitorAngleRef.current = THREE.MathUtils.lerp(
+          monitorAngleRef.current,
+          isShaking ? Math.sin(t * 24) * 0.08 : 0,
+          0.2
+        );
+        monitorVelRef.current = 0;
+      }
+      monitorGroupRef.current.rotation.x = monitorAngleRef.current;
+      monitorGroupRef.current.position.z =
+        -0.1 + Math.sin(Math.max(0, monitorAngleRef.current)) * 0.09;
+    }
   });
 
   if (obj.parent_id !== null) return null;
@@ -1254,10 +1359,16 @@ function Room1FurnitureMesh({
           {childrenItems.map((child) => {
             const isTop = child.shelf_level === "top";
             const cy = isTop ? 1.64 : 0.22;
+            const tipProg = body?.tipProgress ?? 0;
             return (
               <group
                 key={child.id}
-                position={[0, cy, obj.depth_m / 2 + 0.02]}
+                position={[
+                  0,
+                  cy - (isTop ? tipProg * 0.14 : 0),
+                  obj.depth_m / 2 + 0.02 + (isTop ? tipProg * 0.42 : 0),
+                ]}
+                rotation={[isTop ? tipProg * 0.85 : 0, 0, 0]}
               >
                 <RoundedBox
                   args={[obj.width_m * 0.65, 0.16, obj.depth_m * 0.85]}
@@ -1286,12 +1397,42 @@ function Room1FurnitureMesh({
               </group>
             );
           })}
+          {/* Individual Volumes & Binders that Slide Out and Tumble During Overturning */}
+          {[
+            "#1e40af",
+            "#991b1b",
+            "#065f46",
+            "#92400e",
+            "#3730a3",
+            "#b45309",
+          ].map((bookCol, bIdx) => (
+            <mesh
+              key={`tumble-book-${bIdx}`}
+              ref={(el) => {
+                tumbleBookRefs.current[bIdx] = el;
+              }}
+              position={[
+                ((bIdx % 3) - 1) * (obj.width_m * 0.25),
+                bIdx < 3 ? 1.32 : 0.94,
+                0.04,
+              ]}
+              castShadow
+            >
+              <boxGeometry args={[0.14, 0.21, 0.22]} />
+              <meshStandardMaterial
+                color={bookCol}
+                roughness={0.48}
+                metalness={0.12}
+              />
+            </mesh>
+          ))}
         </group>
       )}
 
-      {/* WARDROBE (Warm Honey-Oak / Beech Veneer Doors + Brushed Stainless Handles) */}
+      {/* WARDROBE (Warm Honey-Oak / Beech Veneer Hinged Doors + Interior Rail + Brushed Stainless Handles) */}
       {obj.category === "wardrobe" && (
         <group>
+          {/* Main Wardrobe Cabinet Carcass */}
           <RoundedBox
             args={[obj.width_m, obj.height_m, obj.depth_m]}
             radius={0.025}
@@ -1307,13 +1448,35 @@ function Room1FurnitureMesh({
               metalness={0.08}
             />
           </RoundedBox>
-          {/* Recessed Timber Veneer Door Panels */}
-          {[-obj.width_m * 0.24, obj.width_m * 0.24].map((px, idx) => (
+          {/* Dark Recessed Wardrobe Interior Cavity + Chrome Hanging Rail (visible when doors swing open during fall) */}
+          <mesh position={[0, obj.height_m * 0.5, obj.depth_m / 2 - 0.015]}>
+            <planeGeometry args={[obj.width_m * 0.88, obj.height_m * 0.86]} />
+            <meshStandardMaterial color="#1e1b18" roughness={0.85} />
+          </mesh>
+          <mesh
+            position={[0, obj.height_m * 0.78, obj.depth_m / 2 - 0.04]}
+            rotation={[0, 0, Math.PI / 2]}
+          >
+            <cylinderGeometry args={[0.012, 0.012, obj.width_m * 0.84, 10]} />
+            <meshStandardMaterial
+              color="#cbd5e1"
+              metalness={0.9}
+              roughness={0.18}
+            />
+          </mesh>
+          {/* Left Hinged Door Leaf (pivots around outer left edge [-obj.width_m * 0.45]) */}
+          <group
+            ref={leftDoorPivotRef}
+            position={[
+              -obj.width_m * 0.45,
+              obj.height_m * 0.5,
+              obj.depth_m / 2 + 0.008,
+            ]}
+          >
             <RoundedBox
-              key={idx}
-              args={[obj.width_m * 0.42, obj.height_m * 0.86, 0.025]}
+              args={[obj.width_m * 0.43, obj.height_m * 0.86, 0.026]}
               radius={0.01}
-              position={[px, obj.height_m * 0.5, obj.depth_m / 2 + 0.008]}
+              position={[obj.width_m * 0.215, 0, 0]}
               castShadow
             >
               <meshStandardMaterial
@@ -1323,12 +1486,7 @@ function Room1FurnitureMesh({
                 roughness={0.34}
               />
             </RoundedBox>
-          ))}
-          {[-0.05, 0.05].map((hx, i) => (
-            <mesh
-              key={i}
-              position={[hx, obj.height_m * 0.52, obj.depth_m / 2 + 0.03]}
-            >
+            <mesh position={[obj.width_m * 0.39, 0.02, 0.024]}>
               <cylinderGeometry args={[0.012, 0.012, 0.32, 12]} />
               <meshStandardMaterial
                 color="#e2e8f0"
@@ -1336,7 +1494,38 @@ function Room1FurnitureMesh({
                 roughness={0.18}
               />
             </mesh>
-          ))}
+          </group>
+          {/* Right Hinged Door Leaf (pivots around outer right edge [+obj.width_m * 0.45]) */}
+          <group
+            ref={rightDoorPivotRef}
+            position={[
+              obj.width_m * 0.45,
+              obj.height_m * 0.5,
+              obj.depth_m / 2 + 0.008,
+            ]}
+          >
+            <RoundedBox
+              args={[obj.width_m * 0.43, obj.height_m * 0.86, 0.026]}
+              radius={0.01}
+              position={[-obj.width_m * 0.215, 0, 0]}
+              castShadow
+            >
+              <meshStandardMaterial
+                map={walnutTex}
+                bumpMap={walnutBump}
+                bumpScale={0.02}
+                roughness={0.34}
+              />
+            </RoundedBox>
+            <mesh position={[-obj.width_m * 0.39, 0.02, 0.024]}>
+              <cylinderGeometry args={[0.012, 0.012, 0.32, 12]} />
+              <meshStandardMaterial
+                color="#e2e8f0"
+                metalness={0.88}
+                roughness={0.18}
+              />
+            </mesh>
+          </group>
         </group>
       )}
 
@@ -1408,8 +1597,8 @@ function Room1FurnitureMesh({
             return (
               <group
                 key={child.id}
+                ref={monitorGroupRef}
                 position={[0, obj.height_m + 0.03, -0.1]}
-                rotation={[tipped ? 1.3 : 0, 0, 0]}
               >
                 <RoundedBox
                   args={[0.54, 0.34, 0.025]}
@@ -1428,9 +1617,9 @@ function Room1FurnitureMesh({
                 <mesh position={[0, 0.24, 0.015]}>
                   <planeGeometry args={[0.5, 0.3]} />
                   <meshStandardMaterial
-                    color="#0f172a"
-                    emissive="#1e3a8a"
-                    emissiveIntensity={0.45}
+                    color={tipped ? "#1e1b4b" : "#0f172a"}
+                    emissive={tipped ? "#dc2626" : "#1e3a8a"}
+                    emissiveIntensity={tipped ? 0.75 : 0.45}
                   />
                 </mesh>
               </group>
@@ -1438,6 +1627,22 @@ function Room1FurnitureMesh({
           })}
         </group>
       )}
+
+      {/* Floor Impact Dust & Shockwave Halo for Falling Tall Furniture */}
+      <mesh
+        ref={impactRingRef}
+        visible={false}
+        position={[0, 0.04, obj.depth_m * 0.65]}
+        rotation={[-Math.PI / 2, 0, 0]}
+      >
+        <ringGeometry args={[0.35, 0.78, 32]} />
+        <meshBasicMaterial
+          color="#cbd5e1"
+          transparent
+          opacity={0.42}
+          depthWrite={false}
+        />
+      </mesh>
 
       {/* CHAIR (Imperial Royal Cobalt Blue Woven Fabric Upholstery + Dark Charcoal Pedestal) */}
       {obj.category === "chair" && (
@@ -1541,6 +1746,8 @@ function ExtraSuiteObjectMesh({
   showItemLabels: boolean;
 }) {
   const groupRef = useRef<THREE.Group>(null);
+  const drawerRefs = useRef<(THREE.Group | null)[]>([]);
+  const impactRingRef = useRef<THREE.Mesh>(null);
 
   // Rich tactile procedural textures & bump maps for Rooms 2, 3, and 4 items
   const walnutTex = useMemo(() => getItemTexture("walnut_wood"), []);
@@ -1556,10 +1763,47 @@ function ExtraSuiteObjectMesh({
   const rubbleTex = useMemo(() => getItemTexture("fractured_rubble"), []);
   const rubbleBump = useMemo(() => getItemBumpMap("fractured_rubble"), []);
 
-  useFrame(() => {
+  useFrame((state) => {
     if (!groupRef.current || !body) return;
-    groupRef.current.position.set(body.x, body.y, body.z);
+    const t = state.clock.elapsedTime;
+    // Apply bottom-edge hinge pivot translation so overturning cabinets/server racks rest flush on the floor
+    groupRef.current.position.set(
+      body.x + (body.pivotOffsetX ?? 0),
+      body.y + (body.pivotOffsetY ?? 0),
+      body.z + (body.pivotOffsetZ ?? 0)
+    );
     groupRef.current.rotation.set(body.rotX, item.rotY, body.rotZ);
+
+    const tipProg = body.tipProgress ?? 0;
+    const imp = body.impactIntensity ?? 0;
+    if (item.category === "cabinet" || item.category === "server_rack") {
+      const drawerHeights = [0.4, 0.85, 1.3, 1.75];
+      for (let i = 0; i < 4; i++) {
+        const dGroup = drawerRefs.current[i];
+        if (!dGroup) continue;
+        const slideDelay = 0.08 + i * 0.09;
+        const slideProg = Math.min(1, Math.max(0, (tipProg - slideDelay) / 0.55));
+        const easeOut = 1 - Math.pow(1 - slideProg, 2.2);
+        const maxSlide = 0.24 + (i % 2) * 0.14;
+        const bounceJolt = imp * 0.035 * Math.sin(t * 28 + i * 2);
+        dGroup.position.set(
+          0,
+          drawerHeights[i],
+          easeOut * maxSlide + bounceJolt
+        );
+        dGroup.rotation.x = easeOut * 0.12 * (i % 2 === 0 ? 1 : 0.6);
+      }
+    }
+
+    if (impactRingRef.current) {
+      impactRingRef.current.visible = imp > 0.02;
+      const scale = 1.0 + (1.0 - imp) * 1.45;
+      impactRingRef.current.scale.set(scale, scale, 1);
+      const mat = impactRingRef.current.material as THREE.MeshBasicMaterial;
+      if (mat) {
+        mat.opacity = imp * 0.65;
+      }
+    }
   });
 
   const statusColor = item.willTipInQuake
@@ -1694,18 +1938,63 @@ function ExtraSuiteObjectMesh({
               roughness={0.32}
             />
           </RoundedBox>
+          {/* Articulated sliding drawers / server rack blades that eject outward as the unit tips */}
           {[0.4, 0.85, 1.3, 1.75].map((ly, idx) => (
-            <mesh key={idx} position={[0, ly, item.d / 2 + 0.012]}>
-              <planeGeometry args={[item.w * 0.8, 0.08]} />
-              <meshStandardMaterial
-                color={item.category === "server_rack" ? "#38bdf8" : "#fde68a"}
-                emissive={
-                  item.category === "server_rack" ? "#0284c7" : "#d4af37"
-                }
-                emissiveIntensity={0.8}
-              />
-            </mesh>
+            <group
+              key={idx}
+              ref={(el) => {
+                drawerRefs.current[idx] = el;
+              }}
+              position={[0, ly, 0]}
+            >
+              <RoundedBox
+                args={[item.w * 0.86, 0.28, item.d * 0.88]}
+                radius={0.012}
+                position={[0, 0, 0.03]}
+                castShadow
+              >
+                <meshStandardMaterial
+                  map={item.category === "server_rack" ? steelTex : oakTex}
+                  bumpMap={
+                    item.category === "server_rack" ? steelBump : oakBump
+                  }
+                  bumpScale={0.02}
+                  metalness={item.category === "server_rack" ? 0.82 : 0.15}
+                  roughness={0.3}
+                />
+              </RoundedBox>
+              <mesh position={[0, 0, item.d / 2 + 0.015]}>
+                <planeGeometry args={[item.w * 0.8, 0.08]} />
+                <meshStandardMaterial
+                  color={item.category === "server_rack" ? "#38bdf8" : "#fde68a"}
+                  emissive={
+                    item.category === "server_rack" ? "#0284c7" : "#d4af37"
+                  }
+                  emissiveIntensity={0.8}
+                />
+              </mesh>
+            </group>
           ))}
+          {/* Floor Impact Shockwave Halo when cabinet/server rack slams into floor */}
+          <mesh
+            ref={impactRingRef}
+            position={[0, item.h * 0.5, item.d / 2 + 0.02]}
+            visible={false}
+          >
+            <ringGeometry
+              args={[
+                Math.max(item.w, item.h) * 0.35,
+                Math.max(item.w, item.h) * 0.56,
+                32,
+              ]}
+            />
+            <meshBasicMaterial
+              color="#f97316"
+              transparent
+              opacity={0}
+              side={THREE.DoubleSide}
+            />
+          </mesh>
         </group>
       )}
 
