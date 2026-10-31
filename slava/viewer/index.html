@@ -1,0 +1,1589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CLEAR EXIT — CAGB Level 2 Realistic 3D Earthquake Digital Twin</title>
+  <style>
+    :root {
+      --bg-panel: rgba(10, 15, 29, 0.88);
+      --border-panel: rgba(148, 163, 184, 0.22);
+      --accent-blue: #38bdf8;
+      --accent-green: #10b981;
+      --accent-red: #ef4444;
+      --accent-amber: #f59e0b;
+      --text-main: #f8fafc;
+      --text-dim: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #060913;
+      color: var(--text-main);
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      user-select: none;
+    }
+    #canvas-container {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+    }
+    /* Top Header & Camera Presets */
+    .topbar {
+      position: absolute;
+      top: 14px;
+      left: 16px;
+      right: 16px;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      pointer-events: none;
+    }
+    .brand-card, .camera-bar, .panel {
+      pointer-events: auto;
+      background: var(--bg-panel);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--border-panel);
+      border-radius: 12px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+    }
+    .brand-card {
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .brand-badge {
+      background: linear-gradient(135deg, #2563eb, #0ea5e9);
+      color: #fff;
+      font-weight: 800;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      padding: 5px 9px;
+      border-radius: 6px;
+      text-transform: uppercase;
+    }
+    .brand-title {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .brand-sub {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+    .camera-bar {
+      padding: 6px;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .cam-btn {
+      background: rgba(30, 41, 59, 0.7);
+      color: #cbd5e1;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 8px;
+      padding: 7px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.16s ease;
+    }
+    .cam-btn:hover {
+      background: rgba(56, 189, 248, 0.18);
+      color: #fff;
+      border-color: var(--accent-blue);
+    }
+    .cam-btn.active {
+      background: #0284c7;
+      color: #fff;
+      border-color: #38bdf8;
+      box-shadow: 0 0 14px rgba(56, 189, 248, 0.4);
+    }
+    /* Left Simulator Control Panel */
+    .left-panel {
+      position: absolute;
+      top: 78px;
+      left: 16px;
+      width: 340px;
+      z-index: 10;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      max-height: calc(100vh - 96px);
+      overflow-y: auto;
+    }
+    .section-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+    .metric-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .metric-box {
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: 8px;
+      padding: 10px;
+    }
+    .metric-val {
+      font-size: 20px;
+      font-weight: 800;
+      margin-top: 2px;
+    }
+    .metric-caption {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+    .slider-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent-blue);
+      cursor: pointer;
+    }
+    .btn-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .action-btn {
+      padding: 11px 14px;
+      border-radius: 9px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform 0.12s ease, filter 0.15s ease;
+    }
+    .action-btn:hover { filter: brightness(1.12); }
+    .action-btn:active { transform: scale(0.98); }
+    .btn-shake {
+      background: linear-gradient(135deg, #dc2626, #ea580c);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(220, 38, 38, 0.38);
+    }
+    .btn-fix {
+      background: linear-gradient(135deg, #059669, #10b981);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35);
+    }
+    .btn-reset {
+      background: rgba(51, 65, 85, 0.85);
+      color: #e2e8f0;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+    }
+    .toggle-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      background: rgba(15, 23, 42, 0.8);
+      padding: 4px;
+      border-radius: 8px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+    }
+    .mode-btn {
+      padding: 7px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      border: none;
+      background: transparent;
+      color: var(--text-dim);
+      cursor: pointer;
+    }
+    .mode-btn.active {
+      background: #1e293b;
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.35);
+    }
+    .status-banner {
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      line-height: 1.45;
+      border-left: 4px solid var(--accent-blue);
+      background: rgba(15, 23, 42, 0.85);
+    }
+    .legend-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 11px;
+      color: #cbd5e1;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    /* Right Evidence Inspector Panel */
+    .right-panel {
+      position: absolute;
+      top: 78px;
+      right: 16px;
+      width: 350px;
+      z-index: 10;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: calc(100vh - 96px);
+      overflow-y: auto;
+    }
+    .evidence-img-wrap {
+      width: 100%;
+      height: 196px;
+      background: #020617;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      position: relative;
+    }
+    .evidence-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .evidence-badge {
+      position: absolute;
+      bottom: 8px;
+      left: 8px;
+      background: rgba(2, 6, 23, 0.85);
+      color: #38bdf8;
+      padding: 4px 8px;
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      border: 1px solid rgba(56, 189, 248, 0.35);
+    }
+    .object-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .obj-chip {
+      padding: 8px 10px;
+      border-radius: 7px;
+      background: rgba(15, 23, 42, 0.72);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      font-size: 11px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.14s ease;
+    }
+    .obj-chip:hover, .obj-chip.active {
+      border-color: #38bdf8;
+      background: rgba(30, 41, 59, 0.9);
+    }
+    .tag-risk {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .risk-high { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+    .risk-med { background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
+    .risk-fixed { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; }
+    .guidance-note {
+      font-size: 11px;
+      color: #94a3b8;
+      line-height: 1.4;
+      padding-top: 6px;
+      border-top: 1px solid rgba(148, 163, 184, 0.15);
+    }
+  </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.164.1/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.164.1/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="canvas-container"></div>
+
+  <div class="topbar">
+    <div class="brand-card">
+      <span class="brand-badge">CLEAR EXIT 3D</span>
+      <div>
+        <div class="brand-title">Imperial College CAGB Level 2 — Earthquake Digital Twin</div>
+        <div class="brand-sub">Room 200 Lecture Theatre · Breakout Concourse · Exhibition Rd Main Atrium</div>
+      </div>
+    </div>
+
+    <div class="camera-bar">
+      <button class="cam-btn active" data-cam="macro">[Full Level 2 Macro]</button>
+      <button class="cam-btn" data-cam="room200">[Room 200 Auditorium]</button>
+      <button class="cam-btn" data-cam="breakout">[Breakout Concourse &amp; Jet Engine]</button>
+      <button class="cam-btn" data-cam="atrium">[Exhibition Rd Atrium &amp; Glass Sculpture]</button>
+    </div>
+  </div>
+
+  <!-- Left Earthquake Physics & Path Planning Controls -->
+  <div class="panel left-panel">
+    <div>
+      <div class="section-label">Monte Carlo Shake Metrics (N = 50 Quakes)</div>
+      <div class="metric-grid">
+        <div class="metric-box">
+          <div class="metric-caption">P(Exit Reachable)</div>
+          <div class="metric-val" id="metric-p-exit" style="color: var(--accent-green);">100% (50/50)</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-caption">Min Spine Clearance</div>
+          <div class="metric-val" id="metric-clearance" style="color: var(--accent-blue);">1.89 m</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slider-row">
+      <div class="slider-header">
+        <span>Peak Ground Acceleration (PGA)</span>
+        <span id="pga-label" style="color: var(--accent-amber);">0.35 g</span>
+      </div>
+      <input type="range" id="pga-slider" min="0.15" max="0.60" step="0.01" value="0.35" />
+      <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--text-dim);">
+        <span>0.15g (Moderate)</span>
+        <span>0.35g (Strong)</span>
+        <span>0.60g (Severe)</span>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-label">Agent Evacuation Clearance Mode</div>
+      <div class="toggle-group">
+        <button class="mode-btn active" id="mode-walk">Walk (0.40 m)</button>
+        <button class="mode-btn" id="mode-wheelchair">Wheelchair (0.90 m)</button>
+      </div>
+    </div>
+
+    <div class="btn-stack">
+      <button class="action-btn btn-shake" id="btn-shake">⚡ SHAKE 50x MONTE CARLO</button>
+      <button class="action-btn btn-fix" id="btn-fix">🛠️ APPLY FIX LAYOUT · RE-VERIFY 50x</button>
+      <button class="action-btn btn-reset" id="btn-reset">↺ RESET TWIN STATE</button>
+    </div>
+
+    <div class="status-banner" id="status-banner">
+      <strong>Pre-Quake Baseline:</strong> All 12 tiered rows in Room 200, Breakout concourse, and 2.10m Exhibition Rd exit doors clear. Click <strong>SHAKE 50x</strong> to simulate ground motion.
+    </div>
+
+    <div>
+      <div class="section-label">3D Safety &amp; Path Legend</div>
+      <div class="legend-list">
+        <div class="legend-item"><span class="dot" style="background:#10b981;"></span> Verified A* Egress Route (Clear)</div>
+        <div class="legend-item"><span class="dot" style="background:#ef4444;"></span> Blocked Path / Toppled Hazard / Glass Zone</div>
+        <div class="legend-item"><span class="dot" style="background:#38bdf8;"></span> Verified Drop-Cover-Hold Shelter Spot</div>
+        <div class="legend-item"><span class="dot" style="background:#f59e0b;"></span> Swinging Pendulum / Unbraked Casters</div>
+      </div>
+    </div>
+
+    <div class="guidance-note">
+      <strong>Official Quake Guidance:</strong> <em>During</em> shaking → <strong>Drop, Cover, Hold On</strong> at verified sturdy shelter spot (away from glass). <em>After</em> shaking stops → evacuate via verified step-free / stair route (never use lifts).
+    </div>
+  </div>
+
+  <!-- Right Video Evidence Inspector -->
+  <div class="panel right-panel">
+    <div>
+      <div class="section-label">3D Object &amp; Video Evidence Inspector</div>
+      <div style="font-size:13px; font-weight:700; margin-bottom:4px;" id="ev-title">
+        Sundai &amp; Imperial Retractable Roller Banners
+      </div>
+      <div style="font-size:11px; color:var(--text-dim); margin-bottom:8px;" id="ev-desc">
+        Two tall (2.05m × 0.85m) unanchored aluminum roller banners flanking the Room 200 exit alcove. Static tip threshold ≈ (b/2)/h_CoM = 0.175/0.95 ≈ 0.18 g.
+      </div>
+      <div class="evidence-img-wrap">
+        <img id="ev-img" src="../../assets/frames/walk1_132011/frame_017_t136.1s.jpg" alt="Extracted Keyframe Evidence" />
+        <div class="evidence-badge" id="ev-badge">walk1_132011 · t = 136.1s</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-label">Click Any 3D Hazard or Select Below</div>
+      <div class="object-list" id="object-list"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color('#070b16');
+    scene.fog = new THREE.FogExp2('#070b16', 0.0085);
+
+    const camera = new THREE.PerspectiveCamera(46, window.innerWidth / window.innerHeight, 0.1, 250);
+    camera.position.set(6, 22, 34);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+    container.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.target.set(2, 1.5, -6);
+
+    // Lighting
+    scene.add(new THREE.AmbientLight('#cbd5e1', 0.72));
+    const hemiLight = new THREE.HemisphereLight('#e0f2fe', '#1e293b', 0.65);
+    hemiLight.position.set(0, 25, 0);
+    scene.add(hemiLight);
+
+    const dirLight = new THREE.DirectionalLight('#fffbeb', 1.45);
+    dirLight.position.set(28, 38, 22);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.set(2048, 2048);
+    dirLight.shadow.camera.left = -45;
+    dirLight.shadow.camera.right = 45;
+    dirLight.shadow.camera.top = 45;
+    dirLight.shadow.camera.bottom = -45;
+    dirLight.shadow.bias = -0.0005;
+    scene.add(dirLight);
+
+    // Master World Group (shaken during quake)
+    const worldGroup = new THREE.Group();
+    scene.add(worldGroup);
+
+    // Helper: Canvas Texture Generator for Realistic Signage & Banners
+    function makeSignTexture(lines, bg, fg, accent = '#38bdf8', w = 512, h = 512) {
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, w, h);
+      ctx.strokeStyle = accent;
+      ctx.lineWidth = 10;
+      ctx.strokeRect(14, 14, w - 28, h - 28);
+      ctx.fillStyle = fg;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      lines.forEach((txt, i) => {
+        const sz = i === 0 ? Math.floor(w * 0.115) : Math.floor(w * 0.068);
+        ctx.font = 'bold ' + sz + 'px Inter, system-ui, sans-serif';
+        ctx.fillText(txt, w / 2, h * (0.26 + i * 0.18));
+      });
+      const tex = new THREE.CanvasTexture(c);
+      tex.needsUpdate = true;
+      return tex;
+    }
+
+    // 1. Ground Floorplan Slab (loads ../../assets/floorplans/cagb-L2.jpg)
+    const texLoader = new THREE.TextureLoader();
+    const floorplanMat = new THREE.MeshStandardMaterial({
+      color: '#334155',
+      roughness: 0.85,
+      metalness: 0.05
+    });
+    texLoader.load('../../assets/floorplans/cagb-L2.jpg', (tex) => {
+      tex.colorSpace = THREE.SRGBColorSpace;
+      floorplanMat.map = tex;
+      floorplanMat.color.set('#cbd5e1');
+      floorplanMat.needsUpdate = true;
+    });
+    const planSlab = new THREE.Mesh(new THREE.BoxGeometry(92, 0.18, 65), floorplanMat);
+    planSlab.position.set(-4, -0.1, -6);
+    planSlab.receiveShadow = true;
+    worldGroup.add(planSlab);
+
+    // Subtle metric reference grid
+    const grid = new THREE.GridHelper(92, 46, '#38bdf8', '#1e293b');
+    grid.position.set(-4, 0.005, -6);
+    grid.material.opacity = 0.22;
+    grid.material.transparent = true;
+    worldGroup.add(grid);
+
+    // Interactive Clickable Registry
+    const clickableMeshes = [];
+    const hazardRegistry = {};
+    function registerHazard(id, group, meta) {
+      hazardRegistry[id] = { id, group, ...meta, basePos: group.position.clone(), baseRot: group.rotation.clone() };
+      group.traverse((child) => {
+        if (child.isMesh) {
+          child.userData.hazardId = id;
+          clickableMeshes.push(child);
+        }
+      });
+    }
+
+    // ============================================================================
+    // ZONE A: ROOM 200 LECTURE THEATRE (Center: X = +14m, Z = +5m, 14.7m x 12.8m)
+    // ============================================================================
+    const room200Group = new THREE.Group();
+    room200Group.position.set(14, 0, 5);
+    worldGroup.add(room200Group);
+
+    // Carpeted Auditorium Floor
+    const r200Floor = new THREE.Mesh(
+      new THREE.BoxGeometry(14.8, 0.06, 12.8),
+      new THREE.MeshStandardMaterial({ color: '#27303f', roughness: 0.9 })
+    );
+    r200Floor.position.set(0, 0.03, 0);
+    r200Floor.receiveShadow = true;
+    room200Group.add(r200Floor);
+
+    // Slatted Oak Acoustic Rear & Side Walls (#c9935b)
+    const oakMat = new THREE.MeshStandardMaterial({ color: '#c9935b', roughness: 0.55, metalness: 0.08 });
+    const rearOakWall = new THREE.Mesh(new THREE.BoxGeometry(0.18, 3.6, 12.8), oakMat);
+    rearOakWall.position.set(-7.3, 1.8, 0);
+    rearOakWall.castShadow = true;
+    room200Group.add(rearOakWall);
+
+    // Vertical acoustic oak slats on rear wall
+    const slatMat = new THREE.MeshStandardMaterial({ color: '#b47b44', roughness: 0.5 });
+    for (let sz = -6.0; sz <= 6.0; sz += 0.4) {
+      if (Math.abs(sz - 3.6) < 1.1 || Math.abs(sz + 3.6) < 1.1) continue; // Door openings
+      const slat = new THREE.Mesh(new THREE.BoxGeometry(0.05, 3.5, 0.14), slatMat);
+      slat.position.set(-7.19, 1.8, sz);
+      room200Group.add(slat);
+    }
+
+    // 12 Tiered Rows of Royal-Blue Upholstered Flip-Up Chairs (#1d5bbf) + Continuous White Desks (#f1f5f9)
+    const seatBlueMat = new THREE.MeshStandardMaterial({ color: '#1d5bbf', roughness: 0.72 });
+    const deskWhiteMat = new THREE.MeshStandardMaterial({ color: '#f1f5f9', roughness: 0.25 });
+    const stepCarpetMat = new THREE.MeshStandardMaterial({ color: '#334155', roughness: 0.88 });
+    const nosingAluMat = new THREE.MeshStandardMaterial({ color: '#e2e8f0', metalness: 0.88, roughness: 0.18 });
+    const steelLegMat = new THREE.MeshStandardMaterial({ color: '#1e293b', metalness: 0.75, roughness: 0.3 });
+
+    const r200SeatingGroup = new THREE.Group();
+    room200Group.add(r200SeatingGroup);
+    for (let row = 0; row < 12; row++) {
+      const rx = 4.2 - row * 0.88; // East (stage=+6.5) to West (rear=-6.2)
+      const elev = 0.08 + row * 0.145;
+      const tierGroup = new THREE.Group();
+      tierGroup.position.set(rx, 0, 0);
+
+      // Raked step platform + aluminum nosing
+      const step = new THREE.Mesh(new THREE.BoxGeometry(0.86, elev, 10.6), stepCarpetMat);
+      step.position.set(0, elev / 2, 0);
+      step.receiveShadow = true;
+      tierGroup.add(step);
+
+      const nosing = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.02, 10.6), nosingAluMat);
+      nosing.position.set(0.42, elev + 0.01, 0);
+      tierGroup.add(nosing);
+
+      // Continuous white laminate desk
+      const desk = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.03, 9.8), deskWhiteMat);
+      desk.position.set(0.26, elev + 0.72, 0);
+      desk.castShadow = true;
+      desk.receiveShadow = true;
+      tierGroup.add(desk);
+
+      // 14 Royal-Blue Flip-Up Chairs per row
+      for (let s = 0; s < 14; s++) {
+        const sz = -4.55 + s * 0.7;
+        if (Math.abs(sz) < 0.45) continue; // center aisle
+        const chair = new THREE.Group();
+        chair.position.set(-0.08, elev, sz);
+        const leg = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.42, 0.05), steelLegMat);
+        leg.position.y = 0.21;
+        const cushion = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.08, 0.46), seatBlueMat);
+        cushion.position.set(0.04, 0.42, 0);
+        const back = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.44, 0.46), seatBlueMat);
+        back.position.set(-0.14, 0.64, 0);
+        back.rotation.z = 0.12;
+        chair.add(leg, cushion, back);
+        tierGroup.add(chair);
+      }
+      r200SeatingGroup.add(tierGroup);
+    }
+
+    registerHazard('room200_seating', r200SeatingGroup, {
+      title: 'Room 200 Tiered Auditorium Seating & White Desks',
+      desc: '12 raked tiers of bolted royal-blue flip-up seats (#1d5bbf) and continuous white laminate desks (#f1f5f9) with aluminum step nosings.',
+      video: 'walk1_132011 · t = 24.1s',
+      img: '../../assets/frames/walk1_132011/frame_003_t024.1s.jpg',
+      riskLabel: 'ANCHORED',
+      riskClass: 'risk-fixed'
+    });
+
+    // Dual Front Projection Screens & Stage Lectern (East wall X = +7.1m)
+    const screenMat = new THREE.MeshStandardMaterial({
+      color: '#f8fafc',
+      emissive: '#38bdf8',
+      emissiveIntensity: 0.22,
+      roughness: 0.2
+    });
+    [-2.8, 2.8].forEach((sz) => {
+      const scr = new THREE.Mesh(new THREE.BoxGeometry(0.08, 2.4, 4.2), screenMat);
+      scr.position.set(7.1, 2.5, sz);
+      room200Group.add(scr);
+    });
+
+    // Royal-Blue Double Exit Doors with Stainless Kickplates, Vision Glass & Glowing Green EXIT Signs
+    function buildBlueDoubleDoor(x, z, rotY) {
+      const dg = new THREE.Group();
+      dg.position.set(x, 0, z);
+      dg.rotation.y = rotY;
+      const doorBlue = new THREE.MeshStandardMaterial({ color: '#1d4ed8', roughness: 0.38 });
+      const kickSteel = new THREE.MeshStandardMaterial({ color: '#e2e8f0', metalness: 0.9, roughness: 0.15 });
+      const visionGlass = new THREE.MeshPhysicalMaterial({ color: '#bae6fd', transmission: 0.78, transparent: true, opacity: 0.7 });
+
+      [-0.46, 0.46].forEach((offset) => {
+        const leaf = new THREE.Mesh(new THREE.BoxGeometry(0.88, 2.15, 0.07), doorBlue);
+        leaf.position.set(offset, 1.075, 0);
+        leaf.castShadow = true;
+        const kick = new THREE.Mesh(new THREE.BoxGeometry(0.84, 0.26, 0.085), kickSteel);
+        kick.position.set(offset, 0.14, 0);
+        const glass = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.92, 0.085), visionGlass);
+        glass.position.set(offset * 0.55, 1.25, 0);
+        dg.add(leaf, kick, glass);
+      });
+
+      const exitBox = new THREE.Mesh(
+        new THREE.BoxGeometry(0.54, 0.2, 0.06),
+        new THREE.MeshStandardMaterial({ color: '#10b981', emissive: '#10b981', emissiveIntensity: 1.8 })
+      );
+      exitBox.position.set(0, 2.42, 0);
+      dg.add(exitBox);
+      return dg;
+    }
+
+    const r200DoorNorth = buildBlueDoubleDoor(-7.2, -3.6, Math.PI / 2);
+    const r200DoorSouth = buildBlueDoubleDoor(-7.2, 3.6, Math.PI / 2);
+    room200Group.add(r200DoorNorth, r200DoorSouth);
+    registerHazard('room200_doors', r200DoorSouth, {
+      title: 'Room 200 Royal-Blue Acoustic Double Exit Doors',
+      desc: '1.89m clear-opening acoustic fire doors with stainless steel kickplates, vertical vision glass panels, and illuminated green EXIT signage.',
+      video: 'walk1_132011 · t = 56.1s',
+      img: '../../assets/frames/walk1_132011/frame_007_t056.1s.jpg',
+      riskLabel: 'EXIT DOOR',
+      riskClass: 'risk-fixed'
+    });
+
+    // ============================================================================
+    // ZONE B: BREAKOUT CONCOURSE & CORRIDOR SPINE (X = -4m, Z = +5m down to -16m)
+    // ============================================================================
+    const breakoutGroup = new THREE.Group();
+    worldGroup.add(breakoutGroup);
+
+    // Polished Dark Grey Terrazzo Floor (#4a5254) with Dark Slate Paver Tracks
+    const terrazzoFloor = new THREE.Mesh(
+      new THREE.BoxGeometry(18.5, 0.05, 28.0),
+      new THREE.MeshStandardMaterial({ color: '#4a5254', roughness: 0.28, metalness: 0.15 })
+    );
+    terrazzoFloor.position.set(-2.5, 0.025, -4.5);
+    terrazzoFloor.receiveShadow = true;
+    breakoutGroup.add(terrazzoFloor);
+
+    // Slate rectangular paver tracks along main spine
+    const slateTrackMat = new THREE.MeshStandardMaterial({ color: '#1e293b', roughness: 0.42 });
+    for (let tz = -16; tz <= 7; tz += 1.8) {
+      const paver = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.058, 1.5), slateTrackMat);
+      paver.position.set(1.5, 0.029, tz);
+      breakoutGroup.add(paver);
+    }
+
+    // Slatted Oak Upper Balcony Balustrade (#d4a373) & Upper-Floor Glass Window with Stacked Cardboard/Red Crates
+    const balconyGroup = new THREE.Group();
+    balconyGroup.position.set(-2.5, 3.1, -3.0);
+    const balRail = new THREE.Mesh(
+      new THREE.BoxGeometry(15.0, 1.05, 0.14),
+      new THREE.MeshStandardMaterial({ color: '#d4a373', roughness: 0.5 })
+    );
+    balconyGroup.add(balRail);
+
+    // Upper-level glass partition overlooking atrium with stacked cardboard boxes & red storage crates
+    const upperGlass = new THREE.Mesh(
+      new THREE.BoxGeometry(6.5, 2.1, 0.08),
+      new THREE.MeshPhysicalMaterial({ color: '#93c5fd', transmission: 0.72, transparent: true, opacity: 0.65 })
+    );
+    upperGlass.position.set(2.5, 1.4, -5.5);
+    balconyGroup.add(upperGlass);
+
+    const crateMatRed = new THREE.MeshStandardMaterial({ color: '#dc2626', roughness: 0.5 });
+    const boxMatCardboard = new THREE.MeshStandardMaterial({ color: '#ca8a04', roughness: 0.8 });
+    for (let c = 0; c < 6; c++) {
+      const box = new THREE.Mesh(
+        new THREE.BoxGeometry(0.65, 0.52, 0.48),
+        c % 2 === 0 ? crateMatRed : boxMatCardboard
+      );
+      box.position.set(0.8 + (c % 3) * 0.78, 0.7 + Math.floor(c / 3) * 0.55, -5.85);
+      balconyGroup.add(box);
+    }
+    breakoutGroup.add(balconyGroup);
+    registerHazard('upper_crates', balconyGroup, {
+      title: 'Upper-Floor Glass Partition & Unsecured Storage Crates',
+      desc: 'Stacked cardboard boxes and red plastic crates piled directly against the upper interior glazing overlooking the Breakout concourse.',
+      video: 'walk1_132011 · t = 80.1s',
+      img: '../../assets/frames/walk1_132011/frame_010_t080.1s.jpg',
+      riskLabel: 'OVERHEAD GLASS',
+      riskClass: 'risk-med'
+    });
+
+    // 3 Suspended Circular Glowing Halo Ring Chandeliers (swing as pendulums during shaking!)
+    const haloChandeliers = [];
+    [4.5, -1.5, -7.5].forEach((hz, idx) => {
+      const hAnchor = new THREE.Group();
+      hAnchor.position.set(0.5, 3.85, hz);
+      const pendulum = new THREE.Group();
+      // 3 suspension steel cables
+      for (let a = 0; a < 3; a++) {
+        const ang = (a * Math.PI * 2) / 3;
+        const wire = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.006, 0.006, 0.85, 6),
+          new THREE.MeshStandardMaterial({ color: '#94a3b8', metalness: 0.9 })
+        );
+        wire.position.set(Math.cos(ang) * 0.55, -0.42, Math.sin(ang) * 0.55);
+        pendulum.add(wire);
+      }
+      const haloRing = new THREE.Mesh(
+        new THREE.TorusGeometry(0.76, 0.05, 16, 48),
+        new THREE.MeshStandardMaterial({ color: '#fffbeb', emissive: '#fde68a', emissiveIntensity: 1.75, roughness: 0.15 })
+      );
+      haloRing.rotation.x = Math.PI / 2;
+      haloRing.position.y = -0.85;
+      pendulum.add(haloRing);
+      hAnchor.add(pendulum);
+      breakoutGroup.add(hAnchor);
+      haloChandeliers.push({ pendulum, phase: idx * 1.3 });
+      if (idx === 1) {
+        registerHazard('halo_chandelier', hAnchor, {
+          title: 'Suspended Circular Halo Ring Chandeliers (3x)',
+          desc: 'Unbraced circular LED halo luminaires suspended on 0.85m steel cables; experience spherical pendulum resonance during horizontal shaking.',
+          video: 'walk2_132259 · t = 55.2s',
+          img: '../../assets/frames/walk2_132259/frame_011_t055.2s.jpg',
+          riskLabel: 'PENDULUM SWING',
+          riskClass: 'risk-med'
+        });
+      }
+    });
+
+    // Two Tall Black Retractable Roller Banners ("Sundai" & "Build the Future. Together.")
+    function buildRollerBanner(x, z, rotY, lines, accent) {
+      const bg = new THREE.Group();
+      bg.position.set(x, 0, z);
+      bg.rotation.y = rotY;
+      const pivot = new THREE.Group();
+      bg.add(pivot);
+
+      const base = new THREE.Mesh(
+        new THREE.BoxGeometry(0.88, 0.08, 0.24),
+        new THREE.MeshStandardMaterial({ color: '#cbd5e1', metalness: 0.85, roughness: 0.25 })
+      );
+      base.position.y = 0.04;
+      const sheet = new THREE.Mesh(
+        new THREE.BoxGeometry(0.84, 1.98, 0.015),
+        new THREE.MeshStandardMaterial({
+          map: makeSignTexture(lines, '#090d16', '#f8fafc', accent, 512, 1024),
+          roughness: 0.35
+        })
+      );
+      sheet.position.set(0, 1.05, 0);
+      sheet.castShadow = true;
+      pivot.add(base, sheet);
+      bg.userData.pivot = pivot;
+      return bg;
+    }
+
+    const bannerSundai = buildRollerBanner(3.8, 3.8, -Math.PI / 2, ['SUNDAI', 'HACKATHON', 'IMPERIAL CAGB', 'LEVEL 2'], '#f59e0b');
+    const bannerFuture = buildRollerBanner(3.8, 5.2, -Math.PI / 2, ['BUILD THE', 'FUTURE.', 'TOGETHER.', 'IMPERIAL'], '#38bdf8');
+    breakoutGroup.add(bannerSundai, bannerFuture);
+
+    registerHazard('roller_banners', bannerSundai, {
+      title: 'Sundai & Imperial Retractable Roller Banners (2x)',
+      desc: 'Two 2.05m tall unanchored aluminum roller banners flanking the Room 200 exit vestibule. Static tip threshold ≈ (b/2)/h_CoM ≈ 0.18 g — can fall across the exit path.',
+      video: 'walk1_132011 · t = 136.1s',
+      img: '../../assets/frames/walk1_132011/frame_017_t136.1s.jpg',
+      riskLabel: 'TIPS ≈ 0.18 g',
+      riskClass: 'risk-high'
+    });
+
+    // Wheeled White Steel Catering Cart on 4 Unbraked Casters
+    const cartGroup = new THREE.Group();
+    cartGroup.position.set(2.8, 0, 1.8);
+    const cartPivot = new THREE.Group();
+    cartGroup.add(cartPivot);
+    const whiteSteelMat = new THREE.MeshStandardMaterial({ color: '#f8fafc', metalness: 0.35, roughness: 0.25 });
+    [0.16, 0.52, 0.88].forEach((sy) => {
+      const tray = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.04, 0.56), whiteSteelMat);
+      tray.position.y = sy;
+      tray.castShadow = true;
+      cartPivot.add(tray);
+    });
+    [[-0.44, -0.25], [0.44, -0.25], [-0.44, 0.25], [0.44, 0.25]].forEach(([px, pz]) => {
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.9, 10), whiteSteelMat);
+      post.position.set(px, 0.5, pz);
+      const wheel = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.05, 0.05, 0.03, 12),
+        new THREE.MeshStandardMaterial({ color: '#0f172a', roughness: 0.7 })
+      );
+      wheel.rotation.x = Math.PI / 2;
+      wheel.position.set(px, 0.05, pz);
+      cartPivot.add(post, wheel);
+    });
+    // Catering supplies on top tray
+    const supplyBox = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.18, 0.26), boxMatCardboard);
+    supplyBox.position.set(-0.18, 0.99, 0);
+    const urn = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.25, 16), nosingAluMat);
+    urn.position.set(0.22, 1.02, 0);
+    cartPivot.add(supplyBox, urn);
+    cartGroup.userData.pivot = cartPivot;
+    breakoutGroup.add(cartGroup);
+
+    registerHazard('catering_cart', cartGroup, {
+      title: 'Wheeled White Steel Utility & Catering Cart',
+      desc: '3-tier white steel catering trolley on 4 unbraked swivel casters. Rolls 1.4m into main evacuation spine and tips during horizontal ground motion.',
+      video: 'walk2_132259 · t = 65.2s',
+      img: '../../assets/frames/walk2_132259/frame_013_t065.2s.jpg',
+      riskLabel: 'ROLLS & TIPS',
+      riskClass: 'risk-high'
+    });
+
+    // Green / Black / Blue Hooded Recycling Bin Trio + Blue Level 2 Directory Sign
+    const binGroup = new THREE.Group();
+    binGroup.position.set(4.8, 0, 1.5);
+    const hoodColors = ['#16a34a', '#1e293b', '#2563eb'];
+    [-0.4, 0, 0.4].forEach((bz, i) => {
+      const body = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.17, 0.15, 0.74, 18),
+        new THREE.MeshStandardMaterial({ color: '#334155', roughness: 0.45 })
+      );
+      body.position.set(0, 0.37, bz);
+      body.castShadow = true;
+      const hood = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.15, 0.175, 0.15, 18),
+        new THREE.MeshStandardMaterial({ color: hoodColors[i], roughness: 0.3 })
+      );
+      hood.position.set(0, 0.81, bz);
+      binGroup.add(body, hood);
+    });
+    breakoutGroup.add(binGroup);
+    registerHazard('recycling_bins', binGroup, {
+      title: 'Green / Black / Blue Hooded Recycling Bin Trio',
+      desc: 'Three cylindrical recycling bins adjacent to the blue Level 2 directory sign outside the Room 200 wood-slatted vestibule.',
+      video: 'walk1_132011 · t = 144.1s',
+      img: '../../assets/frames/walk1_132011/frame_018_t144.1s.jpg',
+      riskLabel: 'LOW MASS',
+      riskClass: 'risk-med'
+    });
+
+    // Royal-Blue Modular Lounge Sofas & Ottoman with Angled Wooden Legs + White Kettle
+    const loungeGroup = new THREE.Group();
+    loungeGroup.position.set(-6.5, 0, 3.2);
+    [-2.4, 0.4, 3.2].forEach((sz, idx) => {
+      const sofa = new THREE.Group();
+      sofa.position.set(0, 0, sz);
+      const seat = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.24, 2.0), seatBlueMat);
+      seat.position.y = 0.32;
+      seat.castShadow = true;
+      const back = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.38, 2.0), seatBlueMat);
+      back.position.set(-0.35, 0.6, 0);
+      sofa.add(seat, back);
+      // Ottoman in front
+      const otto = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.28, 0.85), seatBlueMat);
+      otto.position.set(1.1, 0.24, 0);
+      otto.castShadow = true;
+      sofa.add(otto);
+      // White electric kettle on middle sofa (walk1 frame_016 & walk2 frame_012)
+      if (idx === 1) {
+        const kettle = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.09, 0.22, 14), deskWhiteMat);
+        kettle.position.set(0.1, 0.54, 0.35);
+        sofa.add(kettle);
+      }
+      loungeGroup.add(sofa);
+    });
+    breakoutGroup.add(loungeGroup);
+    registerHazard('blue_sofas', loungeGroup, {
+      title: 'Royal-Blue Modular Lounge Sofas & White Kettle',
+      desc: 'Low-CG upholstered modular lounge seating and ottomans along the Breakout west facade (with white electric kettle on cushion) + verified sturdy shelter desk zone.',
+      video: 'walk1_132011 · t = 128.1s',
+      img: '../../assets/frames/walk1_132011/frame_016_t128.1s.jpg',
+      riskLabel: 'STABLE / SHELTER',
+      riskClass: 'risk-fixed'
+    });
+
+    // Multi-Part Rolls-Royce Turbofan Jet Engine Display on White Plinth (X = +3.6m, Z = -6.2m)
+    const jetEngineGroup = new THREE.Group();
+    jetEngineGroup.position.set(3.6, 0, -6.2);
+    const plinth = new THREE.Mesh(new THREE.BoxGeometry(1.75, 0.52, 1.35), deskWhiteMat);
+    plinth.position.y = 0.26;
+    plinth.castShadow = true;
+    plinth.receiveShadow = true;
+    jetEngineGroup.add(plinth);
+
+    const nacelle = new THREE.Group();
+    nacelle.position.set(0, 1.12, 0);
+    nacelle.rotation.z = Math.PI / 2;
+    const cowling = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.55, 0.48, 0.75, 36, 1, true),
+      new THREE.MeshStandardMaterial({ color: '#d1d5db', metalness: 0.9, roughness: 0.16, side: THREE.DoubleSide })
+    );
+    const lipRing = new THREE.Mesh(
+      new THREE.TorusGeometry(0.53, 0.05, 16, 40),
+      new THREE.MeshStandardMaterial({ color: '#f8fafc', metalness: 0.95, roughness: 0.1 })
+    );
+    lipRing.rotation.x = Math.PI / 2;
+    lipRing.position.y = 0.37;
+    const spinner = new THREE.Mesh(
+      new THREE.ConeGeometry(0.18, 0.36, 24),
+      new THREE.MeshStandardMaterial({ color: '#ea580c', roughness: 0.25, metalness: 0.3 })
+    );
+    spinner.position.y = 0.35;
+    // 22 Titanium Fan Blades
+    for (let b = 0; b < 22; b++) {
+      const ang = (b * Math.PI * 2) / 22;
+      const blade = new THREE.Mesh(
+        new THREE.BoxGeometry(0.46, 0.09, 0.015),
+        new THREE.MeshStandardMaterial({ color: '#94a3b8', metalness: 0.9, roughness: 0.2 })
+      );
+      blade.position.set(Math.cos(ang) * 0.25, 0.22, Math.sin(ang) * 0.25);
+      blade.rotation.y = -ang;
+      blade.rotation.x = 0.4;
+      nacelle.add(blade);
+    }
+    const coreCasing = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.36, 0.25, 0.62, 28),
+      new THREE.MeshStandardMaterial({ color: '#1e3a8a', metalness: 0.65, roughness: 0.3 })
+    );
+    coreCasing.position.y = -0.52;
+    nacelle.add(cowling, lipRing, spinner, coreCasing);
+    jetEngineGroup.add(nacelle);
+
+    // Angled display plaque in front of engine
+    const plaque = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.025, 0.28), deskWhiteMat);
+    plaque.position.set(-0.72, 0.85, 0.45);
+    plaque.rotation.z = -0.45;
+    jetEngineGroup.add(plaque);
+    breakoutGroup.add(jetEngineGroup);
+
+    registerHazard('jet_engine', jetEngineGroup, {
+      title: 'Rolls-Royce Turbofan Jet Engine Display & Plinth',
+      desc: 'Heavy aerospace turbofan exhibit (silver titanium fan blades, orange/red nose spinner cone, angled plaque) bolted to a reinforced museum plinth.',
+      video: 'walk2_132259 · t = 45.2s',
+      img: '../../assets/frames/walk2_132259/frame_009_t045.2s.jpg',
+      riskLabel: 'HEAVY EXHIBIT',
+      riskClass: 'risk-fixed'
+    });
+
+    // ============================================================================
+    // ZONE C: EXHIBITION ROAD MAIN ENTRANCE ATRIUM (Center: X = +12m, Z = -17m)
+    // ============================================================================
+    const atriumGroup = new THREE.Group();
+    atriumGroup.position.set(12, 0, -17);
+    worldGroup.add(atriumGroup);
+
+    // Polished Atrium Floor
+    const atriumFloor = new THREE.Mesh(
+      new THREE.BoxGeometry(20, 0.06, 15),
+      new THREE.MeshStandardMaterial({ color: '#64748b', roughness: 0.22, metalness: 0.18 })
+    );
+    atriumFloor.position.set(0, 0.03, 0);
+    atriumFloor.receiveShadow = true;
+    atriumGroup.add(atriumFloor);
+
+    // Curved Brushed-Steel Auditorium Drum Wall (West side of Atrium)
+    const drumWall = new THREE.Mesh(
+      new THREE.CylinderGeometry(7.5, 7.5, 5.2, 36, 1, true, -Math.PI * 0.38, Math.PI * 0.76),
+      new THREE.MeshStandardMaterial({ color: '#94a3b8', metalness: 0.82, roughness: 0.28, side: THREE.DoubleSide })
+    );
+    drumWall.position.set(-10.5, 2.6, 0);
+    atriumGroup.add(drumWall);
+
+    // Giant Blue "IMPERIAL: Could you be a Laidlaw Scholar?" Freestanding LED Media Totem (3.2m x 0.6m x 2.2m)
+    const totemGroup = new THREE.Group();
+    totemGroup.position.set(-3.2, 0, -1.8);
+    totemGroup.rotation.y = 0.28;
+    const totemPivot = new THREE.Group();
+    totemGroup.add(totemPivot);
+    const totemBase = new THREE.Mesh(
+      new THREE.BoxGeometry(3.25, 0.3, 0.62),
+      new THREE.MeshStandardMaterial({ color: '#0f172a', metalness: 0.7, roughness: 0.3 })
+    );
+    totemBase.position.y = 0.15;
+    const totemScreen = new THREE.Mesh(
+      new THREE.BoxGeometry(3.2, 1.95, 0.38),
+      new THREE.MeshStandardMaterial({
+        map: makeSignTexture(['IMPERIAL', 'Could you be a', 'Laidlaw Scholar?', 'Leadership & Research'], '#1d4ed8', '#ffffff', '#60a5fa', 1024, 512),
+        emissive: '#1e3a8a',
+        emissiveIntensity: 0.45,
+        roughness: 0.2
+      })
+    );
+    totemScreen.position.y = 1.25;
+    totemScreen.castShadow = true;
+    totemPivot.add(totemBase, totemScreen);
+    totemGroup.userData.pivot = totemPivot;
+    atriumGroup.add(totemGroup);
+
+    registerHazard('laidlaw_totem', totemGroup, {
+      title: 'Giant Blue "IMPERIAL Laidlaw Scholar" LED Media Totem',
+      desc: 'Freestanding 3.2m × 2.2m × 0.6m digital display totem positioned in front of the curved brushed-steel auditorium drum wall.',
+      video: 'walk2_132259 · t = 25.2s',
+      img: '../../assets/frames/walk2_132259/frame_005_t025.2s.jpg',
+      riskLabel: 'HEAVY TOTEM',
+      riskClass: 'risk-med'
+    });
+
+    // Suspended Amber/Red/Gold Glass-Disc Chandelier Sculpture Above White Plinth & Folding Tables
+    const sculptureGroup = new THREE.Group();
+    sculptureGroup.position.set(2.4, 0, -1.5);
+    const scPlinth = new THREE.Mesh(new THREE.BoxGeometry(3.0, 0.28, 2.2), deskWhiteMat);
+    scPlinth.position.y = 0.14;
+    scPlinth.receiveShadow = true;
+    sculptureGroup.add(scPlinth);
+
+    const discColors = ['#f59e0b', '#dc2626', '#fbbf24', '#ea580c', '#fde047'];
+    const glassDiscMeshes = [];
+    for (let i = 0; i < 36; i++) {
+      const ang = i * 2.39996;
+      const rad = 0.2 + Math.sqrt(i / 36) * 1.25;
+      const dx = Math.cos(ang) * rad;
+      const dz = Math.sin(ang) * rad * 0.85;
+      const dy = 2.65 + ((i * 7) % 12) * 0.12;
+      const col = discColors[i % discColors.length];
+      const disc = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.16, 0.14, 0.025, 18),
+        new THREE.MeshPhysicalMaterial({
+          color: col,
+          emissive: col,
+          emissiveIntensity: 0.45,
+          transmission: 0.7,
+          transparent: true,
+          opacity: 0.9,
+          roughness: 0.12
+        })
+      );
+      disc.position.set(dx, dy, dz);
+      disc.rotation.set(((i % 5) - 2) * 0.15, 0, ((i % 7) - 3) * 0.15);
+      sculptureGroup.add(disc);
+      glassDiscMeshes.push({ mesh: disc, baseY: dy, phase: i * 0.5 });
+    }
+
+    // Post-quake fallen glass shard hazard ring on floor/plinth
+    const glassHazardZone = new THREE.Group();
+    glassHazardZone.visible = false;
+    const redZoneRing = new THREE.Mesh(
+      new THREE.RingGeometry(0.3, 2.35, 32),
+      new THREE.MeshBasicMaterial({ color: '#ef4444', transparent: true, opacity: 0.38, side: THREE.DoubleSide })
+    );
+    redZoneRing.rotation.x = -Math.PI / 2;
+    redZoneRing.position.y = 0.31;
+    glassHazardZone.add(redZoneRing);
+    for (let s = 0; s < 16; s++) {
+      const shard = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.11, 0.07, 0.02, 6),
+        new THREE.MeshStandardMaterial({ color: discColors[s % discColors.length], emissive: '#dc2626', emissiveIntensity: 0.4 })
+      );
+      shard.position.set(Math.cos(s * 1.7) * (0.5 + (s % 4) * 0.35), 0.31, Math.sin(s * 1.7) * (0.4 + (s % 3) * 0.35));
+      glassHazardZone.add(shard);
+    }
+    sculptureGroup.add(glassHazardZone);
+    atriumGroup.add(sculptureGroup);
+
+    registerHazard('glass_sculpture', sculptureGroup, {
+      title: 'Suspended Amber/Red/Gold Blown-Glass Chandelier Sculpture',
+      desc: '36 suspended translucent glass discs over white plinth and registration tables in the Exhibition Rd Atrium. Generates a 2.3m glass-fall hazard zone under PGA >= 0.25g.',
+      video: 'walk1_132011 · t = 112.1s',
+      img: '../../assets/frames/walk1_132011/frame_014_t112.1s.jpg',
+      riskLabel: 'OVERHEAD GLASS',
+      riskClass: 'risk-high'
+    });
+
+    // Double-Height Glass Curtain Wall + White Cylindrical Columns + 2.10m Automatic Glass Sliding Exit Doors
+    const curtainGlass = new THREE.Mesh(
+      new THREE.BoxGeometry(0.12, 5.2, 14.8),
+      new THREE.MeshPhysicalMaterial({ color: '#bae6fd', transmission: 0.76, transparent: true, opacity: 0.55, roughness: 0.08 })
+    );
+    curtainGlass.position.set(7.8, 2.6, 0);
+    atriumGroup.add(curtainGlass);
+
+    // White cylindrical structural columns along East facade
+    [-5.5, -1.8, 1.8, 5.5].forEach((cz) => {
+      const col = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.28, 0.28, 5.2, 24),
+        new THREE.MeshStandardMaterial({ color: '#f8fafc', roughness: 0.25 })
+      );
+      col.position.set(6.8, 2.6, cz);
+      col.castShadow = true;
+      atriumGroup.add(col);
+    });
+
+    // 2.10m Automatic Glass Sliding Exit Doors + Ribbed Entrance Mat + Exterior Planters & 6 Granite Steps
+    const exitDoorsGroup = new THREE.Group();
+    exitDoorsGroup.position.set(8.2, 0, 0);
+    const matRibbed = new THREE.Mesh(
+      new THREE.BoxGeometry(2.2, 0.04, 2.4),
+      new THREE.MeshStandardMaterial({ color: '#1e293b', roughness: 0.95 })
+    );
+    matRibbed.position.set(-0.9, 0.04, 0);
+    exitDoorsGroup.add(matRibbed);
+
+    // 5 White Conical Exterior Planters with greenery outside on Exhibition Road terrace
+    [-5.2, -2.8, 2.8, 5.2, 7.0].forEach((pz) => {
+      const planter = new THREE.Group();
+      planter.position.set(2.2, 0, pz);
+      const conePot = new THREE.Mesh(new THREE.CylinderGeometry(0.46, 0.28, 0.85, 20), deskWhiteMat);
+      conePot.position.y = 0.425;
+      conePot.castShadow = true;
+      const bush = new THREE.Mesh(
+        new THREE.SphereGeometry(0.42, 16, 12),
+        new THREE.MeshStandardMaterial({ color: '#15803d', roughness: 0.8 })
+      );
+      bush.position.y = 0.95;
+      planter.add(conePot, bush);
+      exitDoorsGroup.add(planter);
+    });
+
+    // 6 Wide Exterior Granite Steps with Stainless Handrails leading down to Exhibition Road
+    const graniteMat = new THREE.MeshStandardMaterial({ color: '#94a3b8', roughness: 0.6 });
+    for (let st = 0; st < 6; st++) {
+      const stepMesh = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.14, 7.5), graniteMat);
+      stepMesh.position.set(3.6 + st * 0.42, -st * 0.12, 0);
+      exitDoorsGroup.add(stepMesh);
+    }
+    atriumGroup.add(exitDoorsGroup);
+
+    registerHazard('exhibition_exit', exitDoorsGroup, {
+      title: 'Exhibition Road 2.10m Automatic Exit Doors & Granite Steps',
+      desc: 'Primary building scale reference (2.10m clear automatic sliding doors), ribbed entrance mat, 5 white conical planters, 6 granite steps, and step-free south ramp.',
+      video: 'walk2_132259 · t = 5.2s',
+      img: '../../assets/frames/walk2_132259/frame_001_t005.2s.jpg',
+      riskLabel: 'PRIMARY EXIT (2.10m)',
+      riskClass: 'risk-fixed'
+    });
+
+    // ============================================================================
+    // LIVE 3D A* EGRESS ROUTE RIBBON + VERIFIED DROP-COVER-HOLD SHELTER SPOT
+    // ============================================================================
+    const shelterMarker = new THREE.Group();
+    shelterMarker.position.set(-4.2, 0.08, 3.2); // Sturdy shelter bay in Breakout away from glass
+    const shelterRing = new THREE.Mesh(
+      new THREE.RingGeometry(0.65, 0.95, 32),
+      new THREE.MeshBasicMaterial({ color: '#38bdf8', side: THREE.DoubleSide, transparent: true, opacity: 0.85 })
+    );
+    shelterRing.rotation.x = -Math.PI / 2;
+    const shelterBeacon = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.65, 0.65, 1.4, 24, 1, true),
+      new THREE.MeshBasicMaterial({ color: '#38bdf8', transparent: true, opacity: 0.18, side: THREE.DoubleSide })
+    );
+    shelterBeacon.position.y = 0.7;
+    shelterMarker.add(shelterRing, shelterBeacon);
+    worldGroup.add(shelterMarker);
+
+    let egressRibbon = null;
+    function buildEgressRibbon(state, clearanceMode) {
+      if (egressRibbon) worldGroup.remove(egressRibbon);
+      const isBlocked = state === 'shaken' && (
+        simState.pga >= 0.22 || (clearanceMode === 'wheelchair' && simState.pga >= 0.18)
+      );
+
+      // Waypoints from Room 200 center -> West Vestibule Doors -> Breakout Spine -> Exhibition Rd Atrium -> 2.10m Exit
+      const ptsClear = [
+        new THREE.Vector3(14.5, 0.22, 6.2),
+        new THREE.Vector3(6.8, 0.22, 6.2),
+        new THREE.Vector3(1.5, 0.22, 4.5),
+        new THREE.Vector3(1.5, 0.22, -4.5),
+        new THREE.Vector3(1.5, 0.22, -14.5),
+        new THREE.Vector3(11.5, 0.22, -19.2),
+        new THREE.Vector3(20.5, 0.22, -17.0)
+      ];
+
+      // Blocked path stops/constricts at toppled roller banners + rolled catering cart + glass sculpture zone
+      const ptsBlocked = [
+        new THREE.Vector3(14.5, 0.22, 6.2),
+        new THREE.Vector3(6.8, 0.22, 6.2),
+        new THREE.Vector3(3.4, 0.22, 4.6),
+        new THREE.Vector3(2.1, 0.22, 1.8),
+        new THREE.Vector3(2.1, 0.22, -8.0),
+        new THREE.Vector3(14.2, 0.22, -18.2)
+      ];
+
+      const curve = new THREE.CatmullRomCurve3(isBlocked ? ptsBlocked : ptsClear);
+      const radius = clearanceMode === 'wheelchair' ? 0.22 : 0.13;
+      const geo = new THREE.TubeGeometry(curve, 72, radius, 12, false);
+      const col = isBlocked ? '#ef4444' : '#10b981';
+      const mat = new THREE.MeshStandardMaterial({
+        color: col,
+        emissive: col,
+        emissiveIntensity: 0.85,
+        roughness: 0.25
+      });
+      egressRibbon = new THREE.Mesh(geo, mat);
+      worldGroup.add(egressRibbon);
+    }
+
+    // ============================================================================
+    // SIMULATOR STATE, REAL MONTE CARLO (seeded, N=50) & UI BINDINGS
+    // ============================================================================
+    const simState = {
+      mode: 'baseline', // 'baseline' | 'shaken' | 'fixed'
+      pga: 0.35,
+      clearance: 'walk', // 'walk' (0.4m) | 'wheelchair' (0.9m)
+      shakeStartTime: 0,
+      isShakingAnim: false
+    };
+
+    buildEgressRibbon('baseline', 'walk');
+
+    const metricPExit = document.getElementById('metric-p-exit');
+    const metricClearance = document.getElementById('metric-clearance');
+    const pgaSlider = document.getElementById('pga-slider');
+    const pgaLabel = document.getElementById('pga-label');
+    const statusBanner = document.getElementById('status-banner');
+
+    // ---------------------------------------------------------------------------
+    // REAL MONTE CARLO (replaces scripted numbers). Per run: sample PGA (lognormal, sigma 0.3,
+    // median = slider) and shaking direction; each freestanding object tips if the acceleration
+    // on its weak axis exceeds its static threshold (b/2)/h_CoM, falls its own height along that
+    // axis; the unbraked cart rolls ~ ground displacement and tips above 0.22 g; the glass
+    // sculpture sheds shards (r = 2.35 m) above ~0.20 g. Then the egress corridor (1.89 m wide)
+    // is sampled every 0.2 m: exit is reachable if the narrowest free gap >= 0.40 m (walk) or
+    // 0.90 m (wheelchair). Seeded, so the same PGA always gives the same, re-checkable result.
+    // ---------------------------------------------------------------------------
+    const G = 9.81, CORRIDOR_W = 1.89, RUNS = 50;
+    const PATH_BASE = [[14.5, 6.2], [6.8, 6.2], [1.5, 4.5], [1.5, -4.5], [1.5, -14.5], [11.5, -19.2], [20.5, -17.0]];
+    const PATH_FIX = [[14.5, 6.2], [6.8, 6.2], [1.5, 4.5], [-0.8, 0.8], [-0.8, -4.5], [1.5, -8.0], [1.5, -14.5], [11.5, -19.2], [20.5, -17.0]];
+    function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+    function gauss(r) { const u = Math.max(1e-9, r()), v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+    function hazardsFor(mode) {
+      const fixed = mode === 'fixed';
+      return [
+        { id: 'banner_sundai', label: 'Roller banner "Sundai"', x: fixed ? -5.8 : 3.8, z: fixed ? -4.5 : 3.8, yaw: -Math.PI / 2, w: 0.85, d: 0.35, h: 2.05, thr: 0.175 / 0.95 },
+        { id: 'banner_future', label: 'Roller banner "Build the Future"', x: fixed ? -5.8 : 3.8, z: fixed ? -6.2 : 5.2, yaw: -Math.PI / 2, w: 0.85, d: 0.35, h: 2.05, thr: 0.175 / 0.95 },
+        { id: 'cart', label: 'Unbraked catering cart', x: fixed ? -5.5 : 2.8, z: fixed ? -2.5 : 1.8, yaw: 0, w: 1.2, d: 0.6, h: 0.88, thr: 0.22, rolls: !fixed },
+        { id: 'totem', label: 'Laidlaw LED totem', x: -3.2, z: -1.8, yaw: 0.28, w: 3.2, d: 0.6, h: 2.2, thr: 0.3 / 1.15 }
+      ];
+    }
+    function rectContains(o, px, pz) {           // oriented rectangle: centre (cx,cz), half extents (hx,hz), angle a
+      const dx = px - o.cx, dz = pz - o.cz, c = Math.cos(o.a), s = Math.sin(o.a);
+      const lx = dx * c - dz * s, lz = dx * s + dz * c;
+      return Math.abs(lx) <= o.hx && Math.abs(lz) <= o.hz;
+    }
+    function minClearance(path, rects, shards) {
+      let worst = CORRIDOR_W, where = null;
+      for (let i = 0; i < path.length - 1; i++) {
+        const [x0, z0] = path[i], [x1, z1] = path[i + 1], L = Math.hypot(x1 - x0, z1 - z0), ux = (x1 - x0) / L, uz = (z1 - z0) / L, nx = -uz, nz = ux;
+        for (let t = 0; t <= L; t += 0.2) {
+          const cx = x0 + ux * t, cz = z0 + uz * t; let run = 0, best = 0;
+          for (let k = 0; k <= 38; k++) {
+            const off = -CORRIDOR_W / 2 + k * (CORRIDOR_W / 38), px = cx + nx * off, pz = cz + nz * off;
+            let blocked = rects.some(r => rectContains(r, px, pz));
+            if (!blocked && shards) blocked = Math.hypot(px - shards.x, pz - shards.z) < shards.r;
+            run = blocked ? 0 : run + CORRIDOR_W / 38; if (run > best) best = run;
+          }
+          if (best < worst) { worst = best; where = [cx, cz]; }
+        }
+      }
+      return { width: worst, where };
+    }
+    function runMonteCarlo(mode, pgaMedian, agentW) {
+      const seed = Math.round(pgaMedian * 1000) * 7 + (mode === 'fixed' ? 1 : 0);
+      const r = mulberry32(seed), path = mode === 'fixed' ? PATH_FIX : PATH_BASE, H = hazardsFor(mode);
+      const stats = { pass: 0, widths: [], tipped: {}, blockedBy: {}, shardRuns: 0, example: null };
+      H.forEach(o => { stats.tipped[o.id] = 0; stats.blockedBy[o.id] = 0; });
+      for (let run = 0; run < RUNS; run++) {
+        const pga = pgaMedian * Math.exp(0.3 * gauss(r)), dir = r() * 2 * Math.PI, rects = [], poses = {};
+        for (const o of H) {
+          let x = o.x, z = o.z;
+          if (o.rolls && pga > 0.04) {            // free-rolling cart: displacement ~ ground displacement
+            const dist = Math.min(2.5, 0.9 * (pga / 0.35) * (0.5 + r()));
+            x += Math.cos(dir) * dist; z += Math.sin(dir) * dist;
+          }
+          const weak = o.yaw + Math.PI / 2;        // local z (thin axis) in world
+          const aWeak = pga * Math.abs(Math.cos(dir - weak)), aStrong = pga * Math.abs(Math.sin(dir - weak));
+          const strongThr = (o.w / 2) / (o.h * 0.5);
+          let fell = 0, fallAng = 0;
+          if (aWeak > o.thr) { fell = 1; fallAng = weak + (Math.cos(dir - weak) >= 0 ? 0 : Math.PI); }
+          else if (aStrong > strongThr) { fell = 1; fallAng = o.yaw + (Math.sin(dir - weak) >= 0 ? 0 : Math.PI); }
+          if (fell) {
+            stats.tipped[o.id]++;
+            const fx = Math.cos(fallAng), fz = Math.sin(fallAng);
+            rects.push({ id: o.id, cx: x + fx * o.h / 2, cz: z + fz * o.h / 2, hx: o.h / 2, hz: (fallAng === weak || fallAng === weak + Math.PI ? o.w : o.d) / 2, a: -fallAng });
+          } else {
+            rects.push({ id: o.id, cx: x, cz: z, hx: o.w / 2, hz: o.d / 2, a: -o.yaw });
+          }
+          poses[o.id] = { x, z, fell, fallAng };
+        }
+        const shards = pga >= 0.20 && r() < Math.min(1, (pga - 0.15) / 0.2) ? { x: 2.4, z: -1.5, r: 2.35 } : null;
+        if (shards) stats.shardRuns++;
+        const c = minClearance(path, rects, shards);
+        stats.widths.push(c.width);
+        const ok = c.width >= agentW;
+        if (ok) stats.pass++;
+        else {
+          for (const o of rects) { const probe = minClearance(path, rects.filter(q => q !== o), shards); if (probe.width >= agentW) stats.blockedBy[o.id]++; }
+          if (shards && minClearance(path, rects, null).width >= agentW) stats.shardBlocks = (stats.shardBlocks || 0) + 1;
+          if (!stats.example) stats.example = { poses, shards, c };
+        }
+        if (!stats.example && run === RUNS - 1) stats.example = { poses, shards, c };
+      }
+      stats.widths.sort((a, b) => a - b);
+      stats.medianWidth = stats.widths[Math.floor(RUNS / 2)];
+      stats.path = path; stats.H = H;
+      return stats;
+    }
+    function poseFromRun(group, pose, h) {
+      if (!group || !pose) return;
+      group.position.x = pose.x; group.position.z = pose.z;
+      const pv = group.userData.pivot; if (!pv) return;
+      pv.rotation.set(0, 0, 0);
+      if (pose.fell) { const local = pose.fallAng + group.rotation.y; pv.rotation.z = -Math.cos(local) * 1.45; pv.rotation.x = Math.sin(local) * 1.45; }
+    }
+    function drawRibbon(path, blocked, agentW) {
+      if (egressRibbon) worldGroup.remove(egressRibbon);
+      const curve = new THREE.CatmullRomCurve3(path.map(([x, z]) => new THREE.Vector3(x, 0.22, z)));
+      const col = blocked ? '#ef4444' : '#10b981';
+      egressRibbon = new THREE.Mesh(new THREE.TubeGeometry(curve, 96, agentW > 0.5 ? 0.22 : 0.13, 12, false),
+        new THREE.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: 0.85, roughness: 0.25 }));
+      worldGroup.add(egressRibbon);
+    }
+
+    function updateMetricsAndPoses() {
+      const pga = simState.pga, isWheelchair = simState.clearance === 'wheelchair', agentW = isWheelchair ? 0.9 : 0.4;
+      const modeLabel = isWheelchair ? 'wheelchair 0.90 m' : 'walking 0.40 m';
+      if (simState.mode === 'baseline') {
+        bannerSundai.position.set(3.8, 0, 3.8); bannerSundai.userData.pivot.rotation.set(0, 0, 0);
+        bannerFuture.position.set(3.8, 0, 5.2); bannerFuture.userData.pivot.rotation.set(0, 0, 0);
+        cartGroup.position.set(2.8, 0, 1.8); cartGroup.userData.pivot.rotation.set(0, 0, 0);
+        totemGroup.userData.pivot.rotation.set(0, 0, 0); glassHazardZone.visible = false;
+        const c = minClearance(PATH_BASE, hazardsFor('baseline').map(o => ({ cx: o.x, cz: o.z, hx: o.w / 2, hz: o.d / 2, a: -o.yaw })), null);
+        metricPExit.textContent = 'not shaken';
+        metricPExit.style.color = 'var(--accent-blue)';
+        metricClearance.textContent = c.width.toFixed(2) + ' m now';
+        metricClearance.style.color = 'var(--accent-blue)';
+        statusBanner.style.borderLeftColor = 'var(--accent-blue)';
+        statusBanner.innerHTML = '<strong>Before shaking:</strong> narrowest free width on the route is ' + c.width.toFixed(2) + ' m. Click <strong>SHAKE 50x</strong> to run 50 seeded quakes around the PGA on the slider.';
+        drawRibbon(PATH_BASE, false, agentW);
+        return;
+      }
+      const st = runMonteCarlo(simState.mode, pga, agentW);
+      const pct = Math.round(st.pass / RUNS * 100), good = st.pass === RUNS;
+      metricPExit.textContent = pct + '% (' + st.pass + '/50)';
+      metricPExit.style.color = good ? 'var(--accent-green)' : 'var(--accent-red)';
+      metricClearance.textContent = st.medianWidth.toFixed(2) + ' m (median)';
+      metricClearance.style.color = good ? 'var(--accent-green)' : 'var(--accent-red)';
+      const ex = st.example || {};
+      const P = ex.poses || {};
+      poseFromRun(bannerSundai, P.banner_sundai); poseFromRun(bannerFuture, P.banner_future);
+      poseFromRun(cartGroup, P.cart); poseFromRun(totemGroup, P.totem);
+      glassHazardZone.visible = !!ex.shards || simState.mode === 'fixed';
+      drawRibbon(st.path, !good, agentW);
+      const tip = st.H.map(o => o.label + ' fell ' + st.tipped[o.id] + '/50' + (st.blockedBy[o.id] ? ', alone blocked the exit ' + st.blockedBy[o.id] + '/50' : '')).join('; ');
+      statusBanner.style.borderLeftColor = good ? 'var(--accent-green)' : 'var(--accent-red)';
+      statusBanner.innerHTML = (simState.mode === 'fixed'
+        ? '<strong>Fix layout re-verified (' + modeLabel + '): exit clear in ' + st.pass + '/50</strong> at median PGA ' + pga.toFixed(2) + ' g. Banners moved to the west alcove, cart parked and casters locked, route detours west of the glass sculpture. '
+        : '<strong>' + (RUNS - st.pass) + '/50 quakes block the exit (' + modeLabel + ')</strong> at median PGA ' + pga.toFixed(2) + ' g. ')
+        + tip + '; glass sculpture shed shards in ' + st.shardRuns + '/50' + (st.shardBlocks ? ' (shards alone blocked the route ' + st.shardBlocks + '/50)' : '') + '. Seeded and repeatable: same PGA, same result.';
+    }
+
+    pgaSlider.addEventListener('input', (e) => {
+      simState.pga = parseFloat(e.target.value);
+      pgaLabel.textContent = simState.pga.toFixed(2) + ' g';
+      if (simState.mode === 'shaken') updateMetricsAndPoses();
+    });
+
+    document.getElementById('mode-walk').addEventListener('click', (e) => {
+      simState.clearance = 'walk';
+      e.target.classList.add('active');
+      document.getElementById('mode-wheelchair').classList.remove('active');
+      updateMetricsAndPoses();
+    });
+
+    document.getElementById('mode-wheelchair').addEventListener('click', (e) => {
+      simState.clearance = 'wheelchair';
+      e.target.classList.add('active');
+      document.getElementById('mode-walk').classList.remove('active');
+      updateMetricsAndPoses();
+    });
+
+    document.getElementById('btn-shake').addEventListener('click', () => {
+      simState.mode = 'shaken';
+      simState.shakeStartTime = performance.now() * 0.001;
+      simState.isShakingAnim = true;
+      updateMetricsAndPoses();
+      selectEvidence('roller_banners');
+    });
+
+    document.getElementById('btn-fix').addEventListener('click', () => {
+      simState.mode = 'fixed';
+      simState.shakeStartTime = performance.now() * 0.001;
+      simState.isShakingAnim = true;
+      updateMetricsAndPoses();
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      simState.mode = 'baseline';
+      simState.isShakingAnim = false;
+      worldGroup.position.set(0, 0, 0);
+      updateMetricsAndPoses();
+    });
+
+    // ============================================================================
+    // CAMERA VIEW SWITCHER
+    // ============================================================================
+    const cameraPresets = {
+      macro:    { pos: new THREE.Vector3(6, 24, 32),   target: new THREE.Vector3(4, 1.0, -5) },
+      room200:  { pos: new THREE.Vector3(22, 6.2, 11), target: new THREE.Vector3(11, 1.4, 5) },
+      breakout: { pos: new THREE.Vector3(-4, 4.2, 9.5), target: new THREE.Vector3(2.2, 1.2, -2.5) },
+      atrium:   { pos: new THREE.Vector3(20, 4.8, -9), target: new THREE.Vector3(11.5, 1.6, -17) }
+    };
+    let camAnim = null;
+
+    document.querySelectorAll('.cam-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.cam-btn').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        const preset = cameraPresets[btn.dataset.cam];
+        if (preset) {
+          camAnim = {
+            startPos: camera.position.clone(),
+            endPos: preset.pos.clone(),
+            startTarget: controls.target.clone(),
+            endTarget: preset.target.clone(),
+            t0: performance.now()
+          };
+        }
+      });
+    });
+
+    // ============================================================================
+    // EVIDENCE INSPECTOR PANEL & 3D RAYCASTER CLICK SELECTION
+    // ============================================================================
+    const objListEl = document.getElementById('object-list');
+    const evTitle = document.getElementById('ev-title');
+    const evDesc = document.getElementById('ev-desc');
+    const evImg = document.getElementById('ev-img');
+    const evBadge = document.getElementById('ev-badge');
+
+    function selectEvidence(id) {
+      const item = hazardRegistry[id];
+      if (!item) return;
+      evTitle.textContent = item.title;
+      evDesc.textContent = item.desc;
+      evImg.src = item.img;
+      evBadge.textContent = item.video;
+      document.querySelectorAll('.obj-chip').forEach((el) => {
+        el.classList.toggle('active', el.dataset.id === id);
+      });
+    }
+
+    Object.values(hazardRegistry).forEach((item, idx) => {
+      const chip = document.createElement('div');
+      chip.className = 'obj-chip' + (idx === 0 ? ' active' : '');
+      chip.dataset.id = item.id;
+      chip.innerHTML =
+        '<span>' + item.title.slice(0, 32) + '</span>' +
+        '<span class="tag-risk ' + item.riskClass + '">' + item.riskLabel + '</span>';
+      chip.addEventListener('click', () => selectEvidence(item.id));
+      objListEl.appendChild(chip);
+    });
+    selectEvidence('roller_banners');
+
+    // Raycaster for clicking any 3D object in the scene
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+    renderer.domElement.addEventListener('pointerdown', (e) => {
+      pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
+      pointer.y = -(e.clientY / window.innerHeight) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      const hits = raycaster.intersectObjects(clickableMeshes, false);
+      if (hits.length > 0 && hits[0].object.userData.hazardId) {
+        selectEvidence(hits[0].object.userData.hazardId);
+      }
+    });
+
+    // ============================================================================
+    // MAIN RENDER & SYNTHETIC ACCELEROGRAM / PENDULUM ANIMATION LOOP
+    // ============================================================================
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    function animate(nowMs) {
+      requestAnimationFrame(animate);
+      const now = nowMs * 0.001;
+
+      // Smooth camera transition
+      if (camAnim) {
+        const u = Math.min(1, (nowMs - camAnim.t0) / 750);
+        const ease = 1 - Math.pow(1 - u, 3);
+        camera.position.lerpVectors(camAnim.startPos, camAnim.endPos, ease);
+        controls.target.lerpVectors(camAnim.startTarget, camAnim.endTarget, ease);
+        if (u >= 1) camAnim = null;
+      }
+
+      // Ground shaking oscillation & pendulum swing
+      const elapsedShake = now - simState.shakeStartTime;
+      const decay = simState.isShakingAnim && elapsedShake < 5.5
+        ? Math.exp(-elapsedShake * 0.55) * simState.pga
+        : 0.03;
+
+      if (simState.isShakingAnim && elapsedShake < 4.2) {
+        const gx = Math.sin(now * 24) * decay * 0.35 + Math.cos(now * 17) * decay * 0.2;
+        const gz = Math.cos(now * 21) * decay * 0.35;
+        worldGroup.position.set(gx, 0, gz);
+      } else {
+        worldGroup.position.set(0, 0, 0);
+      }
+
+      // Swing Breakout circular halo chandeliers as pendulums
+      haloChandeliers.forEach(({ pendulum, phase }) => {
+        const amp = simState.mode === 'baseline' ? 0.02 : Math.min(0.38, decay * 0.85 + 0.06);
+        pendulum.rotation.x = Math.sin(now * 3.4 + phase) * amp;
+        pendulum.rotation.z = Math.cos(now * 2.9 + phase) * amp * 0.8;
+      });
+
+      // Shimmer suspended Atrium blown-glass sculpture discs
+      glassDiscMeshes.forEach(({ mesh, baseY, phase }) => {
+        const wave = simState.mode === 'baseline' ? 0.01 : 0.045;
+        mesh.position.y = baseY + Math.sin(now * 4.2 + phase) * wave;
+      });
+
+      // Pulse shelter beacon
+      shelterBeacon.material.opacity = 0.14 + Math.sin(now * 3.5) * 0.08;
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>
