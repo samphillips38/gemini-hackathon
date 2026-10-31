@@ -1177,9 +1177,28 @@ export default function ExitZeroCanvas({
             <div className="text-slate-300">
               pos={JSON.stringify(selectedTwinObj.pos)} • yaw={selectedTwinObj.yaw ?? selectedTwinObj.yaw_deg ?? 0}° • mass={selectedTwinObj.mass_kg ?? "?"}kg • {selectedTwinObj.anchored ? "Anchored" : "Unanchored"}
             </div>
-            {selectedTwinObj.evidence?.quote && (
-              <div className="text-amber-300 italic">"{selectedTwinObj.evidence.quote}" (t={selectedTwinObj.evidence.t_s ?? 0}s)</div>
+            {argonMap[selectedTwinObj.id] && (
+              <div className="text-cyan-300 font-medium">
+                ✓ Argon Verified: {argonMap[selectedTwinObj.id].note}
+              </div>
             )}
+            {(() => {
+              const ev = selectedTwinObj.evidence as unknown;
+              const rawFrame = Array.isArray(ev) ? String(ev[0] || "") : String((ev as { frame?: string; image?: string })?.frame || (ev as { frame?: string; image?: string })?.image || "");
+              const prefix = rawFrame.replace(/\s+/g, "_");
+              const matched = evidenceFiles.find((f) => f === rawFrame || (prefix && f.startsWith(prefix)) || f.includes(selectedTwinObj.id));
+              if (!matched) return null;
+              return (
+                <div className="mt-1.5">
+                  <img
+                    src={"/evidence/" + matched}
+                    alt={selectedTwinObj.label || selectedTwinObj.id}
+                    className="w-full h-28 object-cover rounded border border-slate-700"
+                  />
+                  <div className="text-[10px] text-slate-400 font-mono mt-0.5">Evidence: slava/route_A/evidence/{matched}</div>
+                </div>
+              );
+            })()}
           </div>
         )}
 

@@ -21,6 +21,9 @@ import {
   SplitSquareVertical,
 } from "lucide-react";
 
+import cagbRouteARooms from "@/presets/cagbRouteARooms.json";
+import routeAMonteCarlo from "../../results/route_A_montecarlo.json";
+import { playSeismicRumble } from "@/voice/seismicAudioSynth";
 import {
   STUDENT_BEDROOM_UNSAFE,
   STUDENT_BEDROOM_REMEDIATED,
@@ -163,7 +166,7 @@ export default function SeismicCommandCenter() {
   // HANDLERS — PLAN B (QuakeRoom)
   // ==========================================================================
   const handleTriggerQuake = () => {
-    setIsShaking(true);
+    setIsShaking(true); try { playSeismicRumble({ durationSeconds: 4.5, magnitudeMw: roomScene.earthquake.magnitude_mw, pgaG: currentPgaG }); } catch {}
     setHasCollapsed(false);
     setTimeout(() => {
       setIsShaking(false);
