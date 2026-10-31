@@ -23,6 +23,7 @@ interface QuakeRoomCanvasProps {
   isShaking: boolean;
   hasCollapsed: boolean;
   walkthroughActive: boolean;
+  autoWalk?: boolean;
   fullScreen?: boolean;
   titleBadge?: string;
 }
@@ -129,6 +130,8 @@ function useRugTexture() {
 function WalkthroughController({
   active,
   autoWalk,
+  isShaking,
+  magnitudeMw,
   escapePath,
   shelterSpot,
   roomWidth,
@@ -136,6 +139,8 @@ function WalkthroughController({
 }: {
   active: boolean;
   autoWalk: boolean;
+  isShaking: boolean;
+  magnitudeMw: number;
   escapePath: Array<{ x_m: number; z_m: number }>;
   shelterSpot: { x_m: number; z_m: number; label: string } | null;
   roomWidth: number;
@@ -150,6 +155,9 @@ function WalkthroughController({
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey) return;
+      const tag = (e.target as HTMLElement | null)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
       keys.current[e.code] = true;
     };
     const onKeyUp = (e: KeyboardEvent) => {
@@ -189,7 +197,6 @@ function WalkthroughController({
   useEffect(() => {
     if (active) {
       progressRef.current = 0;
-      // Start at human eye-height (1.58m) in the south-west doorway/bedside vantage point looking across the whole room
       camera.position.set(
         -roomWidth / 2 + 0.95,
         1.58,
@@ -203,10 +210,18 @@ function WalkthroughController({
     }
   }, [active, camera, roomWidth, roomDepth]);
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     if (!active) return;
 
-    const moveSpeed = 2.1 * delta;
+    const t = state.clock.getElapsedTime();
+    const isCrouching =
+      keys.current["KeyC"] || keys.current["ShiftLeft"] || isShaking;
+    const baseEyeHeight = isCrouching ? 0.68 : 1.58;
+
+    if (keys.current["KeyQ"]) yawRef.current += 1.5 * delta;
+    if (keys.current["KeyE"]) yawRef.current -= 1.5 * delta;
+
+    const moveSpeed = (isCrouching ? 1.4 : 2.3) * delta;
     const forward = new THREE.Vector3(
       -Math.sin(yawRef.current),
       0,
@@ -246,7 +261,13 @@ function WalkthroughController({
       -roomDepth / 2 + 0.35,
       roomDepth / 2 - 0.35
     );
-    camera.position.y = 1.58;
+
+    const bob = manualMoved ? Math.sin(t * 11) * 0.03 : 0;
+    camera.position.y = THREE.MathUtils.lerp(
+      camera.position.y,
+      baseEyeHeight + bob,
+      0.18
+    );
 
     if (autoWalk && !manualMoved && !isDragging.current && escapePath.length > 1) {
       progressRef.current = (progressRef.current + delta * 0.22) % 1;
@@ -260,7 +281,7 @@ function WalkthroughController({
       const wx = THREE.MathUtils.lerp(p1.x_m, p2.x_m, alpha) - roomWidth / 2;
       const wz = THREE.MathUtils.lerp(p1.z_m, p2.z_m, alpha) - roomDepth / 2;
 
-      camera.position.lerp(new THREE.Vector3(wx, 1.56, wz), 0.1);
+      camera.position.lerp(new THREE.Vector3(wx, baseEyeHeight, wz), 0.1);
       const lookTarget = escapePath[escapePath.length - 1];
       camera.lookAt(
         lookTarget.x_m - roomWidth / 2,
@@ -268,7 +289,6 @@ function WalkthroughController({
         lookTarget.z_m - roomDepth / 2
       );
     } else {
-      // Look direction driven by mouse yaw/pitch
       const lookDir = new THREE.Vector3(
         -Math.sin(yawRef.current) * Math.cos(pitchRef.current),
         Math.sin(pitchRef.current),
@@ -277,6 +297,12 @@ function WalkthroughController({
       const target = camera.position.clone().add(lookDir.multiplyScalar(3));
       void shelterSpot;
       camera.lookAt(target);
+    }
+
+    if (isShaking) {
+      const tremor = 0.014 * Math.pow(1.35, magnitudeMw - 5.5);
+      camera.position.x += Math.sin(t * 43) * tremor;
+      camera.position.y += Math.cos(t * 37) * tremor * 0.8;
     }
   });
 
@@ -1295,51 +1321,21 @@ export default function QuakeRoomCanvas({
   isShaking,
   hasCollapsed,
   walkthroughActive,
+  autoWalk = false,
   fullScreen = true,
   titleBadge,
 }: QuakeRoomCanvasProps) {
-  const [autoWalk, setAutoWalk] = useState(false);
-
   return (
     <div
-      className={`relative w-full bg-slate-950 overflow-hidden ${
+      className={`relative w-full bg-[#050608] overflow-hidden ${
         fullScreen
           ? "h-screen rounded-none border-0"
           : "h-[580px] rounded-2xl border border-slate-800 shadow-2xl"
       }`}
     >
       {titleBadge && (
-        <div className="absolute top-20 left-4 z-10 px-3.5 py-1.5 rounded-xl bg-slate-900/85 backdrop-blur-md border border-slate-700/80 text-xs font-semibold text-slate-200 flex items-center gap-2.5 shadow-xl pointer-events-none">
-          <span>{titleBadge}</span>
-          <span
-            className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-              evaluation.survivable
-                ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
-                : "bg-red-500/20 text-red-300 border border-red-500/40"
-            }`}
-          >
-            {evaluation.survivable
-              ? "VERIFIED SURVIVABLE"
-              : "FATAL / EXIT BLOCKED"}
-          </span>
-        </div>
-      )}
-
-      {walkthroughActive && (
-        <div className="absolute bottom-5 left-4 z-10 flex flex-wrap items-center gap-2">
-          <div className="px-3.5 py-2 rounded-xl bg-slate-900/85 backdrop-blur-md border border-emerald-500/40 text-xs text-emerald-200 shadow-lg">
-            👁️ <strong>First-Person Inside Room:</strong> Drag mouse to look 360° • Use <strong>W A S D / Arrow Keys</strong> to walk inside room
-          </div>
-          <button
-            onClick={() => setAutoWalk((v) => !v)}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold border transition shadow-lg ${
-              autoWalk
-                ? "bg-emerald-600 text-white border-emerald-400"
-                : "bg-slate-900/90 text-slate-200 border-slate-700 hover:border-emerald-500/50"
-            }`}
-          >
-            {autoWalk ? "🚶 Auto-Walk Escape Route: ON" : "🚶 Auto-Walk Escape Route: OFF"}
-          </button>
+        <div className="absolute top-5 right-6 z-10 font-mono text-[11px] tracking-wider uppercase text-white/50 pointer-events-none">
+          {titleBadge}
         </div>
       )}
 
@@ -1377,6 +1373,8 @@ export default function QuakeRoomCanvas({
         <WalkthroughController
           active={walkthroughActive}
           autoWalk={autoWalk}
+          isShaking={isShaking}
+          magnitudeMw={scene.earthquake.magnitude_mw}
           escapePath={evaluation.escape_path_points_m}
           shelterSpot={evaluation.safe_shelter_spot_m}
           roomWidth={scene.room.width_m}
