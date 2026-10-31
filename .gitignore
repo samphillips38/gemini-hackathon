@@ -1,0 +1,38 @@
+# --- secrets (never commit) ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# --- local agent / tool state (personal, machine-specific) ---
+.claude/settings.local.json
+CLAUDE.local.md
+.openclaw/
+.codex/
+HERDR-SKILL.md
+
+# --- captures (large files, faces) ---
+*.mp4
+*.mov
+*.MOV
+*.m4a
+*.wav
+
+# --- build / deps ---
+node_modules/
+.next/
+out/
+dist/
+build/
+.vercel/
+*.tsbuildinfo
+next-env.d.ts
+__pycache__/
+.venv/
+
+# --- logs / OS ---
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
