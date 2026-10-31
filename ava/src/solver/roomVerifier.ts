@@ -634,10 +634,11 @@ export function synthesizeVerifiedRemediation(
 
 // ============================================================================
 // 4-STAGE COORDINATE PIPELINE (CAGB Level 2 Floorplan <-> Building Metric <-> Three.js)
-// Calibrated on Main Entrance (Exhibition Road) 2.10m clear double doors = 24px -> 11.43 px/m
+// Canonical scale: 9.52 px/m on assets/floorplans/cagb-L2.jpg (1934x1366)
+// Building frame: X east = u/9.52, Y north = (1366-v)/9.52, Z up
 // ============================================================================
 
-export const CAGB_L2_PLAN_PX_PER_M = 11.43;
+export const CAGB_L2_PLAN_PX_PER_M = 9.52;
 export const CAGB_L2_IMAGE_HEIGHT_PX = 1366;
 
 export function floorplanPxToBuildingMetric(
