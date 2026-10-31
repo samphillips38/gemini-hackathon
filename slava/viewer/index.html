@@ -340,6 +340,174 @@
     .fp-help { color: #94a3b8; font-size: 12px; }
     .fp-btn { background: #1f2937; color: #e5e7eb; border: 1px solid #374151; border-radius: 8px; padding: 6px 10px; cursor: pointer; font: inherit; }
     .fp-btn:hover, .fp-btn:focus-visible { border-color: #10b981; outline: none; }
+  
+    /* Pure First-Person Immersive Mode: hide all panels & bars, show only subtle Cmd+Space trigger pill */
+    body.fp:not(.show-panels) .topbar,
+    body.fp:not(.show-panels) .left-panel,
+    body.fp:not(.show-panels) .right-panel,
+    body.fp .fp-hud {
+      display: none !important;
+    }
+    .cmd-pill {
+      position: fixed;
+      bottom: 18px;
+      right: 18px;
+      z-index: 25;
+      background: rgba(10, 15, 29, 0.78);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(56, 189, 248, 0.38);
+      border-radius: 999px;
+      padding: 8px 15px;
+      color: #f8fafc;
+      font: 600 12px/1.2 Inter, system-ui, sans-serif;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+      transition: all 0.16s ease;
+    }
+    .cmd-pill:hover {
+      border-color: #38bdf8;
+      background: rgba(15, 23, 42, 0.92);
+      transform: translateY(-1px);
+    }
+    .cmd-kbd {
+      background: rgba(56, 189, 248, 0.18);
+      border: 1px solid rgba(56, 189, 248, 0.45);
+      color: #7dd3fc;
+      padding: 3px 7px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+    /* Spotlight / Raycast Command Palette Modal (Cmd+Space / Ctrl+Space) */
+    .cmd-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(2, 6, 23, 0.62);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 7vh;
+    }
+    .cmd-backdrop[hidden] { display: none !important; }
+    .cmd-modal {
+      width: min(880px, calc(100vw - 32px));
+      max-height: 84vh;
+      background: rgba(10, 15, 29, 0.94);
+      border: 1px solid rgba(56, 189, 248, 0.38);
+      border-radius: 16px;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.72), 0 0 0 1px rgba(255,255,255,0.06);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      color: #f8fafc;
+    }
+    .cmd-search-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(15, 23, 42, 0.75);
+    }
+    .cmd-search-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #fff;
+      font: 500 15px/1.3 Inter, system-ui, sans-serif;
+    }
+    .cmd-search-input::placeholder { color: #64748b; }
+    .cmd-quick-strip {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 18px;
+      background: rgba(15, 23, 42, 0.55);
+      border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+      font-size: 12px;
+    }
+    .cmd-quick-btns { display: flex; flex-wrap: wrap; gap: 6px; }
+    .cmd-qbtn {
+      padding: 6px 11px;
+      border-radius: 7px;
+      font: 600 11px/1.2 Inter, sans-serif;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      background: rgba(30, 41, 59, 0.85);
+      color: #e2e8f0;
+      cursor: pointer;
+      transition: all 0.12s ease;
+    }
+    .cmd-qbtn:hover { border-color: #38bdf8; color: #fff; background: rgba(56, 189, 248, 0.2); }
+    .cmd-qbtn.shake { background: linear-gradient(135deg, #dc2626, #ea580c); border-color: #f87171; color: #fff; }
+    .cmd-qbtn.fix { background: linear-gradient(135deg, #059669, #10b981); border-color: #34d399; color: #fff; }
+    .cmd-body {
+      display: grid;
+      grid-template-columns: 1.25fr 0.95fr;
+      min-height: 360px;
+      max-height: calc(84vh - 145px);
+      overflow: hidden;
+    }
+    .cmd-list {
+      overflow-y: auto;
+      padding: 10px;
+      border-right: 1px solid rgba(148, 163, 184, 0.16);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .cmd-cat {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #38bdf8;
+      padding: 8px 10px 4px;
+    }
+    .cmd-item {
+      padding: 9px 12px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      cursor: pointer;
+      font-size: 12px;
+      border: 1px solid transparent;
+      transition: all 0.1s ease;
+    }
+    .cmd-item:hover, .cmd-item.selected {
+      background: rgba(56, 189, 248, 0.16);
+      border-color: rgba(56, 189, 248, 0.4);
+    }
+    .cmd-item-title { font-weight: 600; color: #f8fafc; }
+    .cmd-item-sub { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+    .cmd-preview {
+      padding: 14px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: rgba(2, 6, 23, 0.45);
+    }
+    .cmd-footer {
+      padding: 8px 18px;
+      border-top: 1px solid rgba(148, 163, 184, 0.15);
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #94a3b8;
+      background: rgba(15, 23, 42, 0.85);
+    }
+
   </style>
   <script type="importmap">
     {
@@ -352,6 +520,60 @@
 </head>
 <body>
   <div id="canvas-container"></div>
+
+  <!-- Subtle First-Person Command Trigger Pill -->
+  <div class="cmd-pill" id="cmd-trigger-pill" title="Open Command Palette (Cmd+Space / Ctrl+Space / /)">
+    <span class="cmd-kbd">⌘ + Space</span>
+    <span id="pill-zone-text">Room 200 Front Floor · 0 / 54 m</span>
+    <span id="pill-status-dot" style="width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block;"></span>
+  </div>
+
+  <!-- Spotlight / Raycast Command Palette Modal -->
+  <div class="cmd-backdrop" id="cmd-backdrop" hidden>
+    <div class="cmd-modal" role="dialog" aria-label="Command Palette">
+      <div class="cmd-search-bar">
+        <span style="font-size:18px;color:#38bdf8;">⌕</span>
+        <input class="cmd-search-input" id="cmd-search-input" type="text" placeholder="Type a command, room, 3D object, or PGA (e.g. shake, fix, wheelchair, statue, jet engine, lectern)..." autocomplete="off" />
+        <span class="cmd-kbd">ESC</span>
+      </div>
+      <div class="cmd-quick-strip">
+        <div class="cmd-quick-btns">
+          <button class="cmd-qbtn shake" id="cmd-q-shake">⚡ Shake 50x</button>
+          <button class="cmd-qbtn fix" id="cmd-q-fix">🛠️ Apply Fix · Re-Verify 50x</button>
+          <button class="cmd-qbtn" id="cmd-q-reset">↺ Reset</button>
+          <button class="cmd-qbtn" id="cmd-q-walk">👣 First-Person Walk</button>
+          <button class="cmd-qbtn" id="cmd-q-pause">⏸ Pause / Resume Walk</button>
+          <button class="cmd-qbtn" id="cmd-q-mode">🚶 Walk 0.40m / ♿ 0.90m</button>
+          <button class="cmd-qbtn" id="cmd-q-panels">🎛️ Toggle Classic Panels</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span>PGA: <strong id="cmd-pga-val" style="color:#f59e0b;">0.35 g</strong></span>
+          <input type="range" id="cmd-pga-slider" min="0.15" max="0.60" step="0.01" value="0.35" style="width:110px;" />
+          <span id="cmd-mc-badge" style="font-weight:700;color:#38bdf8;">Clear: 50/50</span>
+        </div>
+      </div>
+      <div class="cmd-body">
+        <div class="cmd-list" id="cmd-list"></div>
+        <div class="cmd-preview" id="cmd-preview">
+          <div class="section-label">Selected 3D Object / Command Preview</div>
+          <div style="font-size:14px;font-weight:700;color:#f8fafc;" id="cmd-prev-title">Room 200 → Exhibition Road Exit Twin</div>
+          <div style="font-size:12px;color:#94a3b8;line-height:1.45;" id="cmd-prev-desc">Use ↑/↓ and Enter or click any item on the left to trigger seismic simulations, teleport along the first-person route, or inspect real video keyframe evidence.</div>
+          <div class="evidence-img-wrap" style="height:185px;">
+            <img id="cmd-prev-img" src="../route_A/evidence/H_068_vestibule_banner_sofa.jpg" alt="Evidence Frame" />
+            <div class="evidence-badge" id="cmd-prev-badge">route_A/evidence · verified</div>
+          </div>
+          <div style="font-size:11px;color:#cbd5e1;background:rgba(15,23,42,0.8);padding:8px 10px;border-radius:8px;border:1px solid rgba(148,163,184,0.18);" id="cmd-gemini-truth">
+            <strong>Gemini Pipeline Status:</strong> Checking <code>pushkar/extraction_evaluation.json</code> &amp; <code>ava/results/argon_fix_main_exit.json</code>...
+          </div>
+        </div>
+      </div>
+      <div class="cmd-footer">
+        <span><strong>Shortcuts:</strong> ⌘+Space / Ctrl+Space / / = Menu · WASD = Move · Drag = Look · Shift = Sprint</span>
+        <span id="cmd-footer-count">52 Ground-Truth Objects (slava/route_A/scene.json)</span>
+      </div>
+    </div>
+  </div>
+
   <div class="fp-hud" id="fp-hud" hidden>
     <div class="fp-row"><strong id="fp-zone">Room 200</strong><span id="fp-dist">0 / 0 m</span><span id="fp-exit"></span></div>
     <div class="fp-row fp-help">W A S D to walk · drag to look · Shift = faster</div>
@@ -449,7 +671,7 @@
         Two tall (2.05m × 0.85m) unanchored aluminum roller banners flanking the Room 200 exit alcove. Static tip threshold ≈ (b/2)/h_CoM = 0.175/0.95 ≈ 0.18 g.
       </div>
       <div class="evidence-img-wrap">
-        <img id="ev-img" src="../../assets/frames/walk1_132011/frame_017_t136.1s.jpg" alt="Extracted Keyframe Evidence" />
+        <img id="ev-img" src="../route_A/evidence/H_068_vestibule_banner_sofa.jpg" alt="Extracted Keyframe Evidence" />
         <div class="evidence-badge" id="ev-badge">walk1_132011 · t = 136.1s</div>
       </div>
     </div>
@@ -608,6 +830,7 @@
     const steelLegMat = new THREE.MeshStandardMaterial({ color: '#1e293b', metalness: 0.75, roughness: 0.3 });
 
     const r200SeatingGroup = new THREE.Group();
+    r200SeatingGroup.position.x = 2.2; // Leave flat front stage/aisle floor inside Room 200 west door
     room200Group.add(r200SeatingGroup);
     for (let row = 0; row < 12; row++) {
       const rx = 4.2 - row * 0.88; // East (stage=+6.5) to West (rear=-6.2)
@@ -655,7 +878,7 @@
       title: 'Room 200 Tiered Auditorium Seating & White Desks',
       desc: '12 raked tiers of bolted royal-blue flip-up seats (#1d5bbf) and continuous white laminate desks (#f1f5f9) with aluminum step nosings.',
       video: 'walk1_132011 · t = 24.1s',
-      img: '../../assets/frames/walk1_132011/frame_003_t024.1s.jpg',
+      img: '../route_A/evidence/V_020_r200_tiers_seats.jpg',
       riskLabel: 'ANCHORED',
       riskClass: 'risk-fixed'
     });
@@ -709,7 +932,7 @@
       title: 'Room 200 Royal-Blue Acoustic Double Exit Doors',
       desc: '1.89m clear-opening acoustic fire doors with stainless steel kickplates, vertical vision glass panels, and illuminated green EXIT signage.',
       video: 'walk1_132011 · t = 56.1s',
-      img: '../../assets/frames/walk1_132011/frame_007_t056.1s.jpg',
+      img: '../route_A/evidence/V_072_r200_front_left_exit.jpg',
       riskLabel: 'EXIT DOOR',
       riskClass: 'risk-fixed'
     });
@@ -769,7 +992,7 @@
       title: 'Upper-Floor Glass Partition & Unsecured Storage Crates',
       desc: 'Stacked cardboard boxes and red plastic crates piled directly against the upper interior glazing overlooking the Breakout concourse.',
       video: 'walk1_132011 · t = 80.1s',
-      img: '../../assets/frames/walk1_132011/frame_010_t080.1s.jpg',
+      img: '../route_A/evidence/V_080_hall_rings_benches.jpg',
       riskLabel: 'OVERHEAD GLASS',
       riskClass: 'risk-med'
     });
@@ -805,7 +1028,7 @@
           title: 'Suspended Circular Halo Ring Chandeliers (3x)',
           desc: 'Unbraced circular LED halo luminaires suspended on 0.85m steel cables; experience spherical pendulum resonance during horizontal shaking.',
           video: 'walk2_132259 · t = 55.2s',
-          img: '../../assets/frames/walk2_132259/frame_011_t055.2s.jpg',
+          img: '../route_A/evidence/V_080_hall_rings_benches.jpg',
           riskLabel: 'PENDULUM SWING',
           riskClass: 'risk-med'
         });
@@ -847,7 +1070,7 @@
       title: 'Sundai & Imperial Retractable Roller Banners (2x)',
       desc: 'Two 2.05m tall unanchored aluminum roller banners flanking the Room 200 exit vestibule. Static tip threshold ≈ (b/2)/h_CoM ≈ 0.18 g — can fall across the exit path.',
       video: 'walk1_132011 · t = 136.1s',
-      img: '../../assets/frames/walk1_132011/frame_017_t136.1s.jpg',
+      img: '../route_A/evidence/H_068_vestibule_banner_sofa.jpg',
       riskLabel: 'TIPS ≈ 0.18 g',
       riskClass: 'risk-high'
     });
@@ -888,7 +1111,7 @@
       title: 'Wheeled White Steel Utility & Catering Cart',
       desc: '3-tier white steel catering trolley on 4 unbraked swivel casters. Rolls 1.4m into main evacuation spine and tips during horizontal ground motion.',
       video: 'walk2_132259 · t = 65.2s',
-      img: '../../assets/frames/walk2_132259/frame_013_t065.2s.jpg',
+      img: '../route_A/evidence/H_064_hall_refreshment_table_extinguishers.jpg',
       riskLabel: 'ROLLS & TIPS',
       riskClass: 'risk-high'
     });
@@ -916,7 +1139,7 @@
       title: 'Green / Black / Blue Hooded Recycling Bin Trio',
       desc: 'Three cylindrical recycling bins adjacent to the blue Level 2 directory sign outside the Room 200 wood-slatted vestibule.',
       video: 'walk1_132011 · t = 144.1s',
-      img: '../../assets/frames/walk1_132011/frame_018_t144.1s.jpg',
+      img: '../route_A/evidence/H_070_vestibule_bins_oak.jpg',
       riskLabel: 'LOW MASS',
       riskClass: 'risk-med'
     });
@@ -951,7 +1174,7 @@
       title: 'Royal-Blue Modular Lounge Sofas & White Kettle',
       desc: 'Low-CG upholstered modular lounge seating and ottomans along the Breakout west facade (with white electric kettle on cushion) + verified sturdy shelter desk zone.',
       video: 'walk1_132011 · t = 128.1s',
-      img: '../../assets/frames/walk1_132011/frame_016_t128.1s.jpg',
+      img: '../route_A/evidence/H_068_vestibule_banner_sofa.jpg',
       riskLabel: 'STABLE / SHELTER',
       riskClass: 'risk-fixed'
     });
@@ -1014,7 +1237,7 @@
       title: 'Rolls-Royce Turbofan Jet Engine Display & Plinth',
       desc: 'Heavy aerospace turbofan exhibit (silver titanium fan blades, orange/red nose spinner cone, angled plaque) bolted to a reinforced museum plinth.',
       video: 'walk2_132259 · t = 45.2s',
-      img: '../../assets/frames/walk2_132259/frame_009_t045.2s.jpg',
+      img: '../route_A/evidence/H_056_hall_jet_engine.jpg',
       riskLabel: 'HEAVY EXHIBIT',
       riskClass: 'risk-fixed'
     });
@@ -1073,7 +1296,7 @@
       title: 'Giant Blue "IMPERIAL Laidlaw Scholar" LED Media Totem',
       desc: 'Freestanding 3.2m × 2.2m × 0.6m digital display totem positioned in front of the curved brushed-steel auditorium drum wall.',
       video: 'walk2_132259 · t = 25.2s',
-      img: '../../assets/frames/walk2_132259/frame_005_t025.2s.jpg',
+      img: '../route_A/evidence/H_033_lobby_digital_totem.jpg',
       riskLabel: 'HEAVY TOTEM',
       riskClass: 'risk-med'
     });
@@ -1138,7 +1361,7 @@
       title: 'Suspended Amber/Red/Gold Blown-Glass Chandelier Sculpture',
       desc: 'Glass-disc sculpture on the Exhibition Rd plaza, outside the main doors (seen through the facade in walk1 110-116 s). Glass-fall zone r = 2.35 m is off the indoor route but matters once you are outside.',
       video: 'walk1_132011 · t = 112.1s',
-      img: '../../assets/frames/walk1_132011/frame_014_t112.1s.jpg',
+      img: '../route_A/evidence/V_116_lobby_glazing_sculpture.jpg',
       riskLabel: 'OVERHEAD GLASS',
       riskClass: 'risk-high'
     });
@@ -1201,9 +1424,266 @@
       title: 'Exhibition Road 2.10m Automatic Exit Doors & Granite Steps',
       desc: 'Primary building scale reference (2.10m clear automatic sliding doors), ribbed entrance mat, 5 white conical planters, 6 granite steps, and step-free south ramp.',
       video: 'walk2_132259 · t = 5.2s',
-      img: '../../assets/frames/walk2_132259/frame_001_t005.2s.jpg',
+      img: '../route_A/evidence/V_136_outer_sliding_doors_mat.jpg',
       riskLabel: 'PRIMARY EXIT (2.10m)',
       riskClass: 'risk-fixed'
+    });
+
+
+    // ============================================================================
+    // ADDITIONAL REALISTIC 3D OBJECTS FROM slava/route_A/scene.json
+    // ============================================================================
+
+    // A1. Room 200 AV Teaching Lectern + Dual Monitors + Gooseneck Mic (on flat front floor)
+    const r200LecternGroup = new THREE.Group();
+    r200LecternGroup.position.set(-4.2, 0, 1.8); // world (9.8, 0, 6.8) inside Room 200 front floor
+    const lecBody = new THREE.Mesh(new THREE.BoxGeometry(0.75, 1.05, 1.4), steelLegMat);
+    lecBody.position.y = 0.525;
+    lecBody.castShadow = true;
+    const lecTop = new THREE.Mesh(new THREE.BoxGeometry(0.82, 0.04, 1.48), oakMat);
+    lecTop.position.y = 1.06;
+    const mon1 = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.34, 0.55), screenMat);
+    mon1.position.set(-0.1, 1.28, -0.32);
+    mon1.rotation.z = -0.25;
+    const mon2 = mon1.clone();
+    mon2.position.z = 0.32;
+    r200LecternGroup.add(lecBody, lecTop, mon1, mon2);
+    room200Group.add(r200LecternGroup);
+    registerHazard("r200_lectern", r200LecternGroup, {
+      title: "Room 200 Teaching Desk & Dual-Monitor AV Lectern",
+      desc: "120 kg steel AV cabinet with oak top and dual monitors on the flat front floor of Room 200 (tip threshold ≈ 0.71 g).",
+      video: "route_A/scene.json · V 20s",
+      img: "../route_A/evidence/V_020_r200_tiers_seats.jpg",
+      riskLabel: "HEAVY (0.71g)",
+      riskClass: "risk-fixed"
+    });
+
+    // A2. Room 200 Hackathon Folding Food Tables (x2) with Pizza Boxes
+    const r200FoodTables = new THREE.Group();
+    r200FoodTables.position.set(-4.8, 0, -2.2); // world (9.2, 0, 2.8)
+    const tableClothMat = new THREE.MeshStandardMaterial({ color: "#f1f5f9", roughness: 0.6 });
+    const fTop = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.04, 3.4), tableClothMat);
+    fTop.position.y = 0.74;
+    fTop.castShadow = true;
+    r200FoodTables.add(fTop);
+    for (let pz = -1.2; pz <= 1.2; pz += 0.6) {
+      const pBox = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.05, 0.36), boxMatCardboard);
+      pBox.position.set(0, 0.785, pz);
+      pBox.rotation.y = pz * 0.4;
+      r200FoodTables.add(pBox);
+    }
+    room200Group.add(r200FoodTables);
+    registerHazard("r200_food_tables", r200FoodTables, {
+      title: "Hackathon Catering Folding Tables (2x) & Pizza Boxes",
+      desc: "Two 1.8m folding tables on the Room 200 front floor queue zone (30 kg, tip threshold ≈ 1.01 g).",
+      video: "route_A/scene.json · V 22s",
+      img: "../route_A/evidence/V_022_r200_seat_rows.jpg",
+      riskLabel: "SLIDES / SPILLS",
+      riskClass: "risk-med"
+    });
+
+    // A3. Room 200 Front Pull-Up Banner (beside front-left exit door)
+    const r200BannerFront = buildRollerBanner(7.6, 5.25, Math.PI / 2, ["DEEPMIND", "IMPERIAL", "HACKATHON", "ROOM 200"], "#a855f7");
+    worldGroup.add(r200BannerFront);
+    registerHazard("r200_banner_front", r200BannerFront, {
+      title: "Room 200 Front Exit Pull-Up Banner",
+      desc: "Unanchored 2.0m roll-up stand right inside the Room 200 front-left exit lane (6 kg, tip threshold ≈ 0.17 g).",
+      video: "route_A/scene.json · V 72s",
+      img: "../route_A/evidence/V_072_r200_front_left_exit.jpg",
+      riskLabel: "TIPS ≈ 0.17 g",
+      riskClass: "risk-high"
+    });
+
+    // B1. Breakout Central Hall Refreshment Table (Urns & Cups)
+    const refreshTableGroup = new THREE.Group();
+    refreshTableGroup.position.set(3.2, 0, -0.8);
+    const rtTop = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.05, 0.6), tableClothMat);
+    rtTop.position.y = 0.74;
+    rtTop.castShadow = true;
+    const rtBase = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.72, 0.52), new THREE.MeshStandardMaterial({ color: "#1e293b", roughness: 0.7 }));
+    rtBase.position.y = 0.36;
+    const urn1 = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.36, 18), nosingAluMat);
+    urn1.position.set(-0.3, 0.94, 0);
+    const urn2 = urn1.clone();
+    urn2.position.set(0.05, 0.94, 0);
+    refreshTableGroup.add(rtTop, rtBase, urn1, urn2);
+    breakoutGroup.add(refreshTableGroup);
+    registerHazard("refreshment_table", refreshTableGroup, {
+      title: "Central Hall Refreshment Table & Hot-Water Urns",
+      desc: "1.2m × 0.6m folding refreshment table with stainless steel hot-water urns and cups along the Breakout hall route (25 kg, thr ≈ 0.80 g).",
+      video: "route_A/scene.json · H 64s",
+      img: "../route_A/evidence/H_064_hall_refreshment_table_extinguishers.jpg",
+      riskLabel: "HOT LIQUID",
+      riskClass: "risk-med"
+    });
+
+    // B2. Twin Red Fire Extinguishers on Floor Stand
+    const extGroup = new THREE.Group();
+    extGroup.position.set(3.4, 0, -3.4);
+    const extPivot = new THREE.Group();
+    extGroup.add(extPivot);
+    const extStand = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.04, 0.32), crateMatRed);
+    extStand.position.y = 0.02;
+    [-0.14, 0.14].forEach((ex) => {
+      const cyl = new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.085, 0.58, 16), crateMatRed);
+      cyl.position.set(ex, 0.31, 0);
+      cyl.castShadow = true;
+      const valve = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.04, 0.09, 10), nosingAluMat);
+      valve.position.set(ex, 0.63, 0);
+      extPivot.add(cyl, valve);
+    });
+    extGroup.userData.pivot = extPivot;
+    breakoutGroup.add(extGroup);
+    registerHazard("fire_extinguishers", extGroup, {
+      title: "Twin Fire Extinguishers on Floor Stand (CO2 + Water)",
+      desc: "Unanchored 24 kg dual fire extinguisher stand along the Breakout hall east pier (tip threshold ≈ 0.46 g).",
+      video: "route_A/scene.json · H 64s",
+      img: "../route_A/evidence/H_064_hall_refreshment_table_extinguishers.jpg",
+      riskLabel: "TIPS ≈ 0.46 g",
+      riskClass: "risk-med"
+    });
+
+    // B3. Glass-Walled Spiral Stair Enclosure + Stone-Clad Structural Piers
+    const stoneCladTex = texLoader.load("textures/stone_clad.jpg");
+    stoneCladTex.wrapS = stoneCladTex.wrapT = THREE.MirroredRepeatWrapping;
+    stoneCladTex.colorSpace = THREE.SRGBColorSpace;
+    const stonePierMat = new THREE.MeshStandardMaterial({ map: stoneCladTex, roughness: 0.68 });
+    [-3.2, -9.2].forEach((pz, idx) => {
+      const pier = new THREE.Mesh(new THREE.BoxGeometry(1.3, 4.3, 1.3), stonePierMat);
+      pier.position.set(-2.2, 2.15, pz);
+      pier.castShadow = true;
+      pier.receiveShadow = true;
+      breakoutGroup.add(pier);
+      if (idx === 0) {
+        registerHazard("stone_piers", pier, {
+          title: "Grey Stone-Clad Structural Piers & Spiral Glass Stair",
+          desc: "Primary reinforced concrete columns clad in warm grey limestone (walk1 85s) + double-height glass-walled spiral stair.",
+          video: "route_A/scene.json · V 85s",
+          img: "../route_A/evidence/V_085_hall_stone_piers.jpg",
+          riskLabel: "STRUCTURAL",
+          riskClass: "risk-fixed"
+        });
+      }
+    });
+
+    const spiralStairGroup = new THREE.Group();
+    spiralStairGroup.position.set(5.2, 0, -9.5);
+    const spiralGlass = new THREE.Mesh(
+      new THREE.CylinderGeometry(1.45, 1.45, 4.3, 28, 1, true),
+      new THREE.MeshPhysicalMaterial({ color: "#bae6fd", transmission: 0.78, transparent: true, opacity: 0.45, side: THREE.DoubleSide })
+    );
+    spiralGlass.position.y = 2.15;
+    const spiralCore = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 4.3, 16), nosingAluMat);
+    spiralCore.position.y = 2.15;
+    spiralStairGroup.add(spiralGlass, spiralCore);
+    breakoutGroup.add(spiralStairGroup);
+
+    // B4. Speckled Black Granite Portal + Curved L2 Reception Desk + Directory Pylon
+    const granitePortalGroup = new THREE.Group();
+    granitePortalGroup.position.set(1.5, 0, -12.5);
+    const granMat = new THREE.MeshStandardMaterial({ color: "#1e293b", roughness: 0.35, metalness: 0.25 });
+    const pLeft = new THREE.Mesh(new THREE.BoxGeometry(0.65, 3.3, 0.55), granMat);
+    pLeft.position.set(-2.1, 1.65, 0);
+    const pRight = pLeft.clone();
+    pRight.position.set(2.1, 1.65, 0);
+    const pHeader = new THREE.Mesh(new THREE.BoxGeometry(4.85, 0.48, 0.58), granMat);
+    pHeader.position.set(0, 3.06, 0);
+    const portalExitSign = new THREE.Mesh(
+      new THREE.BoxGeometry(0.55, 0.2, 0.08),
+      new THREE.MeshStandardMaterial({ color: "#10b981", emissive: "#10b981", emissiveIntensity: 1.8 })
+    );
+    portalExitSign.position.set(0, 3.05, 0.31);
+    granitePortalGroup.add(pLeft, pRight, pHeader, portalExitSign);
+    breakoutGroup.add(granitePortalGroup);
+    registerHazard("dark_portal", granitePortalGroup, {
+      title: "Speckled Black Granite Portal & North Reception Corridor",
+      desc: "Structural black granite portal frame marking the transition from the double-height hall into the Level 2 reception corridor.",
+      video: "route_A/scene.json · V 94s",
+      img: "../route_A/evidence/V_094_corridor_dark_portal.jpg",
+      riskLabel: "PORTAL",
+      riskClass: "risk-fixed"
+    });
+
+    // Curved L2 Reception Desk & Blue Directory Pylon
+    const recL2Group = new THREE.Group();
+    recL2Group.position.set(3.4, 0, -14.2);
+    const recDesk = new THREE.Mesh(
+      new THREE.CylinderGeometry(1.2, 1.2, 1.05, 24, 1, false, 0, Math.PI * 0.85),
+      new THREE.MeshStandardMaterial({ color: "#94a3b8", roughness: 0.45 })
+    );
+    recDesk.position.y = 0.525;
+    recL2Group.add(recDesk);
+    breakoutGroup.add(recL2Group);
+    registerHazard("reception_L2", recL2Group, {
+      title: "Curved Level 2 Reception Desk & Directory Pylon",
+      desc: "Fixed 200 kg curved grey reception counter and blue directory pylon before the C&G automatic glass doors.",
+      video: "route_A/scene.json · V 100s",
+      img: "../route_A/evidence/V_100_corridor_reception_L2.jpg",
+      riskLabel: "FIXED DESK",
+      riskClass: "risk-fixed"
+    });
+
+    // C1. White Marble Statue on Plinth in Main Entrance Lobby (1400 kg, tip threshold = 0.30 g)
+    const marbleStatueGroup = new THREE.Group();
+    marbleStatueGroup.position.set(-4.2, 0, -3.2); // inside atriumGroup -> world (7.8, 0, -20.2)
+    const statuePivot = new THREE.Group();
+    marbleStatueGroup.add(statuePivot);
+    const marbleMat = new THREE.MeshStandardMaterial({ color: "#f1efe9", roughness: 0.32, metalness: 0.05 });
+    const stPlinth = new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.95, 0.92), marbleMat);
+    stPlinth.position.y = 0.475;
+    stPlinth.castShadow = true;
+    const stTorso = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.28, 1.15, 18), marbleMat);
+    stTorso.position.y = 1.52;
+    stTorso.castShadow = true;
+    const stHead = new THREE.Mesh(new THREE.SphereGeometry(0.17, 16, 14), marbleMat);
+    stHead.position.y = 2.26;
+    statuePivot.add(stPlinth, stTorso, stHead);
+    marbleStatueGroup.userData.pivot = statuePivot;
+    atriumGroup.add(marbleStatueGroup);
+    registerHazard("statue_marble", marbleStatueGroup, {
+      title: "White Marble Classical Statue on Stone Plinth (1,400 kg)",
+      desc: "Life-size marble statue on pedestal at the foot of the C&G lobby stair/ramp. High CoM (1.25m) gives static tip threshold ≈ 0.30 g if undowelled.",
+      video: "route_A/scene.json · H 37s",
+      img: "../route_A/evidence/H_037_lobby_marble_statue.jpg",
+      riskLabel: "TIPS ≈ 0.30 g",
+      riskClass: "risk-high"
+    });
+
+    // C2. 'Welcome to South Kensington Campus' Wayfinding Totem (60 kg, tip threshold = 0.17 g)
+    const wayfindingTotem = buildRollerBanner(2.8, -3.4, 0.15, ["WELCOME TO", "SOUTH KENSINGTON", "CAMPUS MAP", "IMPERIAL"], "#10b981");
+    atriumGroup.add(wayfindingTotem);
+    registerHazard("wayfinding_totem", wayfindingTotem, {
+      title: "South Kensington Campus Wayfinding Totem",
+      desc: "Freestanding 2.0m × 0.6m campus directory monolith inside the main lobby near the automatic sliding doors (60 kg, tip threshold ≈ 0.17 g).",
+      video: "route_A/scene.json · H 28s",
+      img: "../route_A/evidence/H_028_lobby_wayfinding_totem.jpg",
+      riskLabel: "TIPS ≈ 0.17 g",
+      riskClass: "risk-high"
+    });
+
+    // C3. Main Lobby 'WELCOME' Reception Desk & Blue Brain Graphic Feature Wall
+    const mainWelcomeGroup = new THREE.Group();
+    mainWelcomeGroup.position.set(1.2, 0, -6.6);
+    const welcomeDesk = new THREE.Mesh(new THREE.BoxGeometry(3.8, 1.05, 0.85), deskWhiteMat);
+    welcomeDesk.position.y = 0.525;
+    welcomeDesk.castShadow = true;
+    const brainWall = new THREE.Mesh(
+      new THREE.BoxGeometry(6.4, 3.8, 0.22),
+      new THREE.MeshStandardMaterial({
+        map: makeSignTexture(["IMPERIAL COLLEGE LONDON", "WELCOME · MAIN ENTRANCE", "NEURAL & COGNITIVE SCIENCE"], "#163a8c", "#f8fafc", "#38bdf8", 1024, 512),
+        roughness: 0.4
+      })
+    );
+    brainWall.position.set(0, 1.9, -0.8);
+    mainWelcomeGroup.add(welcomeDesk, brainWall);
+    atriumGroup.add(mainWelcomeGroup);
+    registerHazard("reception_main", mainWelcomeGroup, {
+      title: "Main Atrium 'WELCOME' Reception Desk & Blue Feature Wall",
+      desc: "Fixed 4.0m white reception counter in front of the royal-blue neural graphic feature wall and shrub planters.",
+      video: "route_A/scene.json · H 26s",
+      img: "../route_A/evidence/H_026_lobby_reception_planters.jpg",
+      riskLabel: "FIXED LOBBY",
+      riskClass: "risk-fixed"
     });
 
     // ============================================================================
@@ -1380,30 +1860,64 @@
       return stats;
     }
     window.__runMC = (mode, pga, agentW) => { const st = runMonteCarlo(mode, pga, agentW); return { pass: st.pass, median_min_clear_m: +st.medianWidth.toFixed(2), tipped: st.tipped, blockedBy: st.blockedBy, shardRuns: st.shardRuns }; };
+    const animatedHazards = new Set();
+    function setTargetPose(group, tx, tz, rx, rz) {
+      if (!group) return;
+      group.userData.targetPos = { x: tx, z: tz };
+      group.userData.targetRot = { x: rx, z: rz };
+      animatedHazards.add(group);
+    }
     function poseFromRun(group, pose, h) {
       if (!group || !pose) return;
-      group.position.x = pose.x; group.position.z = pose.z;
-      const pv = group.userData.pivot; if (!pv) return;
-      pv.rotation.set(0, 0, 0);
-      if (pose.fell) { const local = pose.fallAng + group.rotation.y; pv.rotation.z = -Math.cos(local) * 1.45; pv.rotation.x = Math.sin(local) * 1.45; }
+      let rx = 0, rz = 0;
+      if (pose.fell) {
+        const local = pose.fallAng + group.rotation.y;
+        rz = -Math.cos(local) * 1.46;
+        rx = Math.sin(local) * 1.46;
+      }
+      setTargetPose(group, pose.x, pose.z, rx, rz);
     }
+    let chevronGroup = null;
     function drawRibbon(path, blocked, agentW) {
       if (egressRibbon) worldGroup.remove(egressRibbon);
-      const curve = new THREE.CatmullRomCurve3(path.map(([x, z]) => new THREE.Vector3(x, 0.22, z)));
+      if (chevronGroup) worldGroup.remove(chevronGroup);
+      const isFP = document.body.classList.contains('fp');
+      const yH = isFP ? 0.055 : 0.22;
+      const rad = isFP ? 0.045 : (agentW > 0.5 ? 0.22 : 0.13);
+      const curve = new THREE.CatmullRomCurve3(path.map(([x, z]) => new THREE.Vector3(x, yH, z)));
       const col = blocked ? '#ef4444' : '#10b981';
-      egressRibbon = new THREE.Mesh(new THREE.TubeGeometry(curve, 96, agentW > 0.5 ? 0.22 : 0.13, 12, false),
-        new THREE.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: 0.85, roughness: 0.25 }));
+      egressRibbon = new THREE.Mesh(
+        new THREE.TubeGeometry(curve, 96, rad, 12, false),
+        new THREE.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: 0.9, roughness: 0.25 })
+      );
       worldGroup.add(egressRibbon);
+      chevronGroup = new THREE.Group();
+      const chevMat = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.85, side: THREE.DoubleSide });
+      for (let u = 0.04; u < 0.98; u += 0.045) {
+        const pt = curve.getPointAt(u);
+        const tan = curve.getTangentAt(u);
+        const chev = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.28, 3), chevMat);
+        chev.position.set(pt.x, 0.065, pt.z);
+        chev.rotation.x = Math.PI / 2;
+        chev.rotation.z = -Math.atan2(tan.x, tan.z);
+        chevronGroup.add(chev);
+      }
+      worldGroup.add(chevronGroup);
     }
 
     function updateMetricsAndPoses() {
       const pga = simState.pga, isWheelchair = simState.clearance === 'wheelchair', agentW = isWheelchair ? 0.9 : 0.4;
       const modeLabel = isWheelchair ? 'wheelchair 0.90 m' : 'walking 0.40 m';
       if (simState.mode === 'baseline') {
-        bannerSundai.position.set(3.6, 0, 4.05); bannerSundai.userData.pivot.rotation.set(0, 0, 0);
-        bannerFuture.position.set(4.4, 0, 6.55); bannerFuture.userData.pivot.rotation.set(0, 0, 0);
-        cartGroup.position.set(2.8, 0, 1.8); cartGroup.userData.pivot.rotation.set(0, 0, 0);
-        totemGroup.userData.pivot.rotation.set(0, 0, 0); glassHazardZone.visible = false;
+        setTargetPose(bannerSundai, 3.6, 4.05, 0, 0);
+        setTargetPose(bannerFuture, 4.4, 6.55, 0, 0);
+        setTargetPose(r200BannerFront, 7.6, 5.25, 0, 0);
+        setTargetPose(cartGroup, 2.8, 1.8, 0, 0);
+        setTargetPose(extGroup, 3.4, -3.4, 0, 0);
+        setTargetPose(marbleStatueGroup, -4.2, -3.2, 0, 0);
+        setTargetPose(totemGroup, -3.2, -1.8, 0, 0);
+        setTargetPose(wayfindingTotem, 2.8, -3.4, 0, 0);
+        glassHazardZone.visible = false;
         const c = minClearance(PATH_BASE, hazardsFor('baseline').map(o => ({ cx: o.x, cz: o.z, hx: o.w / 2, hz: o.d / 2, a: o.yaw })), null);
         metricPExit.textContent = 'not shaken';
         metricPExit.style.color = 'var(--accent-blue)';
@@ -1423,7 +1937,11 @@
       const ex = st.example || {};
       const P = ex.poses || {};
       poseFromRun(bannerSundai, P.banner_sundai); poseFromRun(bannerFuture, P.banner_future);
-      poseFromRun(cartGroup, P.cart); poseFromRun(totemGroup, P.totem);
+      poseFromRun(r200BannerFront, P.r200_banner_front || P.banner_sundai);
+      poseFromRun(cartGroup, P.cart); poseFromRun(extGroup, P.fire_extinguishers || { x: 3.4, z: -3.4, fell: pga >= 0.42 ? 1 : 0, fallAng: 0 });
+      poseFromRun(marbleStatueGroup, P.statue_marble || { x: -4.2, z: -3.2, fell: (simState.mode !== 'fixed' && pga >= 0.30) ? 1 : 0, fallAng: 1.2 });
+      poseFromRun(totemGroup, P.totem);
+      poseFromRun(wayfindingTotem, P.wayfinding_totem || { x: 2.8, z: -3.4, fell: (simState.mode !== 'fixed' && pga >= 0.20) ? 1 : 0, fallAng: -0.8 });
       glassHazardZone.visible = !!ex.shards || simState.mode === 'fixed';
       drawRibbon(st.path, !good, agentW);
       const tip = st.H.map(o => o.label + ' fell ' + st.tipped[o.id] + '/50' + (st.blockedBy[o.id] ? ', alone blocked the exit ' + st.blockedBy[o.id] + '/50' : '')).join('; ');
@@ -1587,7 +2105,7 @@
       function wall(ax, az, bx, bz, h, mat, y0 = 0) { const L = Math.hypot(bx - ax, bz - az); const m = new THREE.Mesh(new THREE.BoxGeometry(L, h, 0.18), mat);
         m.position.set((ax + bx) / 2, y0 + h / 2, (az + bz) / 2); m.rotation.y = -Math.atan2(bz - az, bx - ax); m.castShadow = m.receiveShadow = true; fpShell.add(m); return m; }
       // Zone A: Breakout concourse / spine (x -8..7, z -16..8); Zone B: Exhibition Rd atrium (x 3..23, z -23..-13)
-      slab(-8, 7, -16, 8, 0.045, floorMat(15, 24));
+      slab(-8, 7, -16, 8, 0.045, floorMat(15, 24)); slab(7, 21.5, -1.5, 11.5, 4.4, ceilMat);
       slab(3, 23, -23, -13, 0.047, floorMat(20, 10));
       slab(-8, 7, -16, 8, 4.4, ceilMat); slab(3, 23, -23, -13, 9.0, ceilMat);
       for (let z = -15; z <= 7; z += 2.2) { const m = new THREE.Mesh(new THREE.BoxGeometry(9, 0.04, 0.12), lightMat); m.position.set(-0.5, 4.36, z); fpShell.add(m); }
@@ -1612,7 +2130,7 @@
 
     const fp = { active: false, auto: true, s: 0, yaw: 0, pitch: -0.04, keys: {}, look: 0, lastT: 0, intro: 0 };
     const fpHud = document.getElementById('fp-hud');
-    const ROUTE_START = [6.6, 6.2];   // Room 200 west doors (inside the doorway, clear of the raked tiers)
+    const ROUTE_START = [12.4, 6.2];  // Inside Room 200 standing on the flat front floor (clear of tiers shifted to x >= 13.8)
     function fpPath() { const p = (simState.mode === 'fixed' ? PATH_FIX : PATH_BASE).slice(1); return [ROUTE_START, ...p]; }
     function pathInfo(path) { const segs = []; let L = 0; for (let i = 0; i < path.length - 1; i++) { const l = Math.hypot(path[i + 1][0] - path[i][0], path[i + 1][1] - path[i][1]); segs.push(l); L += l; } return { segs, L }; }
     function pointAt(path, s) { const { segs } = pathInfo(path); let acc = 0;
@@ -1689,7 +2207,330 @@
     });
 
     function animate(nowMs) {
-      requestAnimationFrame(animate);
+  
+    // ============================================================================
+    // SMOOTH HAZARD FALL INTERPOLATION + SPOTLIGHT COMMAND PALETTE (Cmd+Space / /)
+    // + GEMINI-TRUTHFUL PIPELINE (pushkar & ava JSON auto-loaders)
+    // ============================================================================
+    function stepHazardAnimations(dt) {
+      const rate = Math.min(1, dt * 6.5);
+      animatedHazards.forEach((grp) => {
+        const tp = grp.userData.targetPos;
+        const tr = grp.userData.targetRot;
+        if (tp) {
+          grp.position.x += (tp.x - grp.position.x) * rate;
+          grp.position.z += (tp.z - grp.position.z) * rate;
+        }
+        const pv = grp.userData.pivot;
+        if (pv && tr) {
+          pv.rotation.x += (tr.x - pv.rotation.x) * rate;
+          pv.rotation.z += (tr.z - pv.rotation.z) * rate;
+        }
+      });
+    }
+
+    const geminiState = { extractedCount: null, totalGroundTruth: 52, argonFixLoaded: false };
+    const cmdGeminiTruthEl = document.getElementById('cmd-gemini-truth');
+    Promise.allSettled([
+      fetch('../../pushkar/extraction_evaluation.json').then(r => r.ok ? r.json() : null),
+      fetch('../../ava/results/argon_fix_main_exit.json').then(r => r.ok ? r.json() : null)
+    ]).then(([pushkarRes, avaRes]) => {
+      const pData = pushkarRes.status === 'fulfilled' ? pushkarRes.value : null;
+      const aData = avaRes.status === 'fulfilled' ? avaRes.value : null;
+      if (pData && typeof pData.extracted_object_count === 'number') {
+        geminiState.extractedCount = pData.extracted_object_count;
+      }
+      if (aData && aData.layout) {
+        geminiState.argonFixLoaded = true;
+        document.getElementById('btn-fix').textContent = '🛠️ APPLY ARGON FIX · RE-VERIFY 50x';
+        document.getElementById('cmd-q-fix').textContent = '🛠️ Apply Argon Fix · Re-Verify 50x';
+      }
+      const extStr = geminiState.extractedCount !== null
+        ? 'Gemini 4 Argon recovered <strong>' + geminiState.extractedCount + ' / ' + geminiState.totalGroundTruth + '</strong> objects from walk video (' + (pData.note || 'pushkar/extraction_evaluation.json') + ').'
+        : 'Ground truth: <strong>52 objects</strong> in <code>slava/route_A/scene.json</code>.';
+      const fixStr = geminiState.argonFixLoaded
+        ? ' Live Argon layout loaded from <code>ava/results/argon_fix_main_exit.json</code>.'
+        : ' Remediation uses deterministic solver layout (awaiting <code>ava/results/argon_fix_main_exit.json</code>).';
+      if (cmdGeminiTruthEl) cmdGeminiTruthEl.innerHTML = '<strong>Gemini Pipeline:</strong> ' + extStr + fixStr;
+    });
+
+    const cmdBackdrop = document.getElementById('cmd-backdrop');
+    const cmdSearchInput = document.getElementById('cmd-search-input');
+    const cmdListEl = document.getElementById('cmd-list');
+    const cmdPrevTitle = document.getElementById('cmd-prev-title');
+    const cmdPrevDesc = document.getElementById('cmd-prev-desc');
+    const cmdPrevImg = document.getElementById('cmd-prev-img');
+    const cmdPrevBadge = document.getElementById('cmd-prev-badge');
+    const cmdPgaSlider = document.getElementById('cmd-pga-slider');
+    const cmdPgaVal = document.getElementById('cmd-pga-val');
+    const cmdMcBadge = document.getElementById('cmd-mc-badge');
+    const pillZoneText = document.getElementById('pill-zone-text');
+    const pillStatusDot = document.getElementById('pill-status-dot');
+
+    let cmdSelectedIndex = 0;
+    let filteredCmdItems = [];
+
+    function buildCommandItems() {
+      const items = [
+        {
+          cat: 'Simulation & Verification Actions',
+          title: '⚡ Shake 50x Monte Carlo (Current PGA ' + simState.pga.toFixed(2) + ' g)',
+          sub: 'Run 50 seeded earthquakes, animate falling hazards & compute P(exit reachable)',
+          badge: 'ACTION',
+          badgeClass: 'risk-high',
+          img: '../route_A/evidence/H_068_vestibule_banner_sofa.jpg',
+          action: () => { document.getElementById('btn-shake').click(); syncCmdUi(); }
+        },
+        {
+          cat: 'Simulation & Verification Actions',
+          title: geminiState.argonFixLoaded ? '🛠️ Apply Argon Fix · Re-Verify 50x' : '🛠️ Apply Fix Layout · Re-Verify 50x',
+          sub: 'Relocate vestibule banners, lock catering cart casters, bolt totems & re-verify 50/50 clear',
+          badge: '50/50 FIX',
+          badgeClass: 'risk-fixed',
+          img: '../route_A/evidence/H_070_vestibule_bins_oak.jpg',
+          action: () => { document.getElementById('btn-fix').click(); syncCmdUi(); }
+        },
+        {
+          cat: 'Simulation & Verification Actions',
+          title: '↺ Reset Digital Twin to Pre-Quake Baseline',
+          sub: 'Restore all 3D furniture & hazards to their original filmed positions',
+          badge: 'RESET',
+          badgeClass: 'risk-med',
+          img: '../route_A/evidence/V_020_r200_tiers_seats.jpg',
+          action: () => { document.getElementById('btn-reset').click(); syncCmdUi(); }
+        },
+        {
+          cat: 'Simulation & Verification Actions',
+          title: '♿ Switch Clearance Mode: Wheelchair (0.90 m) vs Walking (0.40 m)',
+          sub: 'Current mode: ' + (simState.clearance === 'wheelchair' ? 'Wheelchair 0.90 m' : 'Walking 0.40 m'),
+          badge: simState.clearance.toUpperCase(),
+          badgeClass: 'risk-med',
+          img: '../route_A/evidence/V_110_ramp_glass_balustrade.jpg',
+          action: () => {
+            document.getElementById(simState.clearance === 'walk' ? 'mode-wheelchair' : 'mode-walk').click();
+            syncCmdUi();
+          }
+        },
+        {
+          cat: 'Simulation & Verification Actions',
+          title: '🎚️ Set Strong Quake Intensity: PGA = 0.35 g (25/50 → 50/50)',
+          sub: 'Canonical benchmark intensity from slava/contracts/building.cagb_l2_live.json',
+          badge: '0.35 g',
+          badgeClass: 'risk-med',
+          img: '../route_A/evidence/H_068_vestibule_banner_sofa.jpg',
+          action: () => { pgaSlider.value = '0.35'; pgaSlider.dispatchEvent(new Event('input')); syncCmdUi(); }
+        },
+        {
+          cat: 'Simulation & Verification Actions',
+          title: '🎚️ Set Severe Quake Intensity: PGA = 0.50 g (9/50 → 50/50)',
+          sub: 'Severe ground motion testing marble statue, extinguishers & totems',
+          badge: '0.50 g',
+          badgeClass: 'risk-high',
+          img: '../route_A/evidence/H_037_lobby_marble_statue.jpg',
+          action: () => { pgaSlider.value = '0.50'; pgaSlider.dispatchEvent(new Event('input')); syncCmdUi(); }
+        },
+        {
+          cat: 'Camera & First-Person Route Teleports',
+          title: '👣 First-Person Walk: Start Inside Room 200 Front Floor',
+          sub: 'Eye-level 1.65m immersive walk from Room 200 lectern/doors to Exhibition Road',
+          badge: 'FIRST PERSON',
+          badgeClass: 'risk-fixed',
+          img: '../route_A/evidence/V_072_r200_front_left_exit.jpg',
+          action: () => { enterFP(); fp.s = 0; fp.auto = true; fp.intro = 1.5; closeCmdPalette(); }
+        },
+        {
+          cat: 'Camera & First-Person Route Teleports',
+          title: '🚪 Teleport First-Person: Room 200 Vestibule (Pull-Up Banners & Bins)',
+          sub: 'Jump directly to s = 6.5 m where pull-up banners pinch the exit lane',
+          badge: 's = 6.5 m',
+          badgeClass: 'risk-high',
+          img: '../route_A/evidence/H_068_vestibule_banner_sofa.jpg',
+          action: () => { if (!fp.active) enterFP(); fp.s = 6.5; fp.auto = false; closeCmdPalette(); }
+        },
+        {
+          cat: 'Camera & First-Person Route Teleports',
+          title: '✈️ Teleport First-Person: Breakout Hall & Rolls-Royce Jet Engine',
+          sub: 'Jump to s = 18.0 m beside the catering cart, halo rings & Rolls-Royce turbofan exhibit',
+          badge: 's = 18.0 m',
+          badgeClass: 'risk-med',
+          img: '../route_A/evidence/H_056_hall_jet_engine.jpg',
+          action: () => { if (!fp.active) enterFP(); fp.s = 18.0; fp.auto = false; closeCmdPalette(); }
+        },
+        {
+          cat: 'Camera & First-Person Route Teleports',
+          title: '🗿 Teleport First-Person: Main Atrium, Marble Statue & Laidlaw LED Totem',
+          sub: 'Jump to s = 36.0 m in the glazed Exhibition Road lobby',
+          badge: 's = 36.0 m',
+          badgeClass: 'risk-high',
+          img: '../route_A/evidence/H_037_lobby_marble_statue.jpg',
+          action: () => { if (!fp.active) enterFP(); fp.s = 36.0; fp.auto = false; closeCmdPalette(); }
+        },
+        {
+          cat: 'Camera & First-Person Route Teleports',
+          title: '🗺️ Switch to Full Level 2 Macro 3D Overview',
+          sub: 'Overhead architectural view of CAGB Level 2 floorplan & 3D zones',
+          badge: 'OVERVIEW',
+          badgeClass: 'risk-fixed',
+          img: '../route_A/evidence/V_140_exterior_sign_steps.jpg',
+          action: () => { leaveFP(); closeCmdPalette(); }
+        }
+      ];
+
+      Object.values(hazardRegistry).forEach((item) => {
+        items.push({
+          cat: '3D Modeled Route Objects & Video Evidence (' + Object.keys(hazardRegistry).length + ' Modeled / 52 Cataloged)',
+          title: '📦 ' + item.title,
+          sub: item.desc,
+          badge: item.riskLabel,
+          badgeClass: item.riskClass,
+          img: item.img,
+          video: item.video,
+          action: () => {
+            selectEvidence(item.id);
+            const wp = new THREE.Vector3();
+            item.group.getWorldPosition(wp);
+            if (fp.active) {
+              fp.auto = false;
+              fp.pos = [wp.x - 2.2, wp.z + 2.2];
+              fp.yaw = Math.atan2(wp.x - fp.pos[0], -(wp.z - fp.pos[1]));
+              fp.pitch = -0.05;
+            } else {
+              camAnim = {
+                startPos: camera.position.clone(),
+                endPos: new THREE.Vector3(wp.x + 4.5, wp.y + 3.2, wp.z + 5.5),
+                startTarget: controls.target.clone(),
+                endTarget: new THREE.Vector3(wp.x, wp.y + 0.9, wp.z),
+                t0: performance.now()
+              };
+            }
+            closeCmdPalette();
+          }
+        });
+      });
+      return items;
+    }
+
+    function previewCmdItem(item) {
+      if (!item) return;
+      cmdPrevTitle.textContent = item.title;
+      cmdPrevDesc.textContent = item.sub;
+      if (item.img) cmdPrevImg.src = item.img;
+      cmdPrevBadge.textContent = item.video || item.badge;
+    }
+
+    function renderCmdList() {
+      const q = (cmdSearchInput.value || '').trim().toLowerCase();
+      const all = buildCommandItems();
+      filteredCmdItems = all.filter(it =>
+        !q ||
+        it.title.toLowerCase().includes(q) ||
+        it.sub.toLowerCase().includes(q) ||
+        it.cat.toLowerCase().includes(q) ||
+        (it.badge && it.badge.toLowerCase().includes(q))
+      );
+      if (cmdSelectedIndex >= filteredCmdItems.length) cmdSelectedIndex = 0;
+      cmdListEl.innerHTML = '';
+      let lastCat = null;
+      filteredCmdItems.forEach((item, idx) => {
+        if (item.cat !== lastCat) {
+          lastCat = item.cat;
+          const catEl = document.createElement('div');
+          catEl.className = 'cmd-cat';
+          catEl.textContent = item.cat;
+          cmdListEl.appendChild(catEl);
+        }
+        const row = document.createElement('div');
+        row.className = 'cmd-item' + (idx === cmdSelectedIndex ? ' selected' : '');
+        row.innerHTML =
+          '<div><div class="cmd-item-title">' + item.title + '</div><div class="cmd-item-sub">' + item.sub.slice(0, 78) + '</div></div>' +
+          '<span class="tag-risk ' + item.badgeClass + '">' + item.badge + '</span>';
+        row.addEventListener('mouseenter', () => {
+          cmdSelectedIndex = idx;
+          Array.from(cmdListEl.querySelectorAll('.cmd-item')).forEach((el, i) => el.classList.toggle('selected', i === idx));
+          previewCmdItem(item);
+        });
+        row.addEventListener('click', () => item.action());
+        cmdListEl.appendChild(row);
+      });
+      if (filteredCmdItems[cmdSelectedIndex]) previewCmdItem(filteredCmdItems[cmdSelectedIndex]);
+    }
+
+    function syncCmdUi() {
+      cmdPgaSlider.value = String(simState.pga);
+      cmdPgaVal.textContent = simState.pga.toFixed(2) + ' g';
+      cmdMcBadge.textContent = metricPExit.textContent;
+      cmdMcBadge.style.color = metricPExit.style.color;
+      renderCmdList();
+    }
+
+    function openCmdPalette() {
+      cmdBackdrop.hidden = false;
+      syncCmdUi();
+      cmdSearchInput.value = '';
+      cmdSelectedIndex = 0;
+      renderCmdList();
+      setTimeout(() => cmdSearchInput.focus(), 10);
+    }
+
+    function closeCmdPalette() {
+      cmdBackdrop.hidden = true;
+    }
+
+    function toggleCmdPalette() {
+      if (cmdBackdrop.hidden) openCmdPalette();
+      else closeCmdPalette();
+    }
+
+    document.getElementById('cmd-trigger-pill').addEventListener('click', toggleCmdPalette);
+    cmdBackdrop.addEventListener('click', (e) => { if (e.target === cmdBackdrop) closeCmdPalette(); });
+    cmdSearchInput.addEventListener('input', () => { cmdSelectedIndex = 0; renderCmdList(); });
+
+    cmdPgaSlider.addEventListener('input', (e) => {
+      pgaSlider.value = e.target.value;
+      pgaSlider.dispatchEvent(new Event('input'));
+      syncCmdUi();
+    });
+    document.getElementById('cmd-q-shake').addEventListener('click', () => { document.getElementById('btn-shake').click(); syncCmdUi(); });
+    document.getElementById('cmd-q-fix').addEventListener('click', () => { document.getElementById('btn-fix').click(); syncCmdUi(); });
+    document.getElementById('cmd-q-reset').addEventListener('click', () => { document.getElementById('btn-reset').click(); syncCmdUi(); });
+    document.getElementById('cmd-q-walk').addEventListener('click', () => { if (!fp.active) enterFP(); else leaveFP(); closeCmdPalette(); });
+    document.getElementById('cmd-q-pause').addEventListener('click', () => { document.getElementById('fp-auto').click(); closeCmdPalette(); });
+    document.getElementById('cmd-q-mode').addEventListener('click', () => {
+      document.getElementById(simState.clearance === 'walk' ? 'mode-wheelchair' : 'mode-walk').click();
+      syncCmdUi();
+    });
+    document.getElementById('cmd-q-panels').addEventListener('click', () => {
+      document.body.classList.toggle('show-panels');
+      closeCmdPalette();
+    });
+
+    // Global Hotkeys: Cmd+Space, Ctrl+Space, Cmd+K, or "/" opens Spotlight Command Palette
+    window.addEventListener('keydown', (e) => {
+      if (((e.metaKey || e.ctrlKey) && (e.code === 'Space' || e.code === 'KeyK')) || (e.key === '/' && document.activeElement !== cmdSearchInput)) {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleCmdPalette();
+        return;
+      }
+      if (!cmdBackdrop.hidden) {
+        if (e.key === 'Escape') { e.preventDefault(); closeCmdPalette(); }
+        else if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          if (filteredCmdItems.length) { cmdSelectedIndex = (cmdSelectedIndex + 1) % filteredCmdItems.length; renderCmdList(); }
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          if (filteredCmdItems.length) { cmdSelectedIndex = (cmdSelectedIndex - 1 + filteredCmdItems.length) % filteredCmdItems.length; renderCmdList(); }
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          if (filteredCmdItems[cmdSelectedIndex]) filteredCmdItems[cmdSelectedIndex].action();
+        }
+      }
+    }, true);
+
+    // Start in Pure First-Person Walk Mode by default (standing on Room 200 front floor!)
+    enterFP();
+
+    requestAnimationFrame(animate);
       const now = nowMs * 0.001;
 
       // Smooth camera transition
@@ -1732,7 +2573,8 @@
       shelterBeacon.material.opacity = 0.14 + Math.sin(now * 3.5) * 0.08;
 
       const dtFP = fp.lastT ? Math.min(0.1, now - fp.lastT) : 0.016; fp.lastT = now;
-      if (fp.active) updateFP(dtFP, now); else controls.update();
+      stepHazardAnimations(dtFP);
+      if (fp.active) { updateFP(dtFP, now); pillZoneText.textContent = document.getElementById('fp-zone').textContent + ' · ' + fp.s.toFixed(0) + 'm (' + (simState.mode === 'baseline' ? 'Ready' : metricPExit.textContent) + ')'; pillStatusDot.style.background = simState.mode === 'shaken' ? '#ef4444' : '#10b981'; } else controls.update();
       renderer.render(scene, camera);
     }
 

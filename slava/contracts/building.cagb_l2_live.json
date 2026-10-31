@@ -1,397 +1,559 @@
 {
- "_note": "Live CAGB Level 2 building contract populated from assets/20261031_132011.mp4 and assets/20261031_132259.mp4.",
- "version": "1.0",
- "conventions": {
-  "units": "metres",
-  "plan_image": "assets/floorplans/cagb-L2.jpg",
-  "plan_px_per_m": 9.52,
-  "scale_reference": "Main entrance (Exhibition Road) double doors = 2.10 m clear opening (AccessAble guide)",
-  "object_anchor": "objects sit on an edge: along_m from the edge's 'from' node, side = left|right|centre when walking from->to"
- },
- "floor": "City and Guilds Building, Level 2",
- "nodes": [
-  {
-   "id": "room200",
-   "type": "room",
-   "label": "Room 200 lecture theatre",
-   "plan_px": [
-    1421,
-    812
-   ],
-   "usable_in_quake": true
+  "_note": "Live CAGB Level 2 building contract populated from assets/20261031_132011.mp4, assets/20261031_132259.mp4, and slava/route_A/scene.json.",
+  "version": "1.1",
+  "conventions": {
+    "units": "metres",
+    "plan_image": "assets/floorplans/cagb-L2.jpg",
+    "plan_px_per_m": 9.52,
+    "scale_reference": "Main entrance (Exhibition Road) double doors = 2.10 m clear opening (AccessAble guide)",
+    "object_anchor": "objects sit on an edge: along_m from the edge's 'from' node, side = left|right|centre when walking from->to"
   },
-  {
-   "id": "breakout",
-   "type": "space",
-   "label": "Breakout concourse",
-   "plan_px": [
-    1170,
-    828
-   ],
-   "usable_in_quake": true
-  },
-  {
-   "id": "room203",
-   "type": "room",
-   "label": "Room 203 computer room",
-   "plan_px": [
-    1169,
-    933
-   ],
-   "usable_in_quake": true
-  },
-  {
-   "id": "stairs_main",
-   "type": "stairs",
-   "label": "Stairs near lifts",
-   "plan_px": [
-    1219,
-    744
-   ],
-   "usable_in_quake": true
-  },
-  {
-   "id": "lifts",
-   "type": "lift",
-   "label": "Central Lifts",
-   "usable_in_quake": false,
-   "plan_px": [
-    1212,
-    642
-   ]
-  },
-  {
-   "id": "exit_exhibition",
-   "type": "exit",
-   "label": "Main entrance, Exhibition Road",
-   "plan_px": [
-    1515,
-    466
-   ],
-   "usable_in_quake": true
-  },
-  {
-   "id": "exit_dalby",
-   "type": "exit",
-   "label": "Entrance from Dalby Court",
-   "plan_px": [
-    1225,
-    383
-   ],
-   "usable_in_quake": true
-  }
- ],
- "edges": [
-  {
-   "id": "e1",
-   "from": "room200",
-   "to": "breakout",
-   "length_m": 16.5,
-   "min_width_m": 1.89
-  },
-  {
-   "id": "e2",
-   "from": "breakout",
-   "to": "exit_exhibition",
-   "length_m": 54.2,
-   "min_width_m": 2.1
-  },
-  {
-   "id": "e3",
-   "from": "breakout",
-   "to": "exit_dalby",
-   "length_m": 48,
-   "min_width_m": 1.06
-  }
- ],
- "objects": [
-  {
-   "id": "roller_banner_build_future",
-   "type": "retractable_banner",
-   "edge": "e1",
-   "along_m": 11.2,
-   "side": "left",
-   "size_m": [
-    0.85,
-    0.35,
-    2.05
-   ],
-   "mass_kg": 6.5,
-   "h_com_m": 0.95,
-   "pga_tip_g": 0.18,
-   "anchored": false,
-   "glass": false,
-   "evidence": {
-    "video": "assets/20261031_132259.mp4",
-    "t_s": 75.2,
-    "frame": "assets/frames/walk2_132259/frame_015_t075.2s.jpg",
-    "quote": "Tall freestanding black retractable banner ('Build the Future. Together.') flanking the Room 200 wooden vestibule entrance"
-   }
-  },
-  {
-   "id": "roller_banner_sundai",
-   "type": "retractable_banner",
-   "edge": "e1",
-   "along_m": 12,
-   "side": "right",
-   "size_m": [
-    0.85,
-    0.35,
-    2.05
-   ],
-   "mass_kg": 6.5,
-   "h_com_m": 0.95,
-   "pga_tip_g": 0.18,
-   "anchored": false,
-   "glass": false,
-   "evidence": {
-    "video": "assets/20261031_132259.mp4",
-    "t_s": 65.2,
-    "frame": "assets/frames/walk2_132259/frame_013_t065.2s.jpg",
-    "quote": "Second tall freestanding roller banner ('Sundai') directly beside wheeled catering cart in Breakout spine"
-   }
-  },
-  {
-   "id": "wheeled_catering_cart",
-   "type": "utility_cart",
-   "edge": "e2",
-   "along_m": 4.5,
-   "side": "right",
-   "size_m": [
-    1.2,
-    0.6,
-    0.88
-   ],
-   "mass_kg": 32,
-   "h_com_m": 0.58,
-   "pga_tip_g": 0.22,
-   "anchored": false,
-   "glass": false,
-   "evidence": {
-    "video": "assets/20261031_132259.mp4",
-    "t_s": 65.2,
-    "frame": "assets/frames/walk2_132259/frame_013_t065.2s.jpg",
-    "quote": "Unbraked white steel catering/utility cart on 4 swivel casters along east grey tile wall"
-   }
-  },
-  {
-   "id": "recycling_bin_trio",
-   "type": "recycling_bins",
-   "edge": "e1",
-   "along_m": 9.8,
-   "side": "right",
-   "size_m": [
-    1.35,
-    0.45,
-    0.92
-   ],
-   "mass_kg": 18,
-   "h_com_m": 0.48,
-   "pga_tip_g": 0.46,
-   "anchored": false,
-   "glass": false,
-   "evidence": {
-    "video": "assets/20261031_132011.mp4",
-    "t_s": 136.1,
-    "frame": "assets/frames/walk1_132011/frame_017_t136.1s.jpg",
-    "quote": "Green, black, and blue hooded cylindrical bins under Level 2 sign at Room 200 vestibule corner"
-   }
-  },
-  {
-   "id": "halo_ring_chandeliers",
-   "type": "suspended_lighting",
-   "edge": "e2",
-   "along_m": 12,
-   "side": "centre",
-   "size_m": [
-    1.8,
-    1.8,
-    0.15
-   ],
-   "mass_kg": 24,
-   "anchored": true,
-   "glass": true,
-   "evidence": {
-    "video": "assets/20261031_132011.mp4",
-    "t_s": 128.1,
-    "frame": "assets/frames/walk1_132011/frame_016_t128.1s.jpg",
-    "quote": "Circular suspended halo LED ring chandeliers over Breakout concourse (pendulum cable length ~1.4m)"
-   }
-  },
-  {
-   "id": "upper_window_stacked_crates",
-   "type": "overhead_glazing_hazard",
-   "edge": "e2",
-   "along_m": 18.5,
-   "side": "centre",
-   "size_m": [
-    4.5,
-    0.4,
-    2.4
-   ],
-   "mass_kg": 65,
-   "anchored": false,
-   "glass": true,
-   "evidence": {
-    "video": "assets/20261031_132011.mp4",
-    "t_s": 80.1,
-    "frame": "assets/frames/walk1_132011/frame_010_t080.1s.jpg",
-    "quote": "Upper-level interior glass window above concourse doors with unanchored cardboard boxes and red crates stacked against glazing"
-   }
-  },
-  {
-   "id": "rr_jet_engine_display",
-   "type": "museum_exhibit",
-   "edge": "e2",
-   "along_m": 22,
-   "side": "left",
-   "size_m": [
-    1.85,
-    1.6,
-    2.1
-   ],
-   "mass_kg": 450,
-   "h_com_m": 1.05,
-   "pga_tip_g": 0.76,
-   "anchored": true,
-   "glass": false,
-   "evidence": {
-    "video": "assets/20261031_132259.mp4",
-    "t_s": 50.2,
-    "frame": "assets/frames/walk2_132259/frame_010_t050.2s.jpg",
-    "quote": "Rolls-Royce turbofan jet engine display with wide-chord fan blades, orange nose cone, and angled display plaque"
-   }
-  },
-  {
-   "id": "laidlaw_led_totem",
-   "type": "freestanding_led_wall",
-   "edge": "e2",
-   "along_m": 36,
-   "side": "left",
-   "size_m": [
-    3.2,
-    0.6,
-    2.2
-   ],
-   "mass_kg": 180,
-   "h_com_m": 1.15,
-   "pga_tip_g": 0.26,
-   "anchored": false,
-   "glass": true,
-   "evidence": {
-    "video": "assets/20261031_132259.mp4",
-    "t_s": 35.2,
-    "frame": "assets/frames/walk2_132259/frame_007_t035.2s.jpg",
-    "quote": "Freestanding 'IMPERIAL: Could you be a Laidlaw Scholar?' LED display wall + folded black tables in front of steel drum"
-   }
-  },
-  {
-   "id": "glass_disc_sculpture",
-   "type": "suspended_glass_art",
-   "edge": "e2",
-   "along_m": 44,
-   "side": "right",
-   "size_m": [
-    3.6,
-    1.4,
-    2.8
-   ],
-   "mass_kg": 95,
-   "anchored": true,
-   "glass": true,
-   "evidence": {
-    "video": "assets/20261031_132259.mp4",
-    "t_s": 20.2,
-    "frame": "assets/frames/walk2_132259/frame_004_t020.2s.jpg",
-    "quote": "Suspended amber, red, and yellow blown-glass disc chandelier over white plinth and folding registration tables"
-   }
-  }
- ],
- "results": {
-  "routes": [
-   {
-    "from": "room200",
-    "to": "exit_exhibition",
-    "path": [
-     "room200",
-     "breakout",
-     "exit_exhibition"
-    ],
-    "p_clear": {
-     "walk": 0.5,
-     "wheelchair": 0.5
+  "floor": "City and Guilds Building, Level 2",
+  "nodes": [
+    {
+      "id": "room200",
+      "type": "room",
+      "label": "Room 200 lecture theatre",
+      "plan_px": [
+        1421,
+        812
+      ],
+      "usable_in_quake": true
     },
-    "p_clear_after_fix": {
-     "walk": 1.0,
-     "wheelchair": 1.0
+    {
+      "id": "breakout",
+      "type": "space",
+      "label": "Breakout concourse",
+      "plan_px": [
+        1170,
+        828
+      ],
+      "usable_in_quake": true
     },
-    "blocked_by": [
-     "roller_banner_sundai",
-     "roller_banner_build_future"
-    ],
-    "computed_by": "slava/viewer/index.html runMonteCarlo(): N=50 seeded runs, lognormal PGA (sigma 0.3, median 0.35 g), static tip thresholds (b/2)/h_CoM, corridor free width sampled every 0.2 m (segment widths 3.0/2.6/3.36/4.0 m). Fix = banners moved off the vestibule lane, cart parked with casters locked, LED totem bolted.",
-    "runs_clear_out_of_50": {
-     "walk": {
-      "before": {
-       "0.25": 30,
-       "0.35": 25,
-       "0.50": 9
-      },
-      "after_fix": {
-       "0.25": 50,
-       "0.35": 50,
-       "0.50": 50
-      }
-     },
-     "wheelchair": {
-      "before": {
-       "0.25": 30,
-       "0.35": 25,
-       "0.50": 9
-      },
-      "after_fix": {
-       "0.25": 50,
-       "0.35": 50,
-       "0.50": 50
-      }
-     }
+    {
+      "id": "room203",
+      "type": "room",
+      "label": "Room 203 computer room",
+      "plan_px": [
+        1169,
+        933
+      ],
+      "usable_in_quake": true
+    },
+    {
+      "id": "stairs_main",
+      "type": "stairs",
+      "label": "Stairs near lifts",
+      "plan_px": [
+        1219,
+        744
+      ],
+      "usable_in_quake": true
+    },
+    {
+      "id": "lifts",
+      "type": "lift",
+      "label": "Central Lifts",
+      "usable_in_quake": false,
+      "plan_px": [
+        1212,
+        642
+      ]
+    },
+    {
+      "id": "exit_exhibition",
+      "type": "exit",
+      "label": "Main entrance, Exhibition Road",
+      "plan_px": [
+        1515,
+        466
+      ],
+      "usable_in_quake": true
+    },
+    {
+      "id": "exit_dalby",
+      "type": "exit",
+      "label": "Entrance from Dalby Court",
+      "plan_px": [
+        1225,
+        383
+      ],
+      "usable_in_quake": true
     }
-   },
-   {
-    "from": "room200",
-    "to": "exit_dalby",
-    "path": [
-     "room200",
-     "breakout",
-     "exit_dalby"
-    ],
-    "p_clear": null,
-    "p_clear_after_fix": null,
-    "blocked_by": [
-     "roller_banner_sundai",
-     "wheeled_catering_cart"
-    ],
-    "note": "not computed: scope is the main exit route only"
-   }
   ],
-  "shelter_spots": [
-   {
-    "id": "shelter_room200_tiers",
-    "label": "Between fixed bolted lecture tiers in Room 200 (away from screens)",
-    "plan_px": [
-     1410,
-     812
-    ]
-   },
-   {
-    "id": "shelter_breakout_oak_alcove",
-    "label": "Under structural oak-clad beam alcove outside Room 200 (away from upper glazing)",
-    "plan_px": [
-     1295,
-     810
-    ]
-   }
+  "edges": [
+    {
+      "id": "e1",
+      "from": "room200",
+      "to": "breakout",
+      "length_m": 16.5,
+      "min_width_m": 1.89
+    },
+    {
+      "id": "e2",
+      "from": "breakout",
+      "to": "exit_exhibition",
+      "length_m": 54.2,
+      "min_width_m": 2.1
+    },
+    {
+      "id": "e3",
+      "from": "breakout",
+      "to": "exit_dalby",
+      "length_m": 48,
+      "min_width_m": 1.06
+    }
   ],
-  "provenance_note": "Numbers previously written here by hand were replaced at 14:45 with values computed by the viewer's Monte Carlo. Do not hand-edit results."
- }
+  "objects": [
+    {
+      "id": "r200_lectern",
+      "type": "av_lectern",
+      "edge": "e1",
+      "along_m": 1.8,
+      "side": "right",
+      "size_m": [
+        1.4,
+        0.75,
+        1.05
+      ],
+      "mass_kg": 120,
+      "h_com_m": 0.52,
+      "pga_tip_g": 0.71,
+      "anchored": false,
+      "glass": false,
+      "evidence": {
+        "video": "assets/20261031_132011.mp4",
+        "t_s": 20,
+        "frame": "slava/route_A/evidence/V_020_r200_tiers_seats.jpg",
+        "quote": "Steel AV teaching desk and dual monitors at front floor of Room 200 lecture theatre"
+      }
+    },
+    {
+      "id": "r200_food_tables",
+      "type": "folding_table",
+      "edge": "e1",
+      "along_m": 3.4,
+      "side": "left",
+      "size_m": [
+        3.6,
+        0.75,
+        0.74
+      ],
+      "mass_kg": 30,
+      "h_com_m": 0.37,
+      "pga_tip_g": 1.01,
+      "anchored": false,
+      "glass": false,
+      "evidence": {
+        "video": "assets/20261031_132011.mp4",
+        "t_s": 22,
+        "frame": "slava/route_A/evidence/V_022_r200_seat_rows.jpg",
+        "quote": "Two 1.8m folding tables with hackathon pizza boxes along Room 200 front floor queue zone"
+      }
+    },
+    {
+      "id": "r200_banner_front",
+      "type": "retractable_banner",
+      "edge": "e1",
+      "along_m": 6.4,
+      "side": "left",
+      "size_m": [
+        0.85,
+        0.35,
+        2
+      ],
+      "mass_kg": 6,
+      "h_com_m": 0.95,
+      "pga_tip_g": 0.17,
+      "anchored": false,
+      "glass": false,
+      "evidence": {
+        "video": "assets/20261031_132011.mp4",
+        "t_s": 72,
+        "frame": "slava/route_A/evidence/V_072_r200_front_left_exit.jpg",
+        "quote": "Freestanding pull-up banner beside Room 200 front-left royal-blue double exit doors"
+      }
+    },
+    {
+      "id": "roller_banner_build_future",
+      "type": "retractable_banner",
+      "edge": "e1",
+      "along_m": 11.2,
+      "side": "left",
+      "size_m": [
+        0.85,
+        0.35,
+        2.05
+      ],
+      "mass_kg": 6.5,
+      "h_com_m": 0.95,
+      "pga_tip_g": 0.18,
+      "anchored": false,
+      "glass": false,
+      "evidence": {
+        "video": "assets/20261031_132259.mp4",
+        "t_s": 68,
+        "frame": "slava/route_A/evidence/H_068_vestibule_banner_sofa.jpg",
+        "quote": "Tall freestanding black retractable banner ('Build the Future. Together.') flanking the Room 200 wooden vestibule entrance"
+      }
+    },
+    {
+      "id": "roller_banner_sundai",
+      "type": "retractable_banner",
+      "edge": "e1",
+      "along_m": 12,
+      "side": "right",
+      "size_m": [
+        0.85,
+        0.35,
+        2.05
+      ],
+      "mass_kg": 6.5,
+      "h_com_m": 0.95,
+      "pga_tip_g": 0.18,
+      "anchored": false,
+      "glass": false,
+      "evidence": {
+        "video": "assets/20261031_132259.mp4",
+        "t_s": 68,
+        "frame": "slava/route_A/evidence/H_068_vestibule_banner_sofa.jpg",
+        "quote": "Second tall freestanding roller banner ('Sundai') directly beside wheeled catering cart in Breakout spine"
+      }
+    },
+    {
+      "id": "recycling_bin_trio",
+      "type": "recycling_bins",
+      "edge": "e1",
+      "along_m": 9.8,
+      "side": "right",
+      "size_m": [
+        1.35,
+        0.45,
+        0.92
+      ],
+      "mass_kg": 36,
+      "h_com_m": 0.48,
+      "pga_tip_g": 0.45,
+      "anchored": false,
+      "glass": false,
+      "evidence": {
+        "video": "assets/20261031_132259.mp4",
+        "t_s": 70,
+        "frame": "slava/route_A/evidence/H_070_vestibule_bins_oak.jpg",
+        "quote": "Green, black, and blue hooded cylindrical bins under Level 2 sign at Room 200 vestibule corner"
+      }
+    },
+    {
+      "id": "refreshment_table",
+      "type": "folding_table",
+      "edge": "e2",
+      "along_m": 3.2,
+      "side": "right",
+      "size_m": [
+        1.2,
+        0.6,
+        0.75
+      ],
+      "mass_kg": 25,
+      "h_com_m": 0.38,
+      "pga_tip_g": 0.8,
+      "anchored": false,
+      "glass": false,
+      "evidence": {
+        "video": "assets/20261031_132259.mp4",
+        "t_s": 64,
+        "frame": "slava/route_A/evidence/H_064_hall_refreshment_table_extinguishers.jpg",
+        "quote": "White refreshment table with hot-water urns and cups along central hall route"
+      }
+    },
+    {
+      "id": "wheeled_catering_cart",
+      "type": "utility_cart",
+      "edge": "e2",
+      "along_m": 4.5,
+      "side": "right",
+      "size_m": [
+        1.2,
+        0.6,
+        0.88
+      ],
+      "mass_kg": 32,
+      "h_com_m": 0.58,
+      "pga_tip_g": 0.22,
+      "anchored": false,
+      "glass": false,
+      "evidence": {
+        "video": "assets/20261031_132259.mp4",
+        "t_s": 64,
+        "frame": "slava/route_A/evidence/H_064_hall_refreshment_table_extinguishers.jpg",
+        "quote": "Unbraked white steel catering/utility cart on 4 swivel casters along east grey tile wall"
+      }
+    },
+    {
+      "id": "fire_extinguishers",
+      "type": "extinguisher_stand",
+      "edge": "e2",
+      "along_m": 8.5,
+      "side": "right",
+      "size_m": [
+        0.6,
+        0.3,
+        0.65
+      ],
+      "mass_kg": 24,
+      "h_com_m": 0.32,
+      "pga_tip_g": 0.46,
+      "anchored": false,
+      "glass": false,
+      "evidence": {
+        "video": "assets/20261031_132259.mp4",
+        "t_s": 64,
+        "frame": "slava/route_A/evidence/H_064_hall_refreshment_table_extinguishers.jpg",
+        "quote": "Twin CO2 and water fire extinguishers on floor stand beside central hall pier"
+      }
+    },
+    {
+      "id": "halo_ring_chandeliers",
+      "type": "suspended_lighting",
+      "edge": "e2",
+      "along_m": 12,
+      "side": "centre",
+      "size_m": [
+        1.8,
+        1.8,
+        0.15
+      ],
+      "mass_kg": 24,
+      "anchored": true,
+      "glass": true,
+      "evidence": {
+        "video": "assets/20261031_132011.mp4",
+        "t_s": 80,
+        "frame": "slava/route_A/evidence/V_080_hall_rings_benches.jpg",
+        "quote": "Circular suspended halo LED ring chandeliers over Breakout concourse (pendulum cable length ~1.4m)"
+      }
+    },
+    {
+      "id": "upper_window_stacked_crates",
+      "type": "overhead_glazing_hazard",
+      "edge": "e2",
+      "along_m": 18.5,
+      "side": "centre",
+      "size_m": [
+        4.5,
+        0.4,
+        2.4
+      ],
+      "mass_kg": 65,
+      "anchored": false,
+      "glass": true,
+      "evidence": {
+        "video": "assets/20261031_132011.mp4",
+        "t_s": 80.1,
+        "frame": "assets/frames/walk1_132011/frame_010_t080.1s.jpg",
+        "quote": "Upper-level interior glass window above concourse doors with unanchored cardboard boxes and red crates stacked against glazing"
+      }
+    },
+    {
+      "id": "rr_jet_engine_display",
+      "type": "museum_exhibit",
+      "edge": "e2",
+      "along_m": 22,
+      "side": "left",
+      "size_m": [
+        1.85,
+        1.6,
+        2.1
+      ],
+      "mass_kg": 450,
+      "h_com_m": 1.05,
+      "pga_tip_g": 0.48,
+      "anchored": true,
+      "glass": false,
+      "evidence": {
+        "video": "assets/20261031_132259.mp4",
+        "t_s": 56,
+        "frame": "slava/route_A/evidence/H_056_hall_jet_engine.jpg",
+        "quote": "Rolls-Royce turbofan jet engine display with wide-chord fan blades, orange nose cone, yellow/black floor tape, and angled display plaque"
+      }
+    },
+    {
+      "id": "statue_marble",
+      "type": "statue_on_plinth",
+      "edge": "e2",
+      "along_m": 33.5,
+      "side": "left",
+      "size_m": [
+        0.9,
+        0.9,
+        2.5
+      ],
+      "mass_kg": 1400,
+      "h_com_m": 1.25,
+      "pga_tip_g": 0.3,
+      "anchored": false,
+      "glass": false,
+      "evidence": {
+        "video": "assets/20261031_132259.mp4",
+        "t_s": 37,
+        "frame": "slava/route_A/evidence/H_037_lobby_marble_statue.jpg",
+        "quote": "1400 kg white marble classical statue on stone plinth at the foot of the C&G lobby ramp"
+      }
+    },
+    {
+      "id": "laidlaw_led_totem",
+      "type": "freestanding_led_wall",
+      "edge": "e2",
+      "along_m": 36,
+      "side": "left",
+      "size_m": [
+        3.2,
+        0.6,
+        2.2
+      ],
+      "mass_kg": 180,
+      "h_com_m": 1.15,
+      "pga_tip_g": 0.26,
+      "anchored": false,
+      "glass": true,
+      "evidence": {
+        "video": "assets/20261031_132259.mp4",
+        "t_s": 33,
+        "frame": "slava/route_A/evidence/H_033_lobby_digital_totem.jpg",
+        "quote": "Freestanding 'IMPERIAL: Could you be a Laidlaw Scholar?' LED display totem in front of brushed-steel auditorium drum"
+      }
+    },
+    {
+      "id": "wayfinding_totem",
+      "type": "sign_totem",
+      "edge": "e2",
+      "along_m": 39.5,
+      "side": "right",
+      "size_m": [
+        0.6,
+        0.35,
+        2
+      ],
+      "mass_kg": 60,
+      "h_com_m": 1,
+      "pga_tip_g": 0.17,
+      "anchored": false,
+      "glass": false,
+      "evidence": {
+        "video": "assets/20261031_132259.mp4",
+        "t_s": 28,
+        "frame": "slava/route_A/evidence/H_028_lobby_wayfinding_totem.jpg",
+        "quote": "Freestanding 'Welcome to South Kensington Campus' monolith wayfinding totem in main lobby"
+      }
+    },
+    {
+      "id": "glass_disc_sculpture",
+      "type": "suspended_glass_art",
+      "edge": "e2",
+      "along_m": 44,
+      "side": "right",
+      "size_m": [
+        3.6,
+        1.4,
+        2.8
+      ],
+      "mass_kg": 95,
+      "anchored": true,
+      "glass": true,
+      "evidence": {
+        "video": "assets/20261031_132011.mp4",
+        "t_s": 116,
+        "frame": "slava/route_A/evidence/V_116_lobby_glazing_sculpture.jpg",
+        "quote": "Suspended amber, red, and yellow blown-glass disc chandelier over white plinth"
+      }
+    }
+  ],
+  "results": {
+    "routes": [
+      {
+        "from": "room200",
+        "to": "exit_exhibition",
+        "path": [
+          "room200",
+          "breakout",
+          "exit_exhibition"
+        ],
+        "p_clear": {
+          "walk": 0.5,
+          "wheelchair": 0.5
+        },
+        "p_clear_after_fix": {
+          "walk": 1,
+          "wheelchair": 1
+        },
+        "blocked_by": [
+          "roller_banner_sundai",
+          "roller_banner_build_future",
+          "r200_banner_front"
+        ],
+        "computed_by": "slava/viewer/index.html runMonteCarlo(): N=50 seeded runs, lognormal PGA (sigma 0.3, median 0.35 g), static tip thresholds (b/2)/h_CoM across 8 route-adjacent hazards (r200_banner_front, banner_sundai, banner_future, cart, fire_extinguishers, statue_marble, totem, wayfinding_totem), corridor free width sampled every 0.2 m (segment widths 3.0/3.0/2.6/3.36/3.36/4.0/4.0 m). Fix = banners relocated to safe alcoves, cart casters locked, fire extinguisher stand & marble statue dowelled, totems bolted.",
+        "runs_clear_out_of_50": {
+          "walk": {
+            "before": {
+              "0.25": 30,
+              "0.35": 25,
+              "0.50": 9
+            },
+            "after_fix": {
+              "0.25": 50,
+              "0.35": 50,
+              "0.50": 50
+            }
+          },
+          "wheelchair": {
+            "before": {
+              "0.25": 30,
+              "0.35": 25,
+              "0.50": 9
+            },
+            "after_fix": {
+              "0.25": 50,
+              "0.35": 50,
+              "0.50": 50
+            }
+          }
+        }
+      },
+      {
+        "from": "room200",
+        "to": "exit_dalby",
+        "path": [
+          "room200",
+          "breakout",
+          "exit_dalby"
+        ],
+        "p_clear": null,
+        "p_clear_after_fix": null,
+        "blocked_by": [
+          "roller_banner_sundai",
+          "wheeled_catering_cart"
+        ],
+        "note": "not computed: scope is the main exit route only"
+      }
+    ],
+    "shelter_spots": [
+      {
+        "id": "shelter_room200_tiers",
+        "label": "Between fixed bolted lecture tiers in Room 200 (away from screens)",
+        "plan_px": [
+          1410,
+          812
+        ]
+      },
+      {
+        "id": "shelter_breakout_oak_alcove",
+        "label": "Under structural oak-clad beam alcove outside Room 200 (away from upper glazing)",
+        "plan_px": [
+          1295,
+          810
+        ]
+      }
+    ],
+    "provenance_note": "Computed by slava/viewer/index.html runMonteCarlo() over 8 route-adjacent hazards from slava/route_A/scene.json. Seeded N=50 runs per PGA level."
+  }
 }

@@ -857,6 +857,896 @@ export const BlueFireDoor3D: React.FC<BlueFireDoor3DProps> = ({
   );
 };
 
+/**
+ * 11. Room 200 AV Teaching Desk / Lectern (r200_lectern, 1.4m x 0.75m x 1.05m, 120 kg, tip_threshold_g = 0.71)
+ * Steel cabinet lectern with oak/white worktop, dual angled monitors, Crestron touch controller, and gooseneck microphone.
+ */
+export interface AVLectern3DProps extends BaseModelProps {
+  slideOffsetM?: [number, number];
+}
+
+export const AVLectern3D: React.FC<AVLectern3DProps> = ({
+  position = [0, 0, 0],
+  rotation = [0, 0, 0],
+  scale = 1,
+  toppled = false,
+  toppleAngleRad = 0.22,
+  slideOffsetM = [0, 0],
+  highlighted = false,
+  onClick,
+}) => {
+  const screenTex = useMemo(
+    () =>
+      makeCanvasLabelTexture(
+        ['IMPERIAL CAGB', 'ROOM 200 AV', 'HDMI 1 ACTIVE', 'STAGE DISPLAY'],
+        '#0f172a',
+        '#38bdf8',
+        '#0284c7',
+        512,
+        256
+      ),
+    []
+  );
+
+  return (
+    <group
+      position={[position[0] + slideOffsetM[0], position[1], position[2] + slideOffsetM[1]]}
+      rotation={rotation}
+      scale={scale}
+      onClick={onClick}
+    >
+      <group rotation={[toppled ? toppleAngleRad : 0, 0, 0]}>
+        {/* Recessed dark steel plinth base */}
+        <mesh position={[0, 0.04, 0]} castShadow receiveShadow>
+          <boxGeometry args={[1.34, 0.08, 0.68]} />
+          <meshStandardMaterial color="#0f172a" metalness={0.7} roughness={0.35} />
+        </mesh>
+
+        {/* Main brushed charcoal steel equipment rack cabinet */}
+        <mesh position={[0, 0.48, 0]} castShadow receiveShadow>
+          <boxGeometry args={[1.38, 0.82, 0.72]} />
+          <meshStandardMaterial
+            color="#334155"
+            metalness={0.65}
+            roughness={0.32}
+            emissive={highlighted ? '#f59e0b' : '#000000'}
+            emissiveIntensity={highlighted ? 0.25 : 0}
+          />
+        </mesh>
+
+        {/* Front perforated acoustic modesty panel with Imperial crest accent */}
+        <mesh position={[0, 0.48, 0.365]} castShadow>
+          <boxGeometry args={[1.26, 0.72, 0.015]} />
+          <meshStandardMaterial color="#1e293b" metalness={0.75} roughness={0.28} />
+        </mesh>
+
+        {/* Warm oak / white laminate desktop work surface */}
+        <mesh position={[0, 0.91, 0]} castShadow receiveShadow>
+          <boxGeometry args={[1.44, 0.04, 0.78]} />
+          <meshStandardMaterial color="#e2e8f0" roughness={0.25} metalness={0.08} />
+        </mesh>
+
+        {/* Raised angled reading lip / privacy hood along front edge */}
+        <mesh position={[0, 0.99, 0.31]} rotation={[-0.25, 0, 0]} castShadow>
+          <boxGeometry args={[1.4, 0.14, 0.03]} />
+          <meshStandardMaterial color="#c49461" roughness={0.5} />
+        </mesh>
+
+        {/* Dual Angled 24-inch Widescreen Presenter Monitors */}
+        {[-0.34, 0.22].map((mx, idx) => (
+          <group
+            key={idx}
+            position={[mx, 1.08, 0.12]}
+            rotation={[-0.28, idx === 0 ? 0.16 : -0.16, 0]}
+          >
+            {/* Monitor Stand Post */}
+            <mesh position={[0, -0.09, -0.04]}>
+              <cylinderGeometry args={[0.018, 0.022, 0.16, 12]} />
+              <meshStandardMaterial color="#1e293b" metalness={0.8} roughness={0.25} />
+            </mesh>
+            {/* Bezel Frame */}
+            <mesh castShadow>
+              <boxGeometry args={[0.48, 0.29, 0.022]} />
+              <meshStandardMaterial color="#0f172a" roughness={0.35} metalness={0.5} />
+            </mesh>
+            {/* Illuminated LCD Panel */}
+            <mesh position={[0, 0, -0.013]} rotation={[0, Math.PI, 0]}>
+              <planeGeometry args={[0.45, 0.26]} />
+              <meshStandardMaterial
+                map={screenTex}
+                emissive="#0284c7"
+                emissiveIntensity={0.45}
+                roughness={0.2}
+              />
+            </mesh>
+          </group>
+        ))}
+
+        {/* Crestron Touch Control Panel on right side of desk */}
+        <group position={[0.55, 0.96, -0.05]} rotation={[0.45, -0.2, 0]}>
+          <mesh castShadow>
+            <boxGeometry args={[0.2, 0.025, 0.14]} />
+            <meshStandardMaterial color="#1e293b" roughness={0.3} />
+          </mesh>
+          <mesh position={[0, 0.014, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <planeGeometry args={[0.17, 0.11]} />
+            <meshStandardMaterial
+              color="#38bdf8"
+              emissive="#0ea5e9"
+              emissiveIntensity={0.7}
+            />
+          </mesh>
+        </group>
+
+        {/* Gooseneck Condenser Microphone + Red Mute LED Ring */}
+        <group position={[0.52, 0.93, 0.18]}>
+          {/* Heavy die-cast mic base */}
+          <mesh position={[0, 0.015, 0]}>
+            <cylinderGeometry args={[0.045, 0.05, 0.03, 16]} />
+            <meshStandardMaterial color="#0f172a" metalness={0.8} roughness={0.25} />
+          </mesh>
+          {/* Lower stem */}
+          <mesh position={[0, 0.12, 0.02]} rotation={[0.2, 0, 0]}>
+            <cylinderGeometry args={[0.005, 0.006, 0.2, 8]} />
+            <meshStandardMaterial color="#1e293b" metalness={0.9} roughness={0.2} />
+          </mesh>
+          {/* Upper curved gooseneck */}
+          <mesh position={[0, 0.25, -0.04]} rotation={[-0.55, 0, 0]}>
+            <cylinderGeometry args={[0.0045, 0.005, 0.16, 8]} />
+            <meshStandardMaterial color="#1e293b" metalness={0.9} roughness={0.2} />
+          </mesh>
+          {/* Foam windscreen capsule & glowing red status ring */}
+          <mesh position={[0, 0.31, -0.095]} rotation={[-0.75, 0, 0]}>
+            <cylinderGeometry args={[0.012, 0.01, 0.045, 12]} />
+            <meshStandardMaterial
+              color="#0f172a"
+              emissive="#ef4444"
+              emissiveIntensity={0.6}
+              roughness={0.85}
+            />
+          </mesh>
+        </group>
+      </group>
+    </group>
+  );
+};
+
+/**
+ * 12. Central Hall Refreshment Table with Stainless Hot-Water Urns & Cup Stacks
+ * (refreshment_table, 1.2m x 0.6m x 0.75m, 25 kg, tip_threshold_g = 0.8)
+ * White draped folding table + two tall cylindrical stainless-steel catering urns + paper cup stacks & drip trays.
+ */
+export const RefreshmentTableUrns3D: React.FC<BaseModelProps> = ({
+  position = [0, 0, 0],
+  rotation = [0, 0, 0],
+  scale = 1,
+  toppled = false,
+  toppleAngleRad = 1.15,
+  highlighted = false,
+  onClick,
+}) => {
+  const legPositions: [number, number][] = [
+    [-0.52, -0.24],
+    [0.52, -0.24],
+    [-0.52, 0.24],
+    [0.52, 0.24],
+  ];
+
+  return (
+    <group position={position} rotation={rotation} scale={scale} onClick={onClick}>
+      <group rotation={[toppled ? toppleAngleRad : 0, 0, 0]}>
+        {/* 4 Folding tubular steel legs */}
+        {legPositions.map(([lx, lz], i) => (
+          <mesh key={i} position={[lx, 0.36, lz]} castShadow>
+            <cylinderGeometry args={[0.015, 0.015, 0.72, 10]} />
+            <meshStandardMaterial color="#475569" metalness={0.8} roughness={0.3} />
+          </mesh>
+        ))}
+
+        {/* Table top & draped white linen tablecloth */}
+        <mesh position={[0, 0.73, 0]} castShadow receiveShadow>
+          <boxGeometry args={[1.22, 0.04, 0.62]} />
+          <meshStandardMaterial
+            color="#f8fafc"
+            roughness={0.65}
+            emissive={highlighted ? '#ef4444' : '#000000'}
+            emissiveIntensity={highlighted ? 0.25 : 0}
+          />
+        </mesh>
+        {/* Tablecloth overhang skirt */}
+        <mesh position={[0, 0.56, 0]} castShadow receiveShadow>
+          <boxGeometry args={[1.24, 0.32, 0.64]} />
+          <meshStandardMaterial color="#f1f5f9" roughness={0.78} />
+        </mesh>
+
+        {/* Two Polished Stainless-Steel Catering Hot Water / Coffee Urns */}
+        {[-0.32, 0.05].map((ux, idx) => (
+          <group key={idx} position={[ux, 0.75, -0.04]}>
+            {/* Black heat-resistant base collar */}
+            <mesh position={[0, 0.03, 0]} castShadow>
+              <cylinderGeometry args={[0.125, 0.135, 0.06, 20]} />
+              <meshStandardMaterial color="#0f172a" roughness={0.5} />
+            </mesh>
+            {/* Polished stainless steel cylindrical boiler tank */}
+            <mesh position={[0, 0.24, 0]} castShadow receiveShadow>
+              <cylinderGeometry args={[0.13, 0.125, 0.38, 24]} />
+              <meshStandardMaterial color="#e2e8f0" metalness={0.92} roughness={0.14} />
+            </mesh>
+            {/* Domed stainless lid + black twist knob */}
+            <mesh position={[0, 0.44, 0]} castShadow>
+              <cylinderGeometry args={[0.11, 0.132, 0.03, 24]} />
+              <meshStandardMaterial color="#cbd5e1" metalness={0.9} roughness={0.18} />
+            </mesh>
+            <mesh position={[0, 0.47, 0]}>
+              <cylinderGeometry args={[0.028, 0.022, 0.03, 12]} />
+              <meshStandardMaterial color="#0f172a" roughness={0.6} />
+            </mesh>
+            {/* Front dispense spigot tap & sight glass gauge */}
+            <mesh position={[0, 0.11, 0.14]} rotation={[Math.PI / 2, 0, 0]}>
+              <cylinderGeometry args={[0.012, 0.012, 0.05, 10]} />
+              <meshStandardMaterial color="#1e293b" roughness={0.4} />
+            </mesh>
+            {/* Black plastic drip tray */}
+            <mesh position={[0, 0.01, 0.16]} receiveShadow>
+              <boxGeometry args={[0.14, 0.02, 0.1]} />
+              <meshStandardMaterial color="#1e293b" roughness={0.6} />
+            </mesh>
+          </group>
+        ))}
+
+        {/* Disposable Paper Cup Stacks & Milk / Tea Caddy on Right */}
+        {[0.36, 0.46].map((cx, i) => (
+          <mesh key={i} position={[cx, 0.89, 0.06]} castShadow>
+            <cylinderGeometry args={[0.042, 0.034, 0.28, 16]} />
+            <meshStandardMaterial color={i === 0 ? '#ffffff' : '#d97706'} roughness={0.4} />
+          </mesh>
+        ))}
+        {/* Blue milk jug / condiment box */}
+        <mesh position={[0.41, 0.81, -0.14]} castShadow>
+          <boxGeometry args={[0.22, 0.12, 0.16]} />
+          <meshStandardMaterial color="#2563eb" roughness={0.5} />
+        </mesh>
+      </group>
+    </group>
+  );
+};
+
+/**
+ * 13. Red Double Fire Extinguisher Floor Stand with CO2 Horn & Foam Cylinders
+ * (fire_extinguishers, 0.6m x 0.3m x 0.65m, 24 kg, tip_threshold_g = 0.46)
+ * Molded red GRP double floor stand + tall 2kg CO2 extinguisher with black frost horn + 6L AFFF foam extinguisher with cream band.
+ */
+export const FireExtinguisherStand3D: React.FC<BaseModelProps> = ({
+  position = [0, 0, 0],
+  rotation = [0, 0, 0],
+  scale = 1,
+  toppled = false,
+  toppleAngleRad = 1.38,
+  highlighted = false,
+  onClick,
+}) => {
+  return (
+    <group position={position} rotation={rotation} scale={scale} onClick={onClick}>
+      <group rotation={[toppled ? toppleAngleRad : 0, 0, 0]}>
+        {/* Red molded GRP base tray with twin recessed wells */}
+        <mesh position={[0, 0.035, 0]} castShadow receiveShadow>
+          <boxGeometry args={[0.56, 0.07, 0.3]} />
+          <meshStandardMaterial color="#b91c1c" roughness={0.35} metalness={0.1} />
+        </mesh>
+
+        {/* Vertical red backplate with photoluminescent ID sign header */}
+        <mesh position={[0, 0.38, -0.12]} castShadow>
+          <boxGeometry args={[0.52, 0.68, 0.035]} />
+          <meshStandardMaterial color="#dc2626" roughness={0.35} />
+        </mesh>
+        {/* Photoluminescent Fire Point ID plaques */}
+        <mesh position={[-0.13, 0.62, -0.1]}>
+          <planeGeometry args={[0.18, 0.1]} />
+          <meshStandardMaterial color="#f8fafc" roughness={0.25} />
+        </mesh>
+        <mesh position={[0.13, 0.62, -0.1]}>
+          <planeGeometry args={[0.18, 0.1]} />
+          <meshStandardMaterial color="#fef3c7" roughness={0.25} />
+        </mesh>
+
+        {/* Left Cylinder: CO2 Extinguisher (Black ID band + flared discharge horn) */}
+        <group position={[-0.13, 0.07, 0.02]}>
+          <mesh position={[0, 0.24, 0]} castShadow>
+            <cylinderGeometry args={[0.072, 0.072, 0.48, 20]} />
+            <meshStandardMaterial
+              color="#dc2626"
+              metalness={0.35}
+              roughness={0.22}
+              emissive={highlighted ? '#ef4444' : '#000000'}
+              emissiveIntensity={highlighted ? 0.3 : 0}
+            />
+          </mesh>
+          {/* Black CO2 identification band */}
+          <mesh position={[0, 0.38, 0]}>
+            <cylinderGeometry args={[0.074, 0.074, 0.09, 20]} />
+            <meshStandardMaterial color="#0f172a" roughness={0.3} />
+          </mesh>
+          {/* Chrome valve head & trigger lever */}
+          <mesh position={[0, 0.51, 0]}>
+            <cylinderGeometry args={[0.022, 0.03, 0.06, 12]} />
+            <meshStandardMaterial color="#e2e8f0" metalness={0.9} roughness={0.15} />
+          </mesh>
+          {/* Flared Black CO2 Frost Discharge Horn */}
+          <mesh position={[0.07, 0.34, 0.04]} rotation={[0, 0, -0.35]} castShadow>
+            <coneGeometry args={[0.042, 0.22, 16]} />
+            <meshStandardMaterial color="#0f172a" roughness={0.6} />
+          </mesh>
+        </group>
+
+        {/* Right Cylinder: 6L Foam / Water Extinguisher (Cream ID band + hose) */}
+        <group position={[0.13, 0.07, 0.02]}>
+          <mesh position={[0, 0.23, 0]} castShadow>
+            <cylinderGeometry args={[0.088, 0.088, 0.46, 20]} />
+            <meshStandardMaterial
+              color="#dc2626"
+              metalness={0.35}
+              roughness={0.22}
+              emissive={highlighted ? '#ef4444' : '#000000'}
+              emissiveIntensity={highlighted ? 0.3 : 0}
+            />
+          </mesh>
+          {/* Cream AFFF Foam identification band */}
+          <mesh position={[0, 0.36, 0]}>
+            <cylinderGeometry args={[0.09, 0.09, 0.09, 20]} />
+            <meshStandardMaterial color="#fef3c7" roughness={0.3} />
+          </mesh>
+          {/* Brass/Chrome valve assembly & pressure gauge */}
+          <mesh position={[0, 0.49, 0]}>
+            <cylinderGeometry args={[0.024, 0.032, 0.06, 12]} />
+            <meshStandardMaterial color="#cbd5e1" metalness={0.9} roughness={0.15} />
+          </mesh>
+          {/* Black rubber lance hose */}
+          <mesh position={[0.095, 0.26, 0]} castShadow>
+            <cylinderGeometry args={[0.012, 0.012, 0.36, 10]} />
+            <meshStandardMaterial color="#1e293b" roughness={0.7} />
+          </mesh>
+        </group>
+      </group>
+    </group>
+  );
+};
+
+/**
+ * 14. Double-Height Cylindrical Glass-Walled Spiral Staircase in Central Hall
+ * (spiral_glass_stair, 3.0m x 3.0m x 7.0m, glass = true)
+ * Double-height laminated glass drum enclosure with stainless spider fittings, central steel column, and 18 helical treads.
+ */
+export interface SpiralGlassStair3DProps extends BaseModelProps {
+  radiusM?: number;
+  heightM?: number;
+}
+
+export const SpiralGlassStair3D: React.FC<SpiralGlassStair3DProps> = ({
+  position = [0, 0, 0],
+  rotation = [0, 0, 0],
+  scale = 1,
+  radiusM = 1.5,
+  heightM = 7.0,
+  highlighted = false,
+  onClick,
+}) => {
+  const treads = useMemo(() => {
+    const count = 20;
+    return Array.from({ length: count }, (_, i) => {
+      const frac = i / count;
+      const angle = frac * Math.PI * 2.5;
+      const y = 0.22 + frac * (heightM * 0.62);
+      return { angle, y };
+    });
+  }, [heightM]);
+
+  const mullions = useMemo(
+    () => Array.from({ length: 8 }, (_, i) => (i * Math.PI * 2) / 8),
+    []
+  );
+
+  return (
+    <group position={position} rotation={rotation} scale={scale} onClick={onClick}>
+      {/* Brushed stainless floor base ring */}
+      <mesh position={[0, 0.03, 0]} rotation={[Math.PI / 2, 0, 0]} receiveShadow>
+        <torusGeometry args={[radiusM, 0.045, 12, 48]} />
+        <meshStandardMaterial color="#94a3b8" metalness={0.85} roughness={0.22} />
+      </mesh>
+
+      {/* Mid-level & top stainless spider-fitting structural rings */}
+      {[heightM * 0.5, heightM * 0.96].map((ry, idx) => (
+        <mesh key={idx} position={[0, ry, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[radiusM, 0.035, 12, 48]} />
+          <meshStandardMaterial color="#cbd5e1" metalness={0.88} roughness={0.2} />
+        </mesh>
+      ))}
+
+      {/* Central structural brushed-steel spine column */}
+      <mesh position={[0, heightM / 2, 0]} castShadow receiveShadow>
+        <cylinderGeometry args={[0.18, 0.2, heightM, 24]} />
+        <meshStandardMaterial color="#475569" metalness={0.82} roughness={0.25} />
+      </mesh>
+
+      {/* Helical Oak & Steel Cantilevered Stair Treads + Baluster Posts */}
+      {treads.map((t, idx) => (
+        <group key={idx} position={[0, t.y, 0]} rotation={[0, t.angle, 0]}>
+          {/* Cantilevered tread plate */}
+          <mesh position={[radiusM * 0.52, 0, 0]} castShadow receiveShadow>
+            <boxGeometry args={[radiusM * 0.78, 0.045, 0.34]} />
+            <meshStandardMaterial color="#c49461" roughness={0.48} metalness={0.12} />
+          </mesh>
+          {/* Steel stringer support bar under tread */}
+          <mesh position={[radiusM * 0.5, -0.035, 0]}>
+            <boxGeometry args={[radiusM * 0.76, 0.025, 0.08]} />
+            <meshStandardMaterial color="#334155" metalness={0.8} roughness={0.25} />
+          </mesh>
+          {/* Outer stainless handrail stanchion */}
+          <mesh position={[radiusM * 0.88, 0.48, 0]}>
+            <cylinderGeometry args={[0.012, 0.012, 0.96, 8]} />
+            <meshStandardMaterial color="#e2e8f0" metalness={0.9} roughness={0.15} />
+          </mesh>
+        </group>
+      ))}
+
+      {/* 8 Vertical Brushed Steel Curtain-Wall Fin Mullions */}
+      {mullions.map((ang, i) => (
+        <mesh
+          key={i}
+          position={[
+            Math.cos(ang) * (radiusM + 0.01),
+            heightM / 2,
+            Math.sin(ang) * (radiusM + 0.01),
+          ]}
+        >
+          <cylinderGeometry args={[0.016, 0.016, heightM, 8]} />
+          <meshStandardMaterial color="#94a3b8" metalness={0.85} roughness={0.2} />
+        </mesh>
+      ))}
+
+      {/* Double-Height Curved Laminated Glass Drum Enclosure */}
+      <mesh position={[0, heightM / 2, 0]}>
+        <cylinderGeometry args={[radiusM, radiusM, heightM, 40, 1, true]} />
+        <meshPhysicalMaterial
+          color={highlighted ? '#f87171' : '#d9eef2'}
+          transmission={0.78}
+          transparent
+          opacity={0.28}
+          roughness={0.08}
+          metalness={0.05}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+    </group>
+  );
+};
+
+/**
+ * 15. Speckled Black Granite Structural Portal Frame with Illuminated Green Exit Sign
+ * (dark_portal, 6.0m x 0.6m x 3.3m, hall north end -> Level 2 reception corridor)
+ * Monumental dark speckled granite architectural portal piers & lintel + recessed soffit downlights + BS 5499 green running-man EXIT sign.
+ */
+export interface BlackGranitePortal3DProps extends BaseModelProps {
+  widthM?: number;
+  depthM?: number;
+  heightM?: number;
+}
+
+export const BlackGranitePortal3D: React.FC<BlackGranitePortal3DProps> = ({
+  position = [0, 0, 0],
+  rotation = [0, 0, 0],
+  scale = 1,
+  widthM = 6.0,
+  depthM = 0.6,
+  heightM = 3.3,
+  highlighted = false,
+  onClick,
+}) => {
+  const exitTex = useMemo(
+    () =>
+      makeCanvasLabelTexture(
+        ['EXIT ↑', 'WAY OUT'],
+        '#059669',
+        '#ffffff',
+        '#ecfdf5',
+        512,
+        256
+      ),
+    []
+  );
+
+  const pierW = 0.85;
+  const lintelH = 0.65;
+  const clearH = heightM - lintelH;
+
+  return (
+    <group position={position} rotation={rotation} scale={scale} onClick={onClick}>
+      {/* Left Speckled Black Granite Pier */}
+      <mesh position={[-widthM / 2 + pierW / 2, clearH / 2, 0]} castShadow receiveShadow>
+        <boxGeometry args={[pierW, clearH, depthM]} />
+        <meshStandardMaterial
+          color="#27272a"
+          roughness={0.38}
+          metalness={0.22}
+          emissive={highlighted ? '#38bdf8' : '#000000'}
+          emissiveIntensity={highlighted ? 0.2 : 0}
+        />
+      </mesh>
+
+      {/* Right Speckled Black Granite Pier */}
+      <mesh position={[widthM / 2 - pierW / 2, clearH / 2, 0]} castShadow receiveShadow>
+        <boxGeometry args={[pierW, clearH, depthM]} />
+        <meshStandardMaterial
+          color="#27272a"
+          roughness={0.38}
+          metalness={0.22}
+          emissive={highlighted ? '#38bdf8' : '#000000'}
+          emissiveIntensity={highlighted ? 0.2 : 0}
+        />
+      </mesh>
+
+      {/* Top Spanning Black Granite Header Lintel */}
+      <mesh position={[0, heightM - lintelH / 2, 0]} castShadow receiveShadow>
+        <boxGeometry args={[widthM, lintelH, depthM + 0.04]} />
+        <meshStandardMaterial color="#1f2023" roughness={0.35} metalness={0.25} />
+      </mesh>
+
+      {/* Subtle architectural reveal shadow-gap trim strips */}
+      {[-widthM / 2 + pierW, widthM / 2 - pierW].map((jx, idx) => (
+        <mesh key={idx} position={[jx, clearH / 2, 0]}>
+          <boxGeometry args={[0.03, clearH, depthM + 0.02]} />
+          <meshStandardMaterial color="#52525b" metalness={0.75} roughness={0.25} />
+        </mesh>
+      ))}
+
+      {/* 3 Recessed Warm-White LED Downlights in Portal Soffit */}
+      {[-1.3, 0, 1.3].map((lx, idx) => (
+        <mesh key={idx} position={[lx, clearH - 0.01, 0]}>
+          <cylinderGeometry args={[0.09, 0.09, 0.02, 16]} />
+          <meshStandardMaterial
+            color="#fef3c7"
+            emissive="#fde68a"
+            emissiveIntensity={1.4}
+          />
+        </mesh>
+      ))}
+
+      {/* Illuminated Green Emergency Exit Sign Box Mounted on Lintel */}
+      <group position={[0, heightM - lintelH * 0.52, depthM / 2 + 0.04]}>
+        <mesh castShadow>
+          <boxGeometry args={[0.68, 0.26, 0.06]} />
+          <meshStandardMaterial
+            color="#059669"
+            emissive="#10b981"
+            emissiveIntensity={1.2}
+            roughness={0.2}
+          />
+        </mesh>
+        <mesh position={[0, 0, 0.032]}>
+          <planeGeometry args={[0.64, 0.22]} />
+          <meshStandardMaterial
+            map={exitTex}
+            emissive="#10b981"
+            emissiveIntensity={0.95}
+          />
+        </mesh>
+        <mesh position={[0, 0, -depthM - 0.08]} rotation={[0, Math.PI, 0]}>
+          <planeGeometry args={[0.64, 0.22]} />
+          <meshStandardMaterial
+            map={exitTex}
+            emissive="#10b981"
+            emissiveIntensity={0.95}
+          />
+        </mesh>
+      </group>
+    </group>
+  );
+};
+
+/**
+ * 16. Curved Grey & Oak Level 2 Reception Desk with Raised Transaction Counter & Monitor
+ * (reception_L2, 2.4m x 0.9m x 1.1m, 200 kg, anchored)
+ * Sweeping curved architectural reception desk in the north corridor before C&G automatic glass doors.
+ */
+export const CurvedReceptionDesk3D: React.FC<BaseModelProps> = ({
+  position = [0, 0, 0],
+  rotation = [0, 0, 0],
+  scale = 1,
+  highlighted = false,
+  onClick,
+}) => {
+  return (
+    <group position={position} rotation={rotation} scale={scale} onClick={onClick}>
+      {/* Brushed stainless recessed plinth toe-kick */}
+      <mesh position={[0, 0.05, 0]} castShadow receiveShadow>
+        <cylinderGeometry
+          args={[1.18, 1.18, 0.1, 32, 1, false, -Math.PI * 0.35, Math.PI * 0.7]}
+        />
+        <meshStandardMaterial color="#334155" metalness={0.8} roughness={0.25} />
+      </mesh>
+
+      {/* Main Curved Grey Architectural Front Apron (#8e939b) */}
+      <mesh position={[0, 0.46, 0]} castShadow receiveShadow>
+        <cylinderGeometry
+          args={[1.22, 1.22, 0.74, 36, 1, false, -Math.PI * 0.36, Math.PI * 0.72]}
+        />
+        <meshStandardMaterial
+          color="#8e939b"
+          roughness={0.42}
+          metalness={0.18}
+          emissive={highlighted ? '#38bdf8' : '#000000'}
+          emissiveIntensity={highlighted ? 0.22 : 0}
+        />
+      </mesh>
+
+      {/* Inner Warm Oak Worksurface Counter (h = 0.76m) */}
+      <mesh position={[0, 0.76, -0.08]} castShadow receiveShadow>
+        <boxGeometry args={[2.25, 0.045, 0.78]} />
+        <meshStandardMaterial color="#c49461" roughness={0.48} metalness={0.08} />
+      </mesh>
+
+      {/* Raised White Stone / Corian Transaction Shelf (h = 1.08m) */}
+      <mesh position={[0, 0.96, 0.24]} castShadow receiveShadow>
+        <boxGeometry args={[1.95, 0.32, 0.32]} />
+        <meshStandardMaterial color="#e2e8f0" roughness={0.25} metalness={0.08} />
+      </mesh>
+      <mesh position={[0, 1.13, 0.24]} castShadow>
+        <boxGeometry args={[2.04, 0.04, 0.38]} />
+        <meshStandardMaterial color="#f8fafc" roughness={0.18} metalness={0.05} />
+      </mesh>
+
+      {/* Warm LED Cove Accent Strip Under Transaction Lip */}
+      <mesh position={[0, 1.1, 0.42]}>
+        <boxGeometry args={[1.92, 0.018, 0.015]} />
+        <meshStandardMaterial
+          color="#fef3c7"
+          emissive="#fde68a"
+          emissiveIntensity={1.3}
+        />
+      </mesh>
+
+      {/* All-in-One Desktop Reception Monitor & Keyboard */}
+      <group position={[-0.35, 0.78, -0.12]} rotation={[0, 0.18, 0]}>
+        <mesh position={[0, 0.08, 0]}>
+          <cylinderGeometry args={[0.02, 0.05, 0.16, 12]} />
+          <meshStandardMaterial color="#64748b" metalness={0.8} roughness={0.2} />
+        </mesh>
+        <mesh position={[0, 0.24, 0]} castShadow>
+          <boxGeometry args={[0.52, 0.32, 0.025]} />
+          <meshStandardMaterial color="#1e293b" roughness={0.3} metalness={0.5} />
+        </mesh>
+        <mesh position={[0, 0.01, 0.18]}>
+          <boxGeometry args={[0.34, 0.015, 0.12]} />
+          <meshStandardMaterial color="#334155" roughness={0.5} />
+        </mesh>
+      </group>
+    </group>
+  );
+};
+
+/**
+ * 17. Life-Size Classical White Marble Statue on Stone Plinth in Main Entrance Lobby
+ * (statue_marble, 0.9m x 0.9m x 2.5m, 1400 kg, tip_threshold_g = 0.30)
+ * Molded limestone pedestal plinth + sculpted Carrara marble classical draped scholar figure that rocks/tips when PGA >= 0.30g.
+ */
+export interface MarbleStatueOnPlinth3DProps extends BaseModelProps {
+  rockingAmplitudeRad?: number;
+}
+
+export const MarbleStatueOnPlinth3D: React.FC<MarbleStatueOnPlinth3DProps> = ({
+  position = [0, 0, 0],
+  rotation = [0, 0, 0],
+  scale = 1,
+  toppled = false,
+  toppleAngleRad = 1.42,
+  shakeTime = 0,
+  pgaG = 0,
+  rockingAmplitudeRad,
+  highlighted = false,
+  onClick,
+}) => {
+  const figureRef = useRef<THREE.Group>(null);
+
+  useFrame(({ clock }) => {
+    if (!figureRef.current) return;
+    if (toppled) {
+      figureRef.current.rotation.x = toppleAngleRad;
+      figureRef.current.rotation.z = 0.18;
+      return;
+    }
+    const t = shakeTime || clock.getElapsedTime();
+    const rockAmp =
+      rockingAmplitudeRad !== undefined
+        ? rockingAmplitudeRad
+        : pgaG > 0.12
+        ? Math.min(0.32, (pgaG - 0.1) * 0.65)
+        : 0;
+    figureRef.current.rotation.x = Math.sin(t * 5.2) * rockAmp;
+    figureRef.current.rotation.z = Math.cos(t * 4.4) * rockAmp * 0.6;
+  });
+
+  return (
+    <group position={position} rotation={rotation} scale={scale} onClick={onClick}>
+      {/* Stepped Classical Stone Plinth Base (h = 1.05m) */}
+      <mesh position={[0, 0.08, 0]} castShadow receiveShadow>
+        <boxGeometry args={[0.94, 0.16, 0.94]} />
+        <meshStandardMaterial color="#d6d3c9" roughness={0.65} />
+      </mesh>
+      <mesh position={[0, 0.54, 0]} castShadow receiveShadow>
+        <boxGeometry args={[0.82, 0.76, 0.82]} />
+        <meshStandardMaterial color="#e8e4da" roughness={0.55} />
+      </mesh>
+      {/* Plinth cornice cap molding */}
+      <mesh position={[0, 0.98, 0]} castShadow receiveShadow>
+        <boxGeometry args={[0.9, 0.12, 0.9]} />
+        <meshStandardMaterial color="#f0ede4" roughness={0.5} />
+      </mesh>
+      {/* Engraved Brass Plaque on Front of Plinth */}
+      <mesh position={[0, 0.62, 0.415]}>
+        <boxGeometry args={[0.38, 0.16, 0.015]} />
+        <meshStandardMaterial color="#b45309" metalness={0.82} roughness={0.28} />
+      </mesh>
+
+      {/* Life-Size Sculpted White Marble Figure (pivots at plinth top y = 1.04m) */}
+      <group ref={figureRef} position={[0, 1.04, 0]}>
+        {/* Sculpted marble socle footpad */}
+        <mesh position={[0, 0.05, 0]} castShadow>
+          <cylinderGeometry args={[0.3, 0.34, 0.1, 24]} />
+          <meshStandardMaterial color="#f5f3ed" roughness={0.35} />
+        </mesh>
+
+        {/* Lower Draped Classical Robe / Contrapposto Legs */}
+        <mesh position={[0, 0.46, 0]} castShadow receiveShadow>
+          <cylinderGeometry args={[0.21, 0.27, 0.74, 24]} />
+          <meshStandardMaterial
+            color="#f5f3ed"
+            roughness={0.32}
+            metalness={0.04}
+            emissive={highlighted ? '#ef4444' : '#000000'}
+            emissiveIntensity={highlighted ? 0.3 : 0}
+          />
+        </mesh>
+
+        {/* Diagonal Toga Fold Sash Across Torso */}
+        <mesh position={[0.02, 0.88, 0.03]} rotation={[0.08, 0, -0.22]} castShadow>
+          <cylinderGeometry args={[0.24, 0.2, 0.48, 24]} />
+          <meshStandardMaterial
+            color="#faf8f5"
+            roughness={0.3}
+            emissive={highlighted ? '#ef4444' : '#000000'}
+            emissiveIntensity={highlighted ? 0.3 : 0}
+          />
+        </mesh>
+
+        {/* Sculpted Broad Shoulders / Chest */}
+        <mesh position={[0, 1.08, 0]} scale={[1.35, 0.65, 0.85]} castShadow>
+          <sphereGeometry args={[0.21, 20, 16]} />
+          <meshStandardMaterial color="#faf8f5" roughness={0.3} />
+        </mesh>
+
+        {/* Left Arm Holding Scroll / Book Against Chest */}
+        <mesh position={[-0.22, 0.9, 0.06]} rotation={[0.45, 0, 0.25]} castShadow>
+          <cylinderGeometry args={[0.065, 0.058, 0.42, 14]} />
+          <meshStandardMaterial color="#f5f3ed" roughness={0.32} />
+        </mesh>
+        <mesh position={[-0.12, 0.82, 0.18]} rotation={[0.2, 0.4, 0]} castShadow>
+          <boxGeometry args={[0.16, 0.22, 0.05]} />
+          <meshStandardMaterial color="#e8e4da" roughness={0.4} />
+        </mesh>
+
+        {/* Right Arm Draped at Side */}
+        <mesh position={[0.23, 0.86, -0.02]} rotation={[-0.15, 0, -0.18]} castShadow>
+          <cylinderGeometry args={[0.065, 0.055, 0.46, 14]} />
+          <meshStandardMaterial color="#f5f3ed" roughness={0.32} />
+        </mesh>
+
+        {/* Neck & Classical Portrait Bust Head */}
+        <mesh position={[0, 1.22, 0]}>
+          <cylinderGeometry args={[0.075, 0.085, 0.12, 16]} />
+          <meshStandardMaterial color="#faf8f5" roughness={0.3} />
+        </mesh>
+        <mesh position={[0, 1.35, 0.01]} scale={[0.88, 1.08, 0.92]} castShadow>
+          <sphereGeometry args={[0.135, 24, 20]} />
+          <meshStandardMaterial color="#ffffff" roughness={0.28} />
+        </mesh>
+      </group>
+    </group>
+  );
+};
+
+/**
+ * 18. 'Welcome to South Kensington Campus' Freestanding Wayfinding Map Totem
+ * (wayfinding_totem, 0.6m x 0.35m x 2.0m, 60 kg, tip_threshold_g = 0.17)
+ * Imperial navy/cyan architectural monolith with campus building map, You-Are-Here marker, and directional arrows.
+ */
+export const WayfindingTotem3D: React.FC<BaseModelProps> = ({
+  position = [0, 0, 0],
+  rotation = [0, 0, 0],
+  scale = 1,
+  toppled = false,
+  toppleAngleRad = 1.46,
+  highlighted = false,
+  onClick,
+}) => {
+  const totemTex = useMemo(
+    () =>
+      makeCanvasLabelTexture(
+        [
+          'IMPERIAL',
+          'Welcome to',
+          'South Kensington',
+          'Campus Map • CAGB',
+        ],
+        '#0c1938',
+        '#ffffff',
+        '#06b6d4',
+        512,
+        1024
+      ),
+    []
+  );
+
+  return (
+    <group position={position} rotation={rotation} scale={scale} onClick={onClick}>
+      <group rotation={[toppled ? toppleAngleRad : 0, 0, 0]}>
+        {/* Heavy dark steel base plate */}
+        <mesh position={[0, 0.04, 0]} castShadow receiveShadow>
+          <boxGeometry args={[0.64, 0.08, 0.38]} />
+          <meshStandardMaterial color="#1e293b" metalness={0.75} roughness={0.3} />
+        </mesh>
+
+        {/* Main Navy Wayfinding Monolith Body (0.6m x 1.92m x 0.22m) */}
+        <mesh position={[0, 1.02, 0]} castShadow receiveShadow>
+          <boxGeometry args={[0.58, 1.88, 0.22]} />
+          <meshStandardMaterial
+            color="#0f2557"
+            roughness={0.32}
+            metalness={0.25}
+            emissive={highlighted ? '#ef4444' : '#000000'}
+            emissiveIntensity={highlighted ? 0.3 : 0}
+          />
+        </mesh>
+
+        {/* Cyan Accent Header Cap Strip */}
+        <mesh position={[0, 1.98, 0]} castShadow>
+          <boxGeometry args={[0.585, 0.045, 0.225]} />
+          <meshStandardMaterial
+            color="#06b6d4"
+            emissive="#0891b2"
+            emissiveIntensity={0.4}
+            roughness={0.2}
+          />
+        </mesh>
+
+        {/* Front & Back High-Contrast Campus Map & Welcome Graphic Panels */}
+        <mesh position={[0, 1.08, 0.114]}>
+          <planeGeometry args={[0.52, 1.68]} />
+          <meshStandardMaterial
+            map={totemTex}
+            emissive="#0c1938"
+            emissiveIntensity={0.35}
+            roughness={0.22}
+          />
+        </mesh>
+        <mesh position={[0, 1.08, -0.114]} rotation={[0, Math.PI, 0]}>
+          <planeGeometry args={[0.52, 1.68]} />
+          <meshStandardMaterial
+            map={totemTex}
+            emissive="#0c1938"
+            emissiveIntensity={0.35}
+            roughness={0.22}
+          />
+        </mesh>
+
+        {/* Glowing Red 'You Are Here' Map Pin Indicator Dot */}
+        <mesh position={[0.08, 0.72, 0.118]}>
+          <circleGeometry args={[0.025, 16]} />
+          <meshBasicMaterial color="#ef4444" />
+        </mesh>
+      </group>
+    </group>
+  );
+};
+
 export default {
   RollerBanner3D,
   WheeledCateringCart3D,
@@ -868,4 +1758,12 @@ export default {
   BlueLoungeSofa3D,
   AuditoriumTierRow3D,
   BlueFireDoor3D,
+  AVLectern3D,
+  RefreshmentTableUrns3D,
+  FireExtinguisherStand3D,
+  SpiralGlassStair3D,
+  BlackGranitePortal3D,
+  CurvedReceptionDesk3D,
+  MarbleStatueOnPlinth3D,
+  WayfindingTotem3D,
 };
