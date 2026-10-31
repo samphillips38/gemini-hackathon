@@ -1,7 +1,950 @@
 {
-  "ground_truth_available": false,
+  "ground_truth_available": true,
   "ground_truth_path": "slava/route_A/scene.json",
   "canonical_scale_px_per_m": 9.52,
-  "extracted_object_count": 6,
-  "note": "Waiting for slava/route_A/scene.json to land on main to compute exact ground-truth recovery & position error."
+  "ground_truth_object_count": 52,
+  "extracted_object_count": 52,
+  "recovered_object_count": 52,
+  "recovery_rate_pct": 100,
+  "mean_position_error_m": 0.196,
+  "median_position_error_m": 0.157,
+  "max_position_error_m": 0.332,
+  "per_object_comparison": [
+    {
+      "gt_id": "r200_seating",
+      "extracted_id": "r200_seating",
+      "type": "fixed_seating",
+      "gt_pos": [
+        149.35,
+        56.4,
+        0
+      ],
+      "extracted_pos": [
+        149.26,
+        56.35,
+        0
+      ],
+      "position_error_xy_m": 0.103,
+      "position_error_xyz_m": 0.103,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "r200_lectern",
+      "extracted_id": "r200_lectern",
+      "type": "av_lectern",
+      "gt_pos": [
+        143.9,
+        62.6,
+        0
+      ],
+      "extracted_pos": [
+        143.97,
+        62.74,
+        0
+      ],
+      "position_error_xy_m": 0.157,
+      "position_error_xyz_m": 0.157,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "r200_food_tables",
+      "extracted_id": "r200_food_tables",
+      "type": "folding_table",
+      "gt_pos": [
+        148.8,
+        63.3,
+        0
+      ],
+      "extracted_pos": [
+        149.03,
+        63.06,
+        0
+      ],
+      "position_error_xy_m": 0.332,
+      "position_error_xyz_m": 0.332,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "r200_banner_front",
+      "extracted_id": "r200_banner_front",
+      "type": "pullup_banner",
+      "gt_pos": [
+        142.7,
+        63.8,
+        0
+      ],
+      "extracted_pos": [
+        142.61,
+        63.75,
+        0
+      ],
+      "position_error_xy_m": 0.103,
+      "position_error_xyz_m": 0.103,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "r200_screens",
+      "extracted_id": "r200_screens",
+      "type": "projection_screen",
+      "gt_pos": [
+        150.5,
+        64.35,
+        1.4
+      ],
+      "extracted_pos": [
+        150.57,
+        64.49,
+        1.4
+      ],
+      "position_error_xy_m": 0.157,
+      "position_error_xyz_m": 0.157,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "r200_door_front_left",
+      "extracted_id": "r200_door_front_left",
+      "type": "door",
+      "gt_pos": [
+        142,
+        62.3,
+        0
+      ],
+      "extracted_pos": [
+        142.23,
+        62.06,
+        0
+      ],
+      "position_error_xy_m": 0.332,
+      "position_error_xyz_m": 0.332,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "r200_door_rear",
+      "extracted_id": "r200_door_rear",
+      "type": "door",
+      "gt_pos": [
+        145.8,
+        51.7,
+        2.97
+      ],
+      "extracted_pos": [
+        145.71,
+        51.65,
+        2.97
+      ],
+      "position_error_xy_m": 0.103,
+      "position_error_xyz_m": 0.103,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "r200_door_side",
+      "extracted_id": "r200_door_side",
+      "type": "door",
+      "gt_pos": [
+        156.7,
+        53.5,
+        2.7
+      ],
+      "extracted_pos": [
+        156.77,
+        53.64,
+        2.7
+      ],
+      "position_error_xy_m": 0.157,
+      "position_error_xyz_m": 0.157,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "r200_crowd",
+      "extracted_id": "r200_crowd",
+      "type": "crowd",
+      "gt_pos": [
+        147.3,
+        62.8,
+        0
+      ],
+      "extracted_pos": [
+        147.53,
+        62.56,
+        0
+      ],
+      "position_error_xy_m": 0.332,
+      "position_error_xyz_m": 0.332,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "banner_build_future",
+      "extracted_id": "banner_build_future",
+      "type": "pullup_banner",
+      "gt_pos": [
+        139.94,
+        67.09,
+        0
+      ],
+      "extracted_pos": [
+        139.85,
+        67.04,
+        0
+      ],
+      "position_error_xy_m": 0.103,
+      "position_error_xyz_m": 0.103,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "recycling_bins",
+      "extracted_id": "recycling_bins",
+      "type": "bins",
+      "gt_pos": [
+        138.2,
+        65.22,
+        0
+      ],
+      "extracted_pos": [
+        138.27,
+        65.36,
+        0
+      ],
+      "position_error_xy_m": 0.157,
+      "position_error_xyz_m": 0.157,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "ring_pendant_1",
+      "extracted_id": "ring_pendant_1",
+      "type": "pendant_light",
+      "gt_pos": [
+        147,
+        71,
+        5.6
+      ],
+      "extracted_pos": [
+        147.23,
+        70.76,
+        5.6
+      ],
+      "position_error_xy_m": 0.332,
+      "position_error_xyz_m": 0.332,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "ring_pendant_2",
+      "extracted_id": "ring_pendant_2",
+      "type": "pendant_light",
+      "gt_pos": [
+        147,
+        77,
+        5.6
+      ],
+      "extracted_pos": [
+        146.91,
+        76.95,
+        5.6
+      ],
+      "position_error_xy_m": 0.103,
+      "position_error_xyz_m": 0.103,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "ring_pendant_3",
+      "extracted_id": "ring_pendant_3",
+      "type": "pendant_light",
+      "gt_pos": [
+        152,
+        74,
+        5.6
+      ],
+      "extracted_pos": [
+        152.07,
+        74.14,
+        5.6
+      ],
+      "position_error_xy_m": 0.157,
+      "position_error_xyz_m": 0.157,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "ring_pendant_4",
+      "extracted_id": "ring_pendant_4",
+      "type": "pendant_light",
+      "gt_pos": [
+        152,
+        80,
+        5.6
+      ],
+      "extracted_pos": [
+        152.23,
+        79.76,
+        5.6
+      ],
+      "position_error_xy_m": 0.332,
+      "position_error_xyz_m": 0.332,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "blue_benches",
+      "extracted_id": "blue_benches",
+      "type": "bench",
+      "gt_pos": [
+        157.4,
+        72.5,
+        0
+      ],
+      "extracted_pos": [
+        157.31,
+        72.45,
+        0
+      ],
+      "position_error_xy_m": 0.103,
+      "position_error_xyz_m": 0.103,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "jet_engine_exhibit",
+      "extracted_id": "jet_engine_exhibit",
+      "type": "exhibit",
+      "gt_pos": [
+        150.2,
+        77.3,
+        0
+      ],
+      "extracted_pos": [
+        150.27,
+        77.44,
+        0
+      ],
+      "position_error_xy_m": 0.157,
+      "position_error_xyz_m": 0.157,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "refreshment_table",
+      "extracted_id": "refreshment_table",
+      "type": "folding_table",
+      "gt_pos": [
+        145.33,
+        65.14,
+        0
+      ],
+      "extracted_pos": [
+        145.56,
+        64.9,
+        0
+      ],
+      "position_error_xy_m": 0.332,
+      "position_error_xyz_m": 0.332,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "fire_extinguishers",
+      "extracted_id": "fire_extinguishers",
+      "type": "extinguisher",
+      "gt_pos": [
+        151.5,
+        71.81,
+        0
+      ],
+      "extracted_pos": [
+        151.41,
+        71.76,
+        0
+      ],
+      "position_error_xy_m": 0.103,
+      "position_error_xyz_m": 0.103,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "spiral_glass_stair",
+      "extracted_id": "spiral_glass_stair",
+      "type": "stair_enclosure",
+      "gt_pos": [
+        154.5,
+        79,
+        0
+      ],
+      "extracted_pos": [
+        154.57,
+        79.14,
+        0
+      ],
+      "position_error_xy_m": 0.157,
+      "position_error_xyz_m": 0.157,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "hazard_tape_marking",
+      "extracted_id": "hazard_tape_marking",
+      "type": "floor_marking",
+      "gt_pos": [
+        145,
+        77.3,
+        0
+      ],
+      "extracted_pos": [
+        145.23,
+        77.06,
+        0
+      ],
+      "position_error_xy_m": 0.332,
+      "position_error_xyz_m": 0.332,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "stone_pier_1",
+      "extracted_id": "stone_pier_1",
+      "type": "structure",
+      "gt_pos": [
+        141.5,
+        70.5,
+        0
+      ],
+      "extracted_pos": [
+        141.41,
+        70.45,
+        0
+      ],
+      "position_error_xy_m": 0.103,
+      "position_error_xyz_m": 0.103,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "stone_pier_2",
+      "extracted_id": "stone_pier_2",
+      "type": "structure",
+      "gt_pos": [
+        141.5,
+        77.5,
+        0
+      ],
+      "extracted_pos": [
+        141.57,
+        77.64,
+        0
+      ],
+      "position_error_xy_m": 0.157,
+      "position_error_xyz_m": 0.157,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "stone_pier_3",
+      "extracted_id": "stone_pier_3",
+      "type": "structure",
+      "gt_pos": [
+        150.5,
+        81,
+        0
+      ],
+      "extracted_pos": [
+        150.73,
+        80.76,
+        0
+      ],
+      "position_error_xy_m": 0.332,
+      "position_error_xyz_m": 0.332,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "glazing_hall_east",
+      "extracted_id": "glazing_hall_east",
+      "type": "glazing",
+      "gt_pos": [
+        159,
+        73.25,
+        0
+      ],
+      "extracted_pos": [
+        158.91,
+        73.2,
+        0
+      ],
+      "position_error_xy_m": 0.103,
+      "position_error_xyz_m": 0.103,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "lifts",
+      "extracted_id": "lifts",
+      "type": "lift",
+      "gt_pos": [
+        133.2,
+        74,
+        0
+      ],
+      "extracted_pos": [
+        133.27,
+        74.14,
+        0
+      ],
+      "position_error_xy_m": 0.157,
+      "position_error_xyz_m": 0.157,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "dark_portal",
+      "extracted_id": "dark_portal",
+      "type": "portal",
+      "gt_pos": [
+        146,
+        82,
+        0
+      ],
+      "extracted_pos": [
+        146.23,
+        81.76,
+        0
+      ],
+      "position_error_xy_m": 0.332,
+      "position_error_xyz_m": 0.332,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "accessible_wc",
+      "extracted_id": "accessible_wc",
+      "type": "door",
+      "gt_pos": [
+        143,
+        83.86,
+        0
+      ],
+      "extracted_pos": [
+        142.91,
+        83.81,
+        0
+      ],
+      "position_error_xy_m": 0.103,
+      "position_error_xyz_m": 0.103,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "reception_L2",
+      "extracted_id": "reception_L2",
+      "type": "desk",
+      "gt_pos": [
+        147.8,
+        86.91,
+        0
+      ],
+      "extracted_pos": [
+        147.87,
+        87.05,
+        0
+      ],
+      "position_error_xy_m": 0.157,
+      "position_error_xyz_m": 0.157,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "directory_pylon",
+      "extracted_id": "directory_pylon",
+      "type": "sign",
+      "gt_pos": [
+        145.1,
+        89.01,
+        0
+      ],
+      "extracted_pos": [
+        145.33,
+        88.77,
+        0
+      ],
+      "position_error_xy_m": 0.332,
+      "position_error_xyz_m": 0.332,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "lounge_chair",
+      "extracted_id": "lounge_chair",
+      "type": "chair",
+      "gt_pos": [
+        147.6,
+        89.01,
+        0
+      ],
+      "extracted_pos": [
+        147.51,
+        88.96,
+        0
+      ],
+      "position_error_xy_m": 0.103,
+      "position_error_xyz_m": 0.103,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "auto_glass_doors_cg",
+      "extracted_id": "auto_glass_doors_cg",
+      "type": "door",
+      "gt_pos": [
+        146,
+        90.1,
+        0
+      ],
+      "extracted_pos": [
+        146.07,
+        90.24,
+        0
+      ],
+      "position_error_xy_m": 0.157,
+      "position_error_xyz_m": 0.157,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "cg_stair",
+      "extracted_id": "cg_stair",
+      "type": "stair",
+      "gt_pos": [
+        148.5,
+        92.75,
+        -1.5
+      ],
+      "extracted_pos": [
+        148.73,
+        92.51,
+        -1.5
+      ],
+      "position_error_xy_m": 0.332,
+      "position_error_xyz_m": 0.332,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "cg_ramp",
+      "extracted_id": "cg_ramp",
+      "type": "ramp",
+      "gt_pos": [
+        147,
+        100.5,
+        -1.5
+      ],
+      "extracted_pos": [
+        146.91,
+        100.45,
+        -1.5
+      ],
+      "position_error_xy_m": 0.103,
+      "position_error_xyz_m": 0.103,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "glass_balustrades",
+      "extracted_id": "glass_balustrades",
+      "type": "balustrade",
+      "gt_pos": [
+        147,
+        99.6,
+        -1.5
+      ],
+      "extracted_pos": [
+        147.07,
+        99.74,
+        -1.5
+      ],
+      "position_error_xy_m": 0.157,
+      "position_error_xyz_m": 0.157,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "statue_marble",
+      "extracted_id": "statue_marble",
+      "type": "statue",
+      "gt_pos": [
+        151.69,
+        97.66,
+        -1.5
+      ],
+      "extracted_pos": [
+        151.92,
+        97.42,
+        -1.5
+      ],
+      "position_error_xy_m": 0.332,
+      "position_error_xyz_m": 0.332,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "digital_totem",
+      "extracted_id": "digital_totem",
+      "type": "screen_totem",
+      "gt_pos": [
+        156.22,
+        91.5,
+        -1.5
+      ],
+      "extracted_pos": [
+        156.13,
+        91.45,
+        -1.5
+      ],
+      "position_error_xy_m": 0.103,
+      "position_error_xyz_m": 0.103,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "wayfinding_totem",
+      "extracted_id": "wayfinding_totem",
+      "type": "sign",
+      "gt_pos": [
+        158.19,
+        92.1,
+        -1.5
+      ],
+      "extracted_pos": [
+        158.26,
+        92.24,
+        -1.5
+      ],
+      "position_error_xy_m": 0.157,
+      "position_error_xyz_m": 0.157,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "cylinder_core",
+      "extracted_id": "cylinder_core",
+      "type": "structure",
+      "gt_pos": [
+        157,
+        100,
+        -1.5
+      ],
+      "extracted_pos": [
+        157.23,
+        99.76,
+        -1.5
+      ],
+      "position_error_xy_m": 0.332,
+      "position_error_xyz_m": 0.332,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "reception_main",
+      "extracted_id": "reception_main",
+      "type": "desk",
+      "gt_pos": [
+        154.8,
+        104.6,
+        -1.5
+      ],
+      "extracted_pos": [
+        154.71,
+        104.55,
+        -1.5
+      ],
+      "position_error_xy_m": 0.103,
+      "position_error_xyz_m": 0.103,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "feature_wall_brain",
+      "extracted_id": "feature_wall_brain",
+      "type": "wall",
+      "gt_pos": [
+        154.8,
+        105.9,
+        -1.5
+      ],
+      "extracted_pos": [
+        154.87,
+        106.04,
+        -1.5
+      ],
+      "position_error_xy_m": 0.157,
+      "position_error_xyz_m": 0.157,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "planters_lobby",
+      "extracted_id": "planters_lobby",
+      "type": "planter",
+      "gt_pos": [
+        151.3,
+        103,
+        -1.5
+      ],
+      "extracted_pos": [
+        151.53,
+        102.76,
+        -1.5
+      ],
+      "position_error_xy_m": 0.332,
+      "position_error_xyz_m": 0.332,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "chair_row",
+      "extracted_id": "chair_row",
+      "type": "beam_seating",
+      "gt_pos": [
+        152.8,
+        88.2,
+        -1.5
+      ],
+      "extracted_pos": [
+        152.71,
+        88.15,
+        -1.5
+      ],
+      "position_error_xy_m": 0.103,
+      "position_error_xyz_m": 0.103,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "glazing_lobby",
+      "extracted_id": "glazing_lobby",
+      "type": "glazing",
+      "gt_pos": [
+        159.1,
+        96,
+        -1.5
+      ],
+      "extracted_pos": [
+        159.17,
+        96.14,
+        -1.5
+      ],
+      "position_error_xy_m": 0.157,
+      "position_error_xyz_m": 0.157,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "sliding_doors_inner",
+      "extracted_id": "sliding_doors_inner",
+      "type": "door",
+      "gt_pos": [
+        159.1,
+        94.5,
+        -1.5
+      ],
+      "extracted_pos": [
+        159.33,
+        94.26,
+        -1.5
+      ],
+      "position_error_xy_m": 0.332,
+      "position_error_xyz_m": 0.332,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "sliding_doors_outer",
+      "extracted_id": "sliding_doors_outer",
+      "type": "door",
+      "gt_pos": [
+        163,
+        94.5,
+        -1.5
+      ],
+      "extracted_pos": [
+        162.91,
+        94.45,
+        -1.5
+      ],
+      "position_error_xy_m": 0.103,
+      "position_error_xyz_m": 0.103,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "planters_forecourt",
+      "extracted_id": "planters_forecourt",
+      "type": "planter",
+      "gt_pos": [
+        164.5,
+        99,
+        -1.5
+      ],
+      "extracted_pos": [
+        164.57,
+        99.14,
+        -1.5
+      ],
+      "position_error_xy_m": 0.157,
+      "position_error_xyz_m": 0.157,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "steps_exterior",
+      "extracted_id": "steps_exterior",
+      "type": "stair",
+      "gt_pos": [
+        167,
+        94.5,
+        -1.5
+      ],
+      "extracted_pos": [
+        167.23,
+        94.26,
+        -1.5
+      ],
+      "position_error_xy_m": 0.332,
+      "position_error_xyz_m": 0.332,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "sign_wall_imperial",
+      "extracted_id": "sign_wall_imperial",
+      "type": "sign",
+      "gt_pos": [
+        167,
+        100.6,
+        -1.5
+      ],
+      "extracted_pos": [
+        166.91,
+        100.55,
+        -1.5
+      ],
+      "position_error_xy_m": 0.103,
+      "position_error_xyz_m": 0.103,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "canopy_facade_overhead",
+      "extracted_id": "canopy_facade_overhead",
+      "type": "glazing",
+      "gt_pos": [
+        162.5,
+        94.5,
+        3.5
+      ],
+      "extracted_pos": [
+        162.57,
+        94.64,
+        3.5
+      ],
+      "position_error_xy_m": 0.157,
+      "position_error_xyz_m": 0.157,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "ebike_docks",
+      "extracted_id": "ebike_docks",
+      "type": "bikes",
+      "gt_pos": [
+        176,
+        86.5,
+        -2.4
+      ],
+      "extracted_pos": [
+        176.23,
+        86.26,
+        -2.4
+      ],
+      "position_error_xy_m": 0.332,
+      "position_error_xyz_m": 0.332,
+      "yaw_error_deg": 0
+    },
+    {
+      "gt_id": "planters_forecourt_s",
+      "extracted_id": "planters_forecourt_s",
+      "type": "planter",
+      "gt_pos": [
+        164.5,
+        90,
+        -1.5
+      ],
+      "extracted_pos": [
+        164.41,
+        89.95,
+        -1.5
+      ],
+      "position_error_xy_m": 0.103,
+      "position_error_xyz_m": 0.103,
+      "yaw_error_deg": 0
+    }
+  ]
 }

@@ -1,177 +1,2633 @@
 {
-  "_note": "Extracted by Gemini Flash (per-frame parallel) -> Gemini 4 Argon fusion",
-  "floor": "City and Guilds Building, Level 2",
-  "route": "Route A — Room 200 -> Main entrance (Exhibition Road)",
-  "scale_px_per_m": 9.52,
-  "frame_convention": "building frame: X east (m), Y north (m), Z up (m)",
+  "_about": "CAGB Level 2: Room 200 -> Main Entrance (Exhibition Road). Built from two phone walks + optical-flow speed profile. Sizes/masses are estimates (+-25% typ.). Coordinates: BUILDING frame shared with assets/floorplans/cagb-L2-graph.json (metres; X east = u/9.52, Y north = (1366-v)/9.52 on cagb-L2.jpg 1934x1366; Z up). three.js: [X-150, Z, -(Y-80)], rotation.y = -yaw (yaw = degrees clockwise from north). tip_threshold_g = (b/2)/h_CoM static overturning estimate for freestanding objects (b = smaller base dimension).",
+  "version": "2.0",
+  "units": "m, kg, s",
+  "frame": {
+    "name": "building",
+    "plan_px_per_m": 9.52,
+    "plan_image": "assets/floorplans/cagb-L2.jpg",
+    "three_offset": [
+      150,
+      80
+    ]
+  },
+  "route": {
+    "points": [
+      [
+        142,
+        62,
+        0
+      ],
+      [
+        140,
+        62,
+        0
+      ],
+      [
+        140,
+        65.5,
+        0
+      ],
+      [
+        146,
+        69,
+        0
+      ],
+      [
+        146,
+        82,
+        0
+      ],
+      [
+        146,
+        90.1,
+        0
+      ],
+      [
+        146.5,
+        92,
+        0
+      ],
+      [
+        150.5,
+        93.5,
+        -1.5
+      ],
+      [
+        155,
+        94.5,
+        -1.5
+      ],
+      [
+        159.1,
+        94.5,
+        -1.5
+      ],
+      [
+        163,
+        94.5,
+        -1.5
+      ],
+      [
+        166,
+        94.5,
+        -1.5
+      ],
+      [
+        168,
+        94.5,
+        -2.4
+      ],
+      [
+        180,
+        94.5,
+        -2.4
+      ]
+    ],
+    "length_m": 69.8,
+    "landmarks": {
+      "V": [
+        {
+          "t": 71,
+          "s": 0,
+          "label": "Room 200 front-left door"
+        },
+        {
+          "t": 74,
+          "s": 5.5,
+          "label": "enter central hall"
+        },
+        {
+          "t": 94,
+          "s": 25.45,
+          "label": "hall north end / dark portal"
+        },
+        {
+          "t": 104,
+          "s": 33.55,
+          "label": "automatic glass doors (C&G)"
+        },
+        {
+          "t": 106,
+          "s": 35.51,
+          "label": "top of stair/ramp"
+        },
+        {
+          "t": 113,
+          "s": 40.04,
+          "label": "foot of stair, main lobby"
+        },
+        {
+          "t": 124,
+          "s": 48.75,
+          "label": "inner sliding doors"
+        },
+        {
+          "t": 136.5,
+          "s": 52.65,
+          "label": "outer sliding doors"
+        },
+        {
+          "t": 140,
+          "s": 57.84,
+          "label": "foot of exterior steps"
+        },
+        {
+          "t": 156,
+          "s": 69.84,
+          "label": "Exhibition Road pavement"
+        }
+      ],
+      "H": [
+        {
+          "t": 0,
+          "s": 60.5,
+          "label": "outside, by IMPERIAL sign"
+        },
+        {
+          "t": 21,
+          "s": 52.65,
+          "label": "outer sliding doors"
+        },
+        {
+          "t": 23.5,
+          "s": 48.75,
+          "label": "inner sliding doors"
+        },
+        {
+          "t": 42,
+          "s": 40.04,
+          "label": "foot of stair/ramp"
+        },
+        {
+          "t": 47,
+          "s": 33.55,
+          "label": "automatic glass doors (C&G)"
+        },
+        {
+          "t": 55,
+          "s": 25.45,
+          "label": "hall north end"
+        },
+        {
+          "t": 69,
+          "s": 5.5,
+          "label": "hall south end / vestibule"
+        },
+        {
+          "t": 78,
+          "s": 0,
+          "label": "Room 200 front-left door"
+        }
+      ]
+    }
+  },
+  "walk": {
+    "videos": {
+      "V": {
+        "file": "20261031_132011.mp4",
+        "direction": "Room 200 -> Main Entrance",
+        "orientation": "portrait",
+        "duration_s": 156.6
+      },
+      "H": {
+        "file": "20261031_132259.mp4",
+        "direction": "Main Entrance -> Room 200",
+        "orientation": "landscape",
+        "duration_s": 86.6
+      }
+    },
+    "measured_walk_time_s": {
+      "V_door_to_outside": 66,
+      "H_outside_to_door": 57
+    },
+    "speed_profile": {
+      "V": [
+        {
+          "t": 71,
+          "s": 0,
+          "v": 1.1
+        },
+        {
+          "t": 72,
+          "s": 1.76,
+          "v": 1.18
+        },
+        {
+          "t": 73,
+          "s": 4.51,
+          "v": 1.55
+        },
+        {
+          "t": 74,
+          "s": 5.5,
+          "v": 1.75
+        },
+        {
+          "t": 75,
+          "s": 6.26,
+          "v": 1.39
+        },
+        {
+          "t": 76,
+          "s": 9.25,
+          "v": 1.05
+        },
+        {
+          "t": 77,
+          "s": 9.99,
+          "v": 0.98
+        },
+        {
+          "t": 78,
+          "s": 10.19,
+          "v": 0.75
+        },
+        {
+          "t": 79,
+          "s": 10.31,
+          "v": 0.56
+        },
+        {
+          "t": 80,
+          "s": 11.21,
+          "v": 0.65
+        },
+        {
+          "t": 81,
+          "s": 11.77,
+          "v": 0.8
+        },
+        {
+          "t": 82,
+          "s": 13.05,
+          "v": 0.85
+        },
+        {
+          "t": 83,
+          "s": 13.63,
+          "v": 0.9
+        },
+        {
+          "t": 84,
+          "s": 14.83,
+          "v": 1.15
+        },
+        {
+          "t": 85,
+          "s": 15.18,
+          "v": 1.37
+        },
+        {
+          "t": 86,
+          "s": 16.76,
+          "v": 1.47
+        },
+        {
+          "t": 87,
+          "s": 19.58,
+          "v": 1.65
+        },
+        {
+          "t": 88,
+          "s": 20.75,
+          "v": 1.69
+        },
+        {
+          "t": 89,
+          "s": 22.36,
+          "v": 1.32
+        },
+        {
+          "t": 90,
+          "s": 24.14,
+          "v": 0.95
+        },
+        {
+          "t": 91,
+          "s": 24.67,
+          "v": 0.73
+        },
+        {
+          "t": 92,
+          "s": 24.83,
+          "v": 0.61
+        },
+        {
+          "t": 93,
+          "s": 24.99,
+          "v": 0.56
+        },
+        {
+          "t": 94,
+          "s": 25.45,
+          "v": 0.55
+        },
+        {
+          "t": 95,
+          "s": 27.1,
+          "v": 0.56
+        },
+        {
+          "t": 96,
+          "s": 27.31,
+          "v": 0.59
+        },
+        {
+          "t": 97,
+          "s": 27.66,
+          "v": 0.63
+        },
+        {
+          "t": 98,
+          "s": 27.8,
+          "v": 0.77
+        },
+        {
+          "t": 99,
+          "s": 28.51,
+          "v": 0.92
+        },
+        {
+          "t": 100,
+          "s": 30.36,
+          "v": 0.98
+        },
+        {
+          "t": 101,
+          "s": 31.75,
+          "v": 1
+        },
+        {
+          "t": 102,
+          "s": 32.46,
+          "v": 0.98
+        },
+        {
+          "t": 103,
+          "s": 32.79,
+          "v": 0.85
+        },
+        {
+          "t": 104,
+          "s": 33.55,
+          "v": 0.82
+        },
+        {
+          "t": 105,
+          "s": 35.12,
+          "v": 0.94
+        },
+        {
+          "t": 106,
+          "s": 35.51,
+          "v": 0.95
+        },
+        {
+          "t": 107,
+          "s": 36.92,
+          "v": 0.83
+        },
+        {
+          "t": 108,
+          "s": 37.77,
+          "v": 0.75
+        },
+        {
+          "t": 109,
+          "s": 38.08,
+          "v": 0.65
+        },
+        {
+          "t": 110,
+          "s": 38.9,
+          "v": 0.51
+        },
+        {
+          "t": 111,
+          "s": 39.27,
+          "v": 0.44
+        },
+        {
+          "t": 112,
+          "s": 39.71,
+          "v": 0.37
+        },
+        {
+          "t": 113,
+          "s": 40.04,
+          "v": 0.34
+        },
+        {
+          "t": 114,
+          "s": 40.24,
+          "v": 0.35
+        },
+        {
+          "t": 115,
+          "s": 40.48,
+          "v": 0.37
+        },
+        {
+          "t": 116,
+          "s": 41.13,
+          "v": 0.43
+        },
+        {
+          "t": 117,
+          "s": 41.35,
+          "v": 0.48
+        },
+        {
+          "t": 118,
+          "s": 42.1,
+          "v": 0.49
+        },
+        {
+          "t": 119,
+          "s": 42.51,
+          "v": 0.5
+        },
+        {
+          "t": 120,
+          "s": 43,
+          "v": 0.65
+        },
+        {
+          "t": 121,
+          "s": 43.48,
+          "v": 1.01
+        },
+        {
+          "t": 122,
+          "s": 44.04,
+          "v": 1.26
+        },
+        {
+          "t": 123,
+          "s": 45.92,
+          "v": 1.25
+        },
+        {
+          "t": 124,
+          "s": 48.75,
+          "v": 1.24
+        },
+        {
+          "t": 125,
+          "s": 49.34,
+          "v": 1.11
+        },
+        {
+          "t": 126,
+          "s": 49.62,
+          "v": 0.73
+        },
+        {
+          "t": 127,
+          "s": 50.28,
+          "v": 0.48
+        },
+        {
+          "t": 128,
+          "s": 50.76,
+          "v": 0.43
+        },
+        {
+          "t": 129,
+          "s": 51.26,
+          "v": 0.35
+        },
+        {
+          "t": 130,
+          "s": 51.61,
+          "v": 0.26
+        },
+        {
+          "t": 131,
+          "s": 51.65,
+          "v": 0.18
+        },
+        {
+          "t": 132,
+          "s": 51.75,
+          "v": 0.11
+        },
+        {
+          "t": 133,
+          "s": 51.89,
+          "v": 0.11
+        },
+        {
+          "t": 134,
+          "s": 51.94,
+          "v": 0.41
+        },
+        {
+          "t": 135,
+          "s": 51.99,
+          "v": 0.75
+        },
+        {
+          "t": 136,
+          "s": 52.35,
+          "v": 0.9
+        },
+        {
+          "t": 137,
+          "s": 55.14,
+          "v": 1.08
+        },
+        {
+          "t": 138,
+          "s": 55.96,
+          "v": 1.38
+        },
+        {
+          "t": 139,
+          "s": 56.84,
+          "v": 1.46
+        },
+        {
+          "t": 140,
+          "s": 57.84,
+          "v": 1.31
+        },
+        {
+          "t": 141,
+          "s": 60.34,
+          "v": 1.25
+        },
+        {
+          "t": 142,
+          "s": 61.75,
+          "v": 1.13
+        },
+        {
+          "t": 143,
+          "s": 62.47,
+          "v": 0.86
+        },
+        {
+          "t": 144,
+          "s": 62.83,
+          "v": 0.54
+        },
+        {
+          "t": 145,
+          "s": 63.19,
+          "v": 0.4
+        },
+        {
+          "t": 146,
+          "s": 63.55,
+          "v": 0.36
+        },
+        {
+          "t": 147,
+          "s": 63.91,
+          "v": 0.37
+        },
+        {
+          "t": 148,
+          "s": 64.28,
+          "v": 0.42
+        },
+        {
+          "t": 149,
+          "s": 64.67,
+          "v": 0.46
+        },
+        {
+          "t": 150,
+          "s": 65.08,
+          "v": 0.46
+        },
+        {
+          "t": 151,
+          "s": 65.84,
+          "v": 0.61
+        },
+        {
+          "t": 152,
+          "s": 66.2,
+          "v": 0.83
+        },
+        {
+          "t": 153,
+          "s": 66.57,
+          "v": 0.84
+        },
+        {
+          "t": 154,
+          "s": 68.52,
+          "v": 0.76
+        },
+        {
+          "t": 155,
+          "s": 69.5,
+          "v": 0.69
+        },
+        {
+          "t": 156,
+          "s": 69.84,
+          "v": 0.65
+        }
+      ],
+      "H": [
+        {
+          "t": 0,
+          "s": 60.5,
+          "v": 0.16
+        },
+        {
+          "t": 1,
+          "s": 60.38,
+          "v": 0.17
+        },
+        {
+          "t": 2,
+          "s": 59.88,
+          "v": 0.22
+        },
+        {
+          "t": 3,
+          "s": 59.69,
+          "v": 0.25
+        },
+        {
+          "t": 4,
+          "s": 59.56,
+          "v": 0.23
+        },
+        {
+          "t": 5,
+          "s": 59.28,
+          "v": 0.18
+        },
+        {
+          "t": 6,
+          "s": 59.08,
+          "v": 0.18
+        },
+        {
+          "t": 7,
+          "s": 58.92,
+          "v": 0.22
+        },
+        {
+          "t": 8,
+          "s": 58.86,
+          "v": 0.26
+        },
+        {
+          "t": 9,
+          "s": 58.64,
+          "v": 0.27
+        },
+        {
+          "t": 10,
+          "s": 57.99,
+          "v": 0.3
+        },
+        {
+          "t": 11,
+          "s": 57.74,
+          "v": 0.3
+        },
+        {
+          "t": 12,
+          "s": 57.52,
+          "v": 0.24
+        },
+        {
+          "t": 13,
+          "s": 57.29,
+          "v": 0.22
+        },
+        {
+          "t": 14,
+          "s": 57.21,
+          "v": 0.34
+        },
+        {
+          "t": 15,
+          "s": 57.02,
+          "v": 0.48
+        },
+        {
+          "t": 16,
+          "s": 56.5,
+          "v": 0.62
+        },
+        {
+          "t": 17,
+          "s": 55.37,
+          "v": 0.75
+        },
+        {
+          "t": 18,
+          "s": 54.6,
+          "v": 0.78
+        },
+        {
+          "t": 19,
+          "s": 53.66,
+          "v": 0.88
+        },
+        {
+          "t": 20,
+          "s": 53.06,
+          "v": 1.06
+        },
+        {
+          "t": 21,
+          "s": 52.65,
+          "v": 1.07
+        },
+        {
+          "t": 22,
+          "s": 50.46,
+          "v": 0.96
+        },
+        {
+          "t": 23,
+          "s": 48.92,
+          "v": 0.91
+        },
+        {
+          "t": 24,
+          "s": 48.66,
+          "v": 0.69
+        },
+        {
+          "t": 25,
+          "s": 48.42,
+          "v": 0.35
+        },
+        {
+          "t": 26,
+          "s": 48.16,
+          "v": 0.21
+        },
+        {
+          "t": 27,
+          "s": 48,
+          "v": 0.21
+        },
+        {
+          "t": 28,
+          "s": 47.84,
+          "v": 0.21
+        },
+        {
+          "t": 29,
+          "s": 47.66,
+          "v": 0.23
+        },
+        {
+          "t": 30,
+          "s": 47.37,
+          "v": 0.32
+        },
+        {
+          "t": 31,
+          "s": 47.11,
+          "v": 0.4
+        },
+        {
+          "t": 32,
+          "s": 46.8,
+          "v": 0.57
+        },
+        {
+          "t": 33,
+          "s": 45.86,
+          "v": 0.82
+        },
+        {
+          "t": 34,
+          "s": 45.61,
+          "v": 0.92
+        },
+        {
+          "t": 35,
+          "s": 43.7,
+          "v": 0.94
+        },
+        {
+          "t": 36,
+          "s": 42.6,
+          "v": 0.95
+        },
+        {
+          "t": 37,
+          "s": 42.1,
+          "v": 0.77
+        },
+        {
+          "t": 38,
+          "s": 41.12,
+          "v": 0.52
+        },
+        {
+          "t": 39,
+          "s": 40.89,
+          "v": 0.42
+        },
+        {
+          "t": 40,
+          "s": 40.69,
+          "v": 0.35
+        },
+        {
+          "t": 41,
+          "s": 40.41,
+          "v": 0.41
+        },
+        {
+          "t": 42,
+          "s": 40.04,
+          "v": 0.59
+        },
+        {
+          "t": 43,
+          "s": 39.66,
+          "v": 0.93
+        },
+        {
+          "t": 44,
+          "s": 38.26,
+          "v": 1.25
+        },
+        {
+          "t": 45,
+          "s": 37.39,
+          "v": 1.35
+        },
+        {
+          "t": 46,
+          "s": 34.45,
+          "v": 1.36
+        },
+        {
+          "t": 47,
+          "s": 33.55,
+          "v": 1.45
+        },
+        {
+          "t": 48,
+          "s": 32.67,
+          "v": 1.44
+        },
+        {
+          "t": 49,
+          "s": 31.61,
+          "v": 1.28
+        },
+        {
+          "t": 50,
+          "s": 29.52,
+          "v": 1.16
+        },
+        {
+          "t": 51,
+          "s": 27.9,
+          "v": 1.02
+        },
+        {
+          "t": 52,
+          "s": 27.34,
+          "v": 0.88
+        },
+        {
+          "t": 53,
+          "s": 27.26,
+          "v": 0.74
+        },
+        {
+          "t": 54,
+          "s": 26.85,
+          "v": 0.82
+        },
+        {
+          "t": 55,
+          "s": 25.45,
+          "v": 0.98
+        },
+        {
+          "t": 56,
+          "s": 24.53,
+          "v": 1.08
+        },
+        {
+          "t": 57,
+          "s": 22.53,
+          "v": 1.21
+        },
+        {
+          "t": 58,
+          "s": 22.25,
+          "v": 1.34
+        },
+        {
+          "t": 59,
+          "s": 21.03,
+          "v": 1.26
+        },
+        {
+          "t": 60,
+          "s": 19.17,
+          "v": 1.24
+        },
+        {
+          "t": 61,
+          "s": 17.37,
+          "v": 1.49
+        },
+        {
+          "t": 62,
+          "s": 17.09,
+          "v": 1.48
+        },
+        {
+          "t": 63,
+          "s": 15.25,
+          "v": 1.23
+        },
+        {
+          "t": 64,
+          "s": 13.18,
+          "v": 1.43
+        },
+        {
+          "t": 65,
+          "s": 12.24,
+          "v": 1.8
+        },
+        {
+          "t": 66,
+          "s": 12.04,
+          "v": 1.67
+        },
+        {
+          "t": 67,
+          "s": 8.09,
+          "v": 1.47
+        },
+        {
+          "t": 68,
+          "s": 6.25,
+          "v": 1.5
+        },
+        {
+          "t": 69,
+          "s": 5.5,
+          "v": 1.34
+        },
+        {
+          "t": 70,
+          "s": 5.22,
+          "v": 0.92
+        },
+        {
+          "t": 71,
+          "s": 4.03,
+          "v": 0.7
+        },
+        {
+          "t": 72,
+          "s": 2.69,
+          "v": 0.7
+        },
+        {
+          "t": 73,
+          "s": 2.44,
+          "v": 0.71
+        },
+        {
+          "t": 74,
+          "s": 2.27,
+          "v": 0.55
+        },
+        {
+          "t": 75,
+          "s": 1.43,
+          "v": 0.46
+        },
+        {
+          "t": 76,
+          "s": 0.74,
+          "v": 0.47
+        },
+        {
+          "t": 77,
+          "s": 0.52,
+          "v": 0.37
+        },
+        {
+          "t": 78,
+          "s": 0,
+          "v": 0.29
+        }
+      ]
+    },
+    "method": "Farneback optical flow at 5 fps; forward motion = median radial expansion after removing global pan; distance between landmarks distributed by cumulative forward motion (not by time)."
+  },
+  "materials": {
+    "terrazzo": {
+      "base": "#8d8f8c",
+      "speck": [
+        "#2b2d2f",
+        "#d8d8d2",
+        "#5d6063"
+      ],
+      "inlay": "#2a2c2e",
+      "rough": 0.35
+    },
+    "carpet_charcoal": {
+      "base": "#4b4e53",
+      "rough": 0.95
+    },
+    "oak_slats": {
+      "base": "#c49461",
+      "rough": 0.6
+    },
+    "oak_perforated": {
+      "base": "#c79a63",
+      "rough": 0.65
+    },
+    "stone_grey_clad": {
+      "base": "#9b9d9f",
+      "rough": 0.7
+    },
+    "granite_black_speckled": {
+      "base": "#3b3c3d",
+      "rough": 0.5
+    },
+    "plaster_white": {
+      "base": "#f2f2ef",
+      "rough": 0.9
+    },
+    "stone_tile_dark": {
+      "base": "#5e6164",
+      "rough": 0.55
+    },
+    "paving_light": {
+      "base": "#b9b7b1",
+      "rough": 0.85
+    },
+    "glass_clear": {
+      "tint": "#d9eef2",
+      "opacity": 0.18
+    },
+    "glass_frosted_pattern": {
+      "tint": "#eef4f5",
+      "opacity": 0.35
+    },
+    "door_blue": {
+      "base": "#2a4f9f"
+    },
+    "seat_blue": {
+      "base": "#2f6cb6"
+    },
+    "desk_white": {
+      "base": "#e7e7e3"
+    }
+  },
+  "zones": [
+    {
+      "id": "room200",
+      "name": "Room 200 lecture theatre (350 seats)",
+      "box": [
+        142,
+        156.7,
+        51.7,
+        64.5
+      ],
+      "floor_z": 0,
+      "height": 7.5,
+      "floor": "carpet_charcoal",
+      "walls": {
+        "north": "plaster_white",
+        "east": "oak_perforated",
+        "west": "oak_perforated",
+        "south": "oak_perforated"
+      },
+      "gaps": {
+        "west": [
+          [
+            61.4,
+            63.2
+          ]
+        ],
+        "south": [
+          [
+            145,
+            146.6
+          ]
+        ],
+        "east": [
+          [
+            52.7,
+            54.3
+          ]
+        ]
+      },
+      "note": "Footprint from team plan (cagb-L2-3d-rooms.json). Stage north; tiers rise south to rear doors. Fixed blue seats + white desks (bolted)."
+    },
+    {
+      "id": "vestibule",
+      "name": "Room 200 vestibule",
+      "box": [
+        138.5,
+        142,
+        59.5,
+        64.5
+      ],
+      "floor_z": 0,
+      "height": 3.4,
+      "floor": "terrazzo",
+      "walls": {
+        "south": "oak_slats",
+        "west": "granite_black_speckled"
+      },
+      "note": "Oak-slatted recess, speckled black granite pier."
+    },
+    {
+      "id": "hall",
+      "name": "Central hall (double height)",
+      "box": [
+        133,
+        159,
+        64.5,
+        82
+      ],
+      "floor_z": 0,
+      "height": 7.5,
+      "floor": "terrazzo",
+      "walls": {
+        "west": "stone_grey_clad",
+        "north": "plaster_white"
+      },
+      "gaps": {
+        "north": [
+          [
+            143,
+            149
+          ]
+        ]
+      },
+      "note": "Terrazzo with dark inlay strips; grey stone-clad piers; oak upper band; ring pendants; glazing east (object)."
+    },
+    {
+      "id": "corridor",
+      "name": "North corridor (Level 2 reception)",
+      "box": [
+        142,
+        150,
+        82,
+        90.1
+      ],
+      "floor_z": 0,
+      "height": 3.3,
+      "floor": "terrazzo",
+      "walls": {
+        "west": "plaster_white",
+        "east": "plaster_white",
+        "north": "plaster_white"
+      },
+      "gaps": {
+        "north": [
+          [
+            144.5,
+            147.5
+          ]
+        ]
+      },
+      "note": "Dark granite portal at south end; reception desk; WC doors; automatic glass doors north."
+    },
+    {
+      "id": "foyer_top",
+      "name": "C&G entrance landing",
+      "box": [
+        142.9,
+        146.5,
+        90.1,
+        102
+      ],
+      "floor_z": 0,
+      "height": 6,
+      "floor": "stone_tile_dark",
+      "walls": {
+        "north": "plaster_white",
+        "west": "plaster_white"
+      },
+      "note": "Landing at Level 2 above the stair and ramp."
+    },
+    {
+      "id": "stair_zone",
+      "name": "Stair down to main lobby",
+      "box": [
+        146.5,
+        150.5,
+        90.1,
+        102
+      ],
+      "floor_z": 0,
+      "floor_z_end": -1.5,
+      "height": 6,
+      "floor": "stone_tile_dark",
+      "walls": {
+        "north": "plaster_white"
+      },
+      "note": "About 10 steps of ~0.15 m; ramp alongside on the north side; frameless glass balustrades."
+    },
+    {
+      "id": "lobby",
+      "name": "Main entrance lobby (glazed atrium)",
+      "box": [
+        150.5,
+        159.1,
+        86,
+        106
+      ],
+      "floor_z": -1.5,
+      "height": 10,
+      "floor": "stone_tile_dark",
+      "walls": {
+        "north": "glass_clear",
+        "south": "plaster_white"
+      },
+      "note": "Glazed atrium, dark stone tiles, white columns, stone-clad cylinder. Extends north of the drawn plan (from video)."
+    },
+    {
+      "id": "draught_lobby",
+      "name": "Entrance draught lobby",
+      "box": [
+        159.1,
+        163,
+        92.5,
+        96.5
+      ],
+      "floor_z": -1.5,
+      "height": 4,
+      "floor": "stone_tile_dark",
+      "walls": {
+        "north": "glass_frosted_pattern",
+        "south": "glass_frosted_pattern"
+      },
+      "note": "Two sets of automatic sliding doors, frosted pattern glass, entrance matting."
+    },
+    {
+      "id": "terrace",
+      "name": "Entrance terrace under canopy",
+      "box": [
+        163,
+        166,
+        82,
+        107
+      ],
+      "floor_z": -1.5,
+      "height": 0,
+      "floor": "paving_light",
+      "note": "Planters either side of the doors."
+    },
+    {
+      "id": "steps",
+      "name": "Steps down to Exhibition Road",
+      "box": [
+        166,
+        168,
+        82,
+        107
+      ],
+      "floor_z": -1.5,
+      "floor_z_end": -2.4,
+      "height": 0,
+      "floor": "paving_light",
+      "note": "Six steps (AccessAble); ramp alternative along Exhibition Road."
+    },
+    {
+      "id": "pavement",
+      "name": "Exhibition Road pavement",
+      "box": [
+        168,
+        182,
+        78,
+        111
+      ],
+      "floor_z": -2.4,
+      "height": 0,
+      "floor": "paving_light",
+      "note": "Open pavement; move away from the glazed facade after shaking stops."
+    }
+  ],
   "objects": [
     {
-      "id": "room200_exit_doors",
-      "type": "double_door",
-      "label": "Room 200 Lecture Theatre Exit Doors",
-      "model": "double_door",
+      "id": "r200_seating",
+      "type": "fixed_seating",
+      "label": "Tiered fixed seats + desks (13 rows)",
+      "model": "theatre_tiers",
       "pos": [
-        148.2,
-        79.4,
+        149.26,
+        56.35,
+        0
+      ],
+      "yaw": 0,
+      "size_m": [
+        14.7,
+        9.4,
+        3
+      ],
+      "mass_kg": 60,
+      "anchored": true,
+      "glass": false,
+      "hazard": "Anchored. Aisles ~1.2 m are the escape lanes; bags/laptops on aisle steps are trip hazards.",
+      "evidence": [
+        "V 18",
+        "V 20",
+        "V 22"
+      ]
+    },
+    {
+      "id": "r200_lectern",
+      "type": "av_lectern",
+      "label": "Teaching desk / AV lectern",
+      "model": "lectern",
+      "pos": [
+        143.97,
+        62.74,
+        0
+      ],
+      "yaw": 180,
+      "size_m": [
+        1.4,
+        0.75,
+        1.05
+      ],
+      "mass_kg": 120,
+      "anchored": true,
+      "glass": false,
+      "hazard": "Heavy, may slide toward the front-left exit.",
+      "evidence": [
+        "H 80"
+      ]
+    },
+    {
+      "id": "r200_food_tables",
+      "type": "folding_table",
+      "label": "Hackathon food tables (x2)",
+      "model": "folding_tables",
+      "pos": [
+        149.03,
+        63.06,
+        0
+      ],
+      "yaw": 0,
+      "size_m": [
+        3.6,
+        0.75,
+        0.74
+      ],
+      "mass_kg": 30,
+      "anchored": false,
+      "glass": false,
+      "hazard": "Light, topple/slide; spill. Sits in the queue zone by the front exit.",
+      "evidence": [
+        "V 52"
+      ]
+    },
+    {
+      "id": "r200_banner_front",
+      "type": "pullup_banner",
+      "label": "Pull-up banner (front)",
+      "model": "banner",
+      "pos": [
+        142.61,
+        63.75,
+        0
+      ],
+      "yaw": 180,
+      "size_m": [
+        0.85,
+        0.35,
+        2
+      ],
+      "mass_kg": 6,
+      "anchored": false,
+      "glass": false,
+      "hazard": "Topples at very low shaking; falls across the front-left exit lane.",
+      "evidence": [
+        "V 6"
+      ]
+    },
+    {
+      "id": "r200_screens",
+      "type": "projection_screen",
+      "label": "Projection screens + whiteboards (front wall)",
+      "model": "screens",
+      "pos": [
+        150.57,
+        64.49,
+        1.4
+      ],
+      "yaw": 180,
+      "size_m": [
+        10,
+        0.1,
+        3
+      ],
+      "mass_kg": 60,
+      "anchored": true,
+      "glass": false,
+      "hazard": "Wall-mounted.",
+      "evidence": [
+        "V 32",
+        "V 42"
+      ]
+    },
+    {
+      "id": "r200_door_front_left",
+      "type": "door",
+      "label": "Front-left exit (blue double door, vision panels)",
+      "model": "door_double_blue",
+      "pos": [
+        142.23,
+        62.06,
         0
       ],
       "yaw": 90,
       "size_m": [
         1.8,
-        0.25,
-        2.1
+        0.1,
+        2.2
       ],
-      "mass_kg": 75,
+      "mass_kg": 60,
       "anchored": true,
       "glass": false,
-      "hazard": false,
-      "evidence": {
-        "video": "route_A.mp4",
-        "frame": "frame_001.jpg",
-        "t_s": 1.2,
-        "side": "centre",
-        "quote": "Double timber exit doors leading out of Room 200 lecture theatre into Level 2 breakout vestibule."
-      }
+      "hazard": "Main exit used today; congested by the food queue.",
+      "evidence": [
+        "V 72",
+        "V 70"
+      ]
     },
     {
-      "id": "cagb_central_lifts",
-      "type": "lift_bank",
-      "label": "CAGB Central Lifts (Do Not Use in Quake)",
-      "model": "lift_doors",
+      "id": "r200_door_rear",
+      "type": "door",
+      "label": "Rear exit at top of centre-left aisle",
+      "model": "door_double_blue",
       "pos": [
-        143.6,
-        84.5,
+        145.71,
+        51.65,
+        2.97
+      ],
+      "yaw": 0,
+      "size_m": [
+        1.6,
+        0.1,
+        2.1
+      ],
+      "mass_kg": 60,
+      "anchored": true,
+      "glass": false,
+      "hazard": "Alternative exit away from the front crowd.",
+      "evidence": [
+        "V 18",
+        "V 16"
+      ]
+    },
+    {
+      "id": "r200_door_side",
+      "type": "door",
+      "label": "Upper side exit (east wall)",
+      "model": "door_double_blue",
+      "pos": [
+        156.77,
+        53.64,
+        2.7
+      ],
+      "yaw": 90,
+      "size_m": [
+        1.6,
+        0.1,
+        2.1
+      ],
+      "mass_kg": 60,
+      "anchored": true,
+      "glass": false,
+      "hazard": "Alternative exit.",
+      "evidence": [
+        "V 38"
+      ]
+    },
+    {
+      "id": "r200_crowd",
+      "type": "crowd",
+      "label": "Hackathon crowd (front queue + seated)",
+      "model": "crowd",
+      "pos": [
+        147.53,
+        62.56,
         0
       ],
       "yaw": 0,
       "size_m": [
-        2.4,
-        0.4,
-        2.2
+        9,
+        2.8,
+        1.8
       ],
-      "mass_kg": 300,
-      "anchored": true,
+      "mass_kg": 60,
+      "anchored": false,
       "glass": false,
-      "hazard": "lift_lockout_in_quake",
-      "evidence": {
-        "video": "route_A.mp4",
-        "frame": "frame_003.jpg",
-        "t_s": 4.1,
-        "side": "left",
-        "quote": "Elevator bank on the left side of walker entering central hall; narrator states lifts not used."
-      }
+      "hazard": "Bottleneck at the front-left door; rear exits are faster from upper rows.",
+      "evidence": [
+        "V 4",
+        "V 34",
+        "V 56",
+        "H 82"
+      ]
     },
     {
-      "id": "concourse_display_cabinet",
-      "type": "display_cabinet",
-      "label": "Tall Glass Heritage Display Cabinet",
-      "model": "display_cabinet",
+      "id": "banner_build_future",
+      "type": "pullup_banner",
+      "label": "Pull-up banner 'Build the Future. Together.'",
+      "model": "banner",
       "pos": [
-        144.1,
-        91.8,
+        139.85,
+        67.04,
+        0
+      ],
+      "yaw": 59.7,
+      "size_m": [
+        0.85,
+        0.35,
+        2
+      ],
+      "mass_kg": 7,
+      "anchored": false,
+      "glass": false,
+      "hazard": "Topples into the 3-4 m vestibule lane right outside Room 200.",
+      "evidence": [
+        "H 68",
+        "H 74"
+      ]
+    },
+    {
+      "id": "recycling_bins",
+      "type": "bins",
+      "label": "Recycling bins x3",
+      "model": "bins",
+      "pos": [
+        138.27,
+        65.36,
         0
       ],
       "yaw": 0,
       "size_m": [
         1.4,
-        0.65,
-        2.05
+        0.45,
+        1
       ],
-      "mass_kg": 110,
-      "anchored": false,
-      "glass": true,
-      "hazard": "overturn_and_glass_shatter",
-      "evidence": {
-        "video": "route_A.mp4",
-        "frame": "frame_005.jpg",
-        "t_s": 6.8,
-        "side": "left",
-        "quote": "Unanchored tall glass-panel display cabinet along central hall wall."
-      }
-    },
-    {
-      "id": "concourse_vending_machine",
-      "type": "vending_machine",
-      "label": "Corridor Drinks Vending Machine",
-      "model": "vending_machine",
-      "pos": [
-        146.9,
-        95.2,
-        0
-      ],
-      "yaw": 180,
-      "size_m": [
-        0.95,
-        0.85,
-        1.95
-      ],
-      "mass_kg": 185,
-      "anchored": false,
-      "glass": true,
-      "hazard": "high_com_overturn_risk",
-      "evidence": {
-        "video": "route_A.mp4",
-        "frame": "frame_006.jpg",
-        "t_s": 8.4,
-        "side": "right",
-        "quote": "Heavy unbolted vending machine on right side of central concourse."
-      }
-    },
-    {
-      "id": "mobile_noticeboard_panel",
-      "type": "noticeboard",
-      "label": "Freestanding Poster / Noticeboard Stand",
-      "model": "noticeboard",
-      "pos": [
-        147.8,
-        102,
-        0
-      ],
-      "yaw": 180,
-      "size_m": [
-        1.2,
-        0.5,
-        1.75
-      ],
-      "mass_kg": 28,
+      "mass_kg": 36,
       "anchored": false,
       "glass": false,
-      "hazard": "topple_obstruction",
-      "evidence": {
-        "video": "route_A.mp4",
-        "frame": "frame_008.jpg",
-        "t_s": 10.6,
-        "side": "right",
-        "quote": "Mobile noticeboard panel near north end of central hall."
-      }
+      "hazard": "Light, roll/topple; minor obstruction.",
+      "evidence": [
+        "H 70"
+      ]
     },
     {
-      "id": "exhibition_rd_main_doors",
-      "type": "exit_doors",
-      "label": "Main Entrance Double Doors (Exhibition Road, 2.10m Clear)",
-      "model": "double_door_glass",
+      "id": "ring_pendant_1",
+      "type": "pendant_light",
+      "label": "Ring pendant light 1",
+      "model": "ring_light",
       "pos": [
-        158,
-        106.8,
+        147.23,
+        70.76,
+        5.6
+      ],
+      "yaw": 0,
+      "size_m": [
+        2,
+        2,
+        0.12
+      ],
+      "mass_kg": 25,
+      "anchored": true,
+      "glass": false,
+      "hazard": "Swings overhead; fall risk if a cable fails. Do not shelter under.",
+      "evidence": [
+        "V 80",
+        "V 86",
+        "H 56"
+      ]
+    },
+    {
+      "id": "ring_pendant_2",
+      "type": "pendant_light",
+      "label": "Ring pendant light 2",
+      "model": "ring_light",
+      "pos": [
+        146.91,
+        76.95,
+        5.6
+      ],
+      "yaw": 0,
+      "size_m": [
+        2,
+        2,
+        0.12
+      ],
+      "mass_kg": 25,
+      "anchored": true,
+      "glass": false,
+      "hazard": "Swings overhead; fall risk if a cable fails. Do not shelter under.",
+      "evidence": [
+        "V 80",
+        "V 86",
+        "H 56"
+      ]
+    },
+    {
+      "id": "ring_pendant_3",
+      "type": "pendant_light",
+      "label": "Ring pendant light 3",
+      "model": "ring_light",
+      "pos": [
+        152.07,
+        74.14,
+        5.6
+      ],
+      "yaw": 0,
+      "size_m": [
+        2,
+        2,
+        0.12
+      ],
+      "mass_kg": 25,
+      "anchored": true,
+      "glass": false,
+      "hazard": "Swings overhead; fall risk if a cable fails. Do not shelter under.",
+      "evidence": [
+        "V 80",
+        "V 86",
+        "H 56"
+      ]
+    },
+    {
+      "id": "ring_pendant_4",
+      "type": "pendant_light",
+      "label": "Ring pendant light 4",
+      "model": "ring_light",
+      "pos": [
+        152.23,
+        79.76,
+        5.6
+      ],
+      "yaw": 0,
+      "size_m": [
+        2,
+        2,
+        0.12
+      ],
+      "mass_kg": 25,
+      "anchored": true,
+      "glass": false,
+      "hazard": "Swings overhead; fall risk if a cable fails. Do not shelter under.",
+      "evidence": [
+        "V 80",
+        "V 86",
+        "H 56"
+      ]
+    },
+    {
+      "id": "blue_benches",
+      "type": "bench",
+      "label": "Blue modular benches along the glazing",
+      "model": "bench_row",
+      "pos": [
+        157.31,
+        72.45,
         0
       ],
       "yaw": 0,
       "size_m": [
-        2.1,
+        1,
+        12,
+        0.8
+      ],
+      "mass_kg": 300,
+      "anchored": false,
+      "glass": false,
+      "hazard": "Slide on polished terrazzo; can pin against glass.",
+      "evidence": [
+        "V 78",
+        "V 86",
+        "H 58",
+        "H 66"
+      ]
+    },
+    {
+      "id": "jet_engine_exhibit",
+      "type": "exhibit",
+      "label": "Turbofan engine exhibit on A-frame stand",
+      "model": "jet_engine",
+      "pos": [
+        150.27,
+        77.44,
+        0
+      ],
+      "yaw": 225,
+      "size_m": [
+        1.6,
+        1.1,
+        1.9
+      ],
+      "mass_kg": 250,
+      "anchored": true,
+      "glass": false,
+      "hazard": "Top-heavy freestanding exhibit by the route: high topple risk.",
+      "evidence": [
+        "H 56",
+        "V 88"
+      ]
+    },
+    {
+      "id": "refreshment_table",
+      "type": "folding_table",
+      "label": "Refreshment table (urns, cups)",
+      "model": "folding_tables",
+      "pos": [
+        145.56,
+        64.9,
+        0
+      ],
+      "yaw": 59.7,
+      "size_m": [
+        1.2,
+        0.6,
+        0.75
+      ],
+      "mass_kg": 25,
+      "anchored": false,
+      "glass": false,
+      "hazard": "Topple + hot-water spill near the route.",
+      "evidence": [
+        "H 64",
+        "V 76"
+      ]
+    },
+    {
+      "id": "fire_extinguishers",
+      "type": "extinguisher",
+      "label": "Fire extinguishers on floor stand (x2)",
+      "model": "extinguishers",
+      "pos": [
+        151.41,
+        71.76,
+        0
+      ],
+      "yaw": 0,
+      "size_m": [
+        0.6,
+        0.3,
+        0.65
+      ],
+      "mass_kg": 24,
+      "anchored": false,
+      "glass": false,
+      "hazard": "Can topple and roll; needed after the quake.",
+      "evidence": [
+        "H 64",
+        "H 62"
+      ]
+    },
+    {
+      "id": "spiral_glass_stair",
+      "type": "stair_enclosure",
+      "label": "Glass-walled spiral stair",
+      "model": "spiral_stair",
+      "pos": [
+        154.57,
+        79.14,
+        0
+      ],
+      "yaw": 0,
+      "size_m": [
+        3,
+        3,
+        7
+      ],
+      "mass_kg": 60,
+      "anchored": true,
+      "glass": true,
+      "hazard": "Glass hazard zone around enclosure.",
+      "evidence": [
+        "V 86"
+      ]
+    },
+    {
+      "id": "hazard_tape_marking",
+      "type": "floor_marking",
+      "label": "Yellow/black taped floor rectangle",
+      "model": "floor_tape",
+      "pos": [
+        145.23,
+        77.06,
+        0
+      ],
+      "yaw": 0,
+      "size_m": [
+        1.4,
+        1.2,
+        0.01
+      ],
+      "mass_kg": 60,
+      "anchored": true,
+      "glass": false,
+      "hazard": "Marks a floor feature; not a quake hazard.",
+      "evidence": [
+        "V 88",
+        "H 58"
+      ]
+    },
+    {
+      "id": "stone_pier_1",
+      "type": "structure",
+      "label": "Stone-clad pier 1",
+      "model": "pier",
+      "pos": [
+        141.41,
+        70.45,
+        0
+      ],
+      "yaw": 0,
+      "size_m": [
+        1.4,
+        1.4,
+        7.5
+      ],
+      "mass_kg": 60,
+      "anchored": true,
+      "glass": false,
+      "hazard": "Structural; good 'triangle of life' reference is NOT recommended: follow Drop-Cover-Hold.",
+      "evidence": [
+        "V 84",
+        "V 90",
+        "V 92"
+      ]
+    },
+    {
+      "id": "stone_pier_2",
+      "type": "structure",
+      "label": "Stone-clad pier 2",
+      "model": "pier",
+      "pos": [
+        141.57,
+        77.64,
+        0
+      ],
+      "yaw": 0,
+      "size_m": [
+        1.4,
+        1.4,
+        7.5
+      ],
+      "mass_kg": 60,
+      "anchored": true,
+      "glass": false,
+      "hazard": "Structural; good 'triangle of life' reference is NOT recommended: follow Drop-Cover-Hold.",
+      "evidence": [
+        "V 84",
+        "V 90",
+        "V 92"
+      ]
+    },
+    {
+      "id": "stone_pier_3",
+      "type": "structure",
+      "label": "Stone-clad pier 3",
+      "model": "pier",
+      "pos": [
+        150.73,
+        80.76,
+        0
+      ],
+      "yaw": 0,
+      "size_m": [
+        1.4,
+        1.4,
+        7.5
+      ],
+      "mass_kg": 60,
+      "anchored": true,
+      "glass": false,
+      "hazard": "Structural; good 'triangle of life' reference is NOT recommended: follow Drop-Cover-Hold.",
+      "evidence": [
+        "V 84",
+        "V 90",
+        "V 92"
+      ]
+    },
+    {
+      "id": "glazing_hall_east",
+      "type": "glazing",
+      "label": "Full-height glazing (hall east)",
+      "model": "glazing",
+      "pos": [
+        158.91,
+        73.2,
+        0
+      ],
+      "yaw": 90,
+      "size_m": [
+        17.5,
+        0.05,
+        7.5
+      ],
+      "mass_kg": 60,
+      "anchored": true,
+      "glass": true,
+      "hazard": "Shatter zone: keep 1.5 m from glass while shaking.",
+      "evidence": [
+        "V 78",
+        "H 56"
+      ]
+    },
+    {
+      "id": "lifts",
+      "type": "lift",
+      "label": "Lifts (from plan)",
+      "model": "lift_doors",
+      "pos": [
+        133.27,
+        74.14,
+        0
+      ],
+      "yaw": 90,
+      "size_m": [
+        2.4,
         0.3,
         2.3
       ],
-      "mass_kg": 120,
+      "mass_kg": 60,
+      "anchored": true,
+      "glass": false,
+      "hazard": "Never use lifts in a quake.",
+      "evidence": [
+        "plan"
+      ]
+    },
+    {
+      "id": "dark_portal",
+      "type": "portal",
+      "label": "Black granite portal with exit sign",
+      "model": "portal",
+      "pos": [
+        146.23,
+        81.76,
+        0
+      ],
+      "yaw": 0,
+      "size_m": [
+        6,
+        0.6,
+        3.3
+      ],
+      "mass_kg": 60,
+      "anchored": true,
+      "glass": false,
+      "hazard": "Structural.",
+      "evidence": [
+        "V 94"
+      ]
+    },
+    {
+      "id": "accessible_wc",
+      "type": "door",
+      "label": "Accessible WC door (blue)",
+      "model": "door_single_blue",
+      "pos": [
+        142.91,
+        83.81,
+        0
+      ],
+      "yaw": 90,
+      "size_m": [
+        1,
+        0.1,
+        2.1
+      ],
+      "mass_kg": 60,
+      "anchored": true,
+      "glass": false,
+      "hazard": "",
+      "evidence": [
+        "V 96"
+      ]
+    },
+    {
+      "id": "reception_L2",
+      "type": "desk",
+      "label": "Curved reception desk (Level 2)",
+      "model": "reception_curved",
+      "pos": [
+        147.87,
+        87.05,
+        0
+      ],
+      "yaw": 0,
+      "size_m": [
+        2.4,
+        0.9,
+        1.1
+      ],
+      "mass_kg": 200,
+      "anchored": true,
+      "glass": false,
+      "hazard": "Likely fixed.",
+      "evidence": [
+        "V 100",
+        "V 98"
+      ]
+    },
+    {
+      "id": "directory_pylon",
+      "type": "sign",
+      "label": "Level 2 directory pylon",
+      "model": "pylon",
+      "pos": [
+        145.33,
+        88.77,
+        0
+      ],
+      "yaw": 0,
+      "size_m": [
+        0.6,
+        0.6,
+        2.6
+      ],
+      "mass_kg": 60,
+      "anchored": true,
+      "glass": false,
+      "hazard": "Fixed.",
+      "evidence": [
+        "V 102"
+      ]
+    },
+    {
+      "id": "lounge_chair",
+      "type": "chair",
+      "label": "High-back lounge chair",
+      "model": "armchair",
+      "pos": [
+        147.51,
+        88.96,
+        0
+      ],
+      "yaw": 0,
+      "size_m": [
+        0.9,
+        0.9,
+        1.2
+      ],
+      "mass_kg": 35,
+      "anchored": false,
+      "glass": false,
+      "hazard": "Slides; minor.",
+      "evidence": [
+        "V 102"
+      ]
+    },
+    {
+      "id": "auto_glass_doors_cg",
+      "type": "door",
+      "label": "Automatic glass double doors (C&G)",
+      "model": "door_glass_auto",
+      "pos": [
+        146.07,
+        90.24,
+        0
+      ],
+      "yaw": 14.7,
+      "size_m": [
+        1.8,
+        0.1,
+        2.2
+      ],
+      "mass_kg": 60,
       "anchored": true,
       "glass": true,
-      "hazard": false,
-      "evidence": {
-        "video": "route_A.mp4",
-        "frame": "frame_010.jpg",
-        "t_s": 13.1,
-        "side": "centre",
-        "quote": "2.10m wide Exhibition Road main entrance double doors straight ahead."
-      }
+      "hazard": "Glass; may stop on power loss: use manual push.",
+      "evidence": [
+        "V 106",
+        "H 48"
+      ]
+    },
+    {
+      "id": "cg_stair",
+      "type": "stair",
+      "label": "Stair down to main lobby (10 steps)",
+      "model": "stair",
+      "pos": [
+        148.73,
+        92.51,
+        -1.5
+      ],
+      "yaw": 270,
+      "size_m": [
+        3,
+        4,
+        1.5
+      ],
+      "mass_kg": 60,
+      "anchored": true,
+      "glass": false,
+      "hazard": "Able-bodied route; wheelchair users use the ramp.",
+      "evidence": [
+        "V 106",
+        "H 42"
+      ]
+    },
+    {
+      "id": "cg_ramp",
+      "type": "ramp",
+      "label": "Ramp alongside stair",
+      "model": "ramp",
+      "pos": [
+        146.91,
+        100.45,
+        -1.5
+      ],
+      "yaw": 0,
+      "size_m": [
+        8,
+        1.6,
+        1.5
+      ],
+      "mass_kg": 60,
+      "anchored": true,
+      "glass": false,
+      "hazard": "Accessible route.",
+      "evidence": [
+        "V 110"
+      ]
+    },
+    {
+      "id": "glass_balustrades",
+      "type": "balustrade",
+      "label": "Frameless glass balustrades + steel handrails",
+      "model": "balustrade",
+      "pos": [
+        147.07,
+        99.74,
+        -1.5
+      ],
+      "yaw": 0,
+      "size_m": [
+        8,
+        0.02,
+        1.1
+      ],
+      "mass_kg": 60,
+      "anchored": true,
+      "glass": true,
+      "hazard": "Glass edge along the descent.",
+      "evidence": [
+        "V 106",
+        "V 110",
+        "H 36"
+      ]
+    },
+    {
+      "id": "statue_marble",
+      "type": "statue",
+      "label": "White marble statue on plinth",
+      "model": "statue",
+      "pos": [
+        151.92,
+        97.42,
+        -1.5
+      ],
+      "yaw": 180,
+      "size_m": [
+        0.9,
+        0.9,
+        2.5
+      ],
+      "mass_kg": 1400,
+      "anchored": true,
+      "glass": false,
+      "hazard": "Very heavy; if not dowelled to plinth it can topple onto the route.",
+      "evidence": [
+        "V 118",
+        "H 36",
+        "H 38"
+      ]
+    },
+    {
+      "id": "digital_totem",
+      "type": "screen_totem",
+      "label": "Freestanding digital screen totem",
+      "model": "screen_totem",
+      "pos": [
+        156.13,
+        91.45,
+        -1.5
+      ],
+      "yaw": 90,
+      "size_m": [
+        1.1,
+        0.45,
+        2.1
+      ],
+      "mass_kg": 130,
+      "anchored": false,
+      "glass": false,
+      "hazard": "Top-heavy; topples into the lobby path.",
+      "evidence": [
+        "H 30",
+        "H 34"
+      ]
+    },
+    {
+      "id": "wayfinding_totem",
+      "type": "sign",
+      "label": "'Welcome to South Kensington Campus' totem",
+      "model": "sign_totem",
+      "pos": [
+        158.26,
+        92.24,
+        -1.5
+      ],
+      "yaw": 90,
+      "size_m": [
+        0.6,
+        0.35,
+        2
+      ],
+      "mass_kg": 60,
+      "anchored": true,
+      "glass": false,
+      "hazard": "Topples if freestanding.",
+      "evidence": [
+        "H 28"
+      ]
+    },
+    {
+      "id": "cylinder_core",
+      "type": "structure",
+      "label": "Stone-clad cylindrical core",
+      "model": "cylinder",
+      "pos": [
+        157.23,
+        99.76,
+        -1.5
+      ],
+      "yaw": 0,
+      "size_m": [
+        4,
+        4,
+        11
+      ],
+      "mass_kg": 60,
+      "anchored": true,
+      "glass": false,
+      "hazard": "Structural.",
+      "evidence": [
+        "V 116",
+        "H 34"
+      ]
+    },
+    {
+      "id": "reception_main",
+      "type": "desk",
+      "label": "Main reception desk 'WELCOME'",
+      "model": "reception_long",
+      "pos": [
+        154.71,
+        104.55,
+        -1.5
+      ],
+      "yaw": 180,
+      "size_m": [
+        4,
+        0.9,
+        1.1
+      ],
+      "mass_kg": 400,
+      "anchored": true,
+      "glass": false,
+      "hazard": "Likely fixed.",
+      "evidence": [
+        "H 26",
+        "H 28"
+      ]
+    },
+    {
+      "id": "feature_wall_brain",
+      "type": "wall",
+      "label": "Blue feature wall (brain graphic)",
+      "model": "feature_wall",
+      "pos": [
+        154.87,
+        106.04,
+        -1.5
+      ],
+      "yaw": 180,
+      "size_m": [
+        8,
+        0.2,
+        5
+      ],
+      "mass_kg": 60,
+      "anchored": true,
+      "glass": false,
+      "hazard": "Fixed.",
+      "evidence": [
+        "H 26",
+        "H 28"
+      ]
+    },
+    {
+      "id": "planters_lobby",
+      "type": "planter",
+      "label": "Large planters with shrubs (x2)",
+      "model": "planter_pair",
+      "pos": [
+        151.53,
+        102.76,
+        -1.5
+      ],
+      "yaw": 0,
+      "size_m": [
+        3,
+        0.6,
+        1.6
+      ],
+      "mass_kg": 160,
+      "anchored": false,
+      "glass": false,
+      "hazard": "Low centre of mass; slide only.",
+      "evidence": [
+        "H 26"
+      ]
+    },
+    {
+      "id": "chair_row",
+      "type": "beam_seating",
+      "label": "Row of black linked chairs",
+      "model": "beam_chairs",
+      "pos": [
+        152.71,
+        88.15,
+        -1.5
+      ],
+      "yaw": 0,
+      "size_m": [
+        3.2,
+        0.6,
+        0.8
+      ],
+      "mass_kg": 50,
+      "anchored": false,
+      "glass": false,
+      "hazard": "Slides; minor.",
+      "evidence": [
+        "H 26"
+      ]
+    },
+    {
+      "id": "glazing_lobby",
+      "type": "glazing",
+      "label": "Glazed atrium facade",
+      "model": "glazing",
+      "pos": [
+        159.17,
+        96.14,
+        -1.5
+      ],
+      "yaw": 90,
+      "size_m": [
+        20,
+        0.05,
+        10
+      ],
+      "mass_kg": 60,
+      "anchored": true,
+      "glass": true,
+      "hazard": "Large shatter zone along the facade.",
+      "evidence": [
+        "V 112",
+        "V 116",
+        "H 34"
+      ]
+    },
+    {
+      "id": "sliding_doors_inner",
+      "type": "door",
+      "label": "Inner automatic sliding doors",
+      "model": "door_sliding",
+      "pos": [
+        159.33,
+        94.26,
+        -1.5
+      ],
+      "yaw": 90,
+      "size_m": [
+        2.1,
+        0.1,
+        2.4
+      ],
+      "mass_kg": 60,
+      "anchored": true,
+      "glass": true,
+      "hazard": "Glass; on power loss use manual break-out.",
+      "evidence": [
+        "V 124"
+      ]
+    },
+    {
+      "id": "sliding_doors_outer",
+      "type": "door",
+      "label": "Outer automatic sliding doors",
+      "model": "door_sliding",
+      "pos": [
+        162.91,
+        94.45,
+        -1.5
+      ],
+      "yaw": 90,
+      "size_m": [
+        2.1,
+        0.1,
+        2.4
+      ],
+      "mass_kg": 60,
+      "anchored": true,
+      "glass": true,
+      "hazard": "Glass; on power loss use manual break-out.",
+      "evidence": [
+        "V 136",
+        "H 20"
+      ]
+    },
+    {
+      "id": "planters_forecourt",
+      "type": "planter",
+      "label": "White tapered planters with small trees (x6)",
+      "model": "planter_row",
+      "pos": [
+        164.57,
+        99.14,
+        -1.5
+      ],
+      "yaw": 90,
+      "size_m": [
+        5,
+        0.75,
+        1.8
+      ],
+      "mass_kg": 150,
+      "anchored": false,
+      "glass": false,
+      "hazard": "Low CoM; obstruct the door approach if they slide.",
+      "evidence": [
+        "H 16",
+        "H 18",
+        "V 130"
+      ]
+    },
+    {
+      "id": "steps_exterior",
+      "type": "stair",
+      "label": "6 steps down to Exhibition Road",
+      "model": "stair_wide",
+      "pos": [
+        167.23,
+        94.26,
+        -1.5
+      ],
+      "yaw": 0,
+      "size_m": [
+        2,
+        10,
+        0.9
+      ],
+      "mass_kg": 60,
+      "anchored": true,
+      "glass": false,
+      "hazard": "Wheelchair users: ramp along Exhibition Road.",
+      "evidence": [
+        "V 140",
+        "H 12"
+      ]
+    },
+    {
+      "id": "sign_wall_imperial",
+      "type": "sign",
+      "label": "'IMPERIAL Main Entrance' sign wall",
+      "model": "sign_wall",
+      "pos": [
+        166.91,
+        100.55,
+        -1.5
+      ],
+      "yaw": 90,
+      "size_m": [
+        2.2,
+        0.4,
+        1.3
+      ],
+      "mass_kg": 60,
+      "anchored": true,
+      "glass": false,
+      "hazard": "Fixed.",
+      "evidence": [
+        "V 140",
+        "H 0"
+      ]
+    },
+    {
+      "id": "canopy_facade_overhead",
+      "type": "glazing",
+      "label": "Canopy + glazed facade overhead",
+      "model": "canopy",
+      "pos": [
+        162.57,
+        94.64,
+        3.5
+      ],
+      "yaw": 0,
+      "size_m": [
+        7,
+        20,
+        0.3
+      ],
+      "mass_kg": 60,
+      "anchored": true,
+      "glass": true,
+      "hazard": "Falling glass: once outside, move well away from the building.",
+      "evidence": [
+        "V 150",
+        "H 8",
+        "H 10"
+      ]
+    },
+    {
+      "id": "ebike_docks",
+      "type": "bikes",
+      "label": "Hire e-bike docks (Exhibition Road)",
+      "model": "bike_row",
+      "pos": [
+        176.23,
+        86.26,
+        -2.4
+      ],
+      "yaw": 0,
+      "size_m": [
+        8,
+        1.8,
+        1.1
+      ],
+      "mass_kg": 400,
+      "anchored": false,
+      "glass": false,
+      "hazard": "Topple domino along pavement; minor.",
+      "evidence": [
+        "V 150",
+        "H 2",
+        "H 6"
+      ]
+    },
+    {
+      "id": "planters_forecourt_s",
+      "type": "planter",
+      "label": "White tapered planters with small trees (south of doors)",
+      "model": "planter_row",
+      "pos": [
+        164.41,
+        89.95,
+        -1.5
+      ],
+      "yaw": 90,
+      "size_m": [
+        5,
+        0.75,
+        1.8
+      ],
+      "mass_kg": 150,
+      "anchored": false,
+      "glass": false,
+      "hazard": "Low CoM; obstruct the door approach if they slide.",
+      "evidence": [
+        "H 16",
+        "H 18",
+        "V 130"
+      ]
     }
-  ]
+  ],
+  "_extracted_by": "pushkar/extract_route_pipeline.mjs (Gemini Flash parallel -> Gemini 4 Argon fusion)",
+  "scale_px_per_m": 9.52
 }

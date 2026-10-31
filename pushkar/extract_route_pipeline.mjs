@@ -28,6 +28,7 @@ const evidenceDir = path.join(repoRoot, "slava", "route_A", "evidence");
 const routesJsonPath = path.join(repoRoot, "assets", "floorplans", "routes", "routes.json");
 const extractedSceneOutPath = path.join(__dirname, "extracted_scene.json");
 const evalReportOutPath = path.join(__dirname, "extraction_evaluation.json");
+const argonVsGtOutPath = path.join(__dirname, "argon_vs_ground_truth.json");
 
 export function pxToBuildingMetric(uPx, vPx, imageHeightPx = 1366, pxPerM = CANONICAL_PX_PER_M, zM = 0) {
   return [
@@ -361,6 +362,7 @@ async function main() {
   fs.writeFileSync(extractedSceneOutPath, JSON.stringify(extractedScene, null, 2) + "\n", "utf8");
   const evalReport = evaluateAgainstGroundTruth(extractedScene, gtScene);
   fs.writeFileSync(evalReportOutPath, JSON.stringify(evalReport, null, 2) + "\n", "utf8");
+  fs.writeFileSync(argonVsGtOutPath, JSON.stringify(evalReport, null, 2) + "\n", "utf8");
   console.log("[pushkar/extract_route_pipeline] Wrote " + (extractedScene.objects?.length || 0) + " objects to pushkar/extracted_scene.json (scale=" + CANONICAL_PX_PER_M + " px/m).");
   if (evalReport.ground_truth_available) {
     console.log("[pushkar/extract_route_pipeline] Ground-Truth Recovery: " + evalReport.recovered_object_count + "/" + evalReport.ground_truth_object_count + " (" + evalReport.recovery_rate_pct + "%), Mean Position Error: " + evalReport.mean_position_error_m + " m (Median: " + evalReport.median_position_error_m + " m).");
