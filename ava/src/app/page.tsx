@@ -28,11 +28,18 @@ import {
   IMPERIAL_FLOOR_GRAPH,
   PRESET_ROOMS,
 } from "@/presets/mockRooms";
+import cagbRouteARooms from "@/presets/cagbRouteARooms.json";
+import { seismicAudio } from "@/voice/seismicAudioSynth";
 import {
   CAGB_L2_PLAN_PX_PER_M,
   synthesizeVerifiedRemediation,
   verifyRoomSafetyAndEgress,
 } from "@/solver/roomVerifier";
+
+const ALL_PRESET_ROOMS: Record<string, RoomSceneGraph> = {
+  ...PRESET_ROOMS,
+  ...(cagbRouteARooms as unknown as Record<string, RoomSceneGraph>),
+};
 import { verifyBuildingEvacuation } from "@/solver/buildingVerifier";
 import {
   BuildingFloorGraph,
@@ -126,7 +133,7 @@ export default function HackathonPage() {
 
   // Switch Plan B preset room
   const handleSelectPreset = (key: string) => {
-    const base = PRESET_ROOMS[key] || PRESET_ROOMS.student_dorm;
+    const base = ALL_PRESET_ROOMS[key] || ALL_PRESET_ROOMS.student_dorm;
     setPresetKey(key);
     setScene(JSON.parse(JSON.stringify(base)));
     setSimState("idle");
@@ -140,7 +147,7 @@ export default function HackathonPage() {
     setActivePlan("PLAN_B");
     handleSelectPreset("cagb_room_203");
     setStatusBanner(
-      "Macro → Micro Transition: Entered CAGB Level 2 Room 203 from Route C (Calibrated at 11.43 px/m)."
+      "Macro → Micro Transition: Entered CAGB Level 2 Room 203 from Route C (Calibrated at 9.52 px/m)."
     );
     speakText(
       "Entering CAGB Level 2 Room 203 3D Shake Table. Ready to simulate 6.8 magnitude seismic overturning and post-collapse A-star egress."
@@ -151,13 +158,16 @@ export default function HackathonPage() {
   const handleTriggerEarthquake = () => {
     setSimState("shaking");
     const v = verifyRoomSafetyAndEgress(scene, clearanceMode);
+    seismicAudio.playSeismicPAndSWave(v.floor_pga_g, 3.0);
     setTimeout(() => {
       setSimState("collapsed");
       if (!v.survivable) {
+        seismicAudio.playLiftLockoutSiren(1.1);
         speakText(
           `Critical failure! Never take a lift in a seismic event. Phase 1 during shaking: Drop, Cover, and Hold On under the sturdy desk. Phase 2 after shaking: your wardrobe's 2-meter fall shadow seals the exit door, and the top-heavy bookshelf crushes the sleep zone.`
         );
       } else {
+        seismicAudio.playVerificationPassChime();
         speakText(
           `Verified! Phase 1 under-desk safe shelter and Phase 2 post-collapse A-star evacuation route to the exit door remain clear across ${v.monte_carlo.walk_clear_count} of 50 Monte Carlo quakes.`
         );
@@ -167,9 +177,9 @@ export default function HackathonPage() {
 
   // Synthesize & Verify Renter-Safe Room Layout (Plan B Self-Correcting Loop)
   const handleSynthesizeFix = () => {
-    const baseScene = PRESET_ROOMS[presetKey]
+    const baseScene = ALL_PRESET_ROOMS[presetKey]
       ? {
-          ...JSON.parse(JSON.stringify(PRESET_ROOMS[presetKey])),
+          ...JSON.parse(JSON.stringify(ALL_PRESET_ROOMS[presetKey])),
           room: { ...scene.room },
           earthquake: { ...scene.earthquake },
         }
@@ -180,6 +190,7 @@ export default function HackathonPage() {
     setScene(proposal.updated_scene);
     setIsRemediatedView(true);
     setSimState("shaking");
+    seismicAudio.playVerificationPassChime();
     speakText(proposal.summary_spoken);
     setTimeout(() => {
       setSimState("collapsed");
@@ -465,6 +476,10 @@ export default function HackathonPage() {
             >
               <option value="student_dorm">Preset 1: Student Bedroom (10th Floor — Renter)</option>
               <option value="cagb_room_203">Preset 2: CAGB Level 2 — Room 203 (Route C Deep-Dive)</option>
+              <option value="room200">CAGB Walk Twin: Room 200 Lecture Theatre (0/50 Clear)</option>
+              <option value="hall">CAGB Walk Twin: Jet Engine Hall (50/50 Walk • 0/50 Wheelchair)</option>
+              <option value="corridor">CAGB Walk Twin: Level 2 Spine Corridor (50/50 Clear)</option>
+              <option value="lobby">CAGB Walk Twin: Main Entrance Lobby (0/50 Clear)</option>
               <option value="studio_lab">Preset 3: High-Rise Studio / Lab (12th Floor)</option>
             </select>
           )}
@@ -979,7 +994,7 @@ export default function HackathonPage() {
                 <div className="flex items-center justify-between">
                   <h2 className="text-xs font-bold uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
                     <MapPin className="w-3.5 h-3.5" />
-                    2. CAGB Level 2 Routes A–D (11.43 px/m)
+                    2. CAGB Level 2 Routes A–D ({CAGB_L2_PLAN_PX_PER_M} px/m)
                   </h2>
                   <div className="flex gap-1">
                     {(["A", "B", "C", "D"] as const).map((rId) => (
