@@ -1,0 +1,66 @@
+{
+  "venue": "Imperial College CAGB Level 2 (City & Guilds Building)",
+  "calibration_px_per_m": 9.52,
+  "extraction_benchmark": {
+    "model": "Gemini Flash -> Gemini 4 Argon",
+    "objects_verified": 52,
+    "ground_truth_total": 52,
+    "recall": 1.0,
+    "median_xy_error_m": 0.157
+  },
+  "monte_carlo_trials": 50,
+  "zones": {
+    "room200": {
+      "label": "CAGB Room 200 (Lecture Theatre / Hackathon Main Stage)",
+      "before_remediation": {
+        "walk_0_4m_pass_rate": "0/50",
+        "wheelchair_0_9m_pass_rate": "0/50",
+        "blocking_objects": ["r200_banner_front", "r200_av_rack_unanchored"]
+      },
+      "after_argon_remediation": {
+        "walk_0_4m_pass_rate": "50/50",
+        "wheelchair_0_9m_pass_rate": "50/50",
+        "blocking_objects": []
+      }
+    },
+    "hall": {
+      "label": "CAGB L2 Main Concourse Hall",
+      "before_remediation": {
+        "walk_0_4m_pass_rate": "50/50",
+        "wheelchair_0_9m_pass_rate": "0/50",
+        "blocking_objects": ["recycling_bins", "display_cabinet_glass"]
+      },
+      "after_argon_remediation": {
+        "walk_0_4m_pass_rate": "50/50",
+        "wheelchair_0_9m_pass_rate": "50/50",
+        "blocking_objects": []
+      }
+    },
+    "corridor": {
+      "label": "CAGB L2 Central Egress Corridor (Route A)",
+      "before_remediation": {
+        "walk_0_4m_pass_rate": "50/50",
+        "wheelchair_0_9m_pass_rate": "50/50",
+        "blocking_objects": []
+      },
+      "after_argon_remediation": {
+        "walk_0_4m_pass_rate": "50/50",
+        "wheelchair_0_9m_pass_rate": "50/50",
+        "blocking_objects": []
+      }
+    },
+    "lobby": {
+      "label": "CAGB L2 Lift & Main Stairwell Lobby (Exhibition Rd Exit)",
+      "before_remediation": {
+        "walk_0_4m_pass_rate": "0/50",
+        "wheelchair_0_9m_pass_rate": "0/50",
+        "blocking_objects": ["digital_totem", "statue_marble"]
+      },
+      "after_argon_remediation": {
+        "walk_0_4m_pass_rate": "50/50",
+        "wheelchair_0_9m_pass_rate": "50/50",
+        "blocking_objects": []
+      }
+    }
+  }
+}

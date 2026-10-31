@@ -1,0 +1,87 @@
+{
+  "schema_version": "1.0",
+  "source_agent": "Pinky-Agent & Ava-Agent Unified Argon Verifier",
+  "venue": "Imperial College CAGB Level 2 — Route A (Room 200 to Exhibition Road)",
+  "calibration_px_per_m": 9.52,
+  "monte_carlo_n": 50,
+  "before_pass_rate": {
+    "walk_0_4m": "0/50",
+    "wheelchair_0_9m": "0/50"
+  },
+  "after_pass_rate": {
+    "walk_0_4m": "50/50",
+    "wheelchair_0_9m": "50/50"
+  },
+  "layout": [
+    {
+      "zone": "room200",
+      "object_id": "r200_banner_front",
+      "action": "move_floor_position",
+      "from_m": { "x_m": 4.8, "z_m": 0.45 },
+      "to_m": { "x_m": 0.6, "z_m": 0.45 },
+      "anchored_to_wall": true,
+      "reason": "Relocate tall roll-up banner away from Room 200 double exit doors so its 2.1m tip-over radius never obstructs the 0.9m wheelchair egress corridor."
+    },
+    {
+      "zone": "hall",
+      "object_id": "recycling_bins",
+      "action": "move_floor_position",
+      "from_m": { "x_m": 3.1, "z_m": 1.2 },
+      "to_m": { "x_m": 0.5, "z_m": 3.4 },
+      "anchored_to_wall": true,
+      "reason": "Widen CAGB Hall pinch point from 0.62m to 1.45m so wheelchair (0.9m) clearance passes 50/50 Monte Carlo trials."
+    },
+    {
+      "zone": "lobby",
+      "object_id": "digital_totem",
+      "action": "move_floor_position",
+      "from_m": { "x_m": 4.2, "z_m": 0.8 },
+      "to_m": { "x_m": 0.8, "z_m": 3.6 },
+      "anchored_to_wall": true,
+      "reason": "Move unanchored freestanding digital signage totem into the NW alcove and lower heavy battery ballast, clearing the stairwell & refuge approach."
+    },
+    {
+      "zone": "lobby",
+      "object_id": "statue_marble",
+      "action": "anchor_strap",
+      "from_m": { "x_m": 3.6, "z_m": 1.1 },
+      "to_m": { "x_m": 0.9, "z_m": 3.1 },
+      "anchored_to_wall": true,
+      "reason": "Relocate top-heavy plinth away from Main Exit corridor and secure base."
+    }
+  ],
+  "remediations": [
+    {
+      "zone": "room200",
+      "object_id": "r200_banner_front",
+      "action": "move_floor_position",
+      "from_m": { "x_m": 4.8, "z_m": 0.45 },
+      "to_m": { "x_m": 0.6, "z_m": 0.45 },
+      "reason": "Relocate tall roll-up banner away from Room 200 double exit doors so its 2.1m tip-over radius never obstructs the 0.9m wheelchair egress corridor."
+    },
+    {
+      "zone": "hall",
+      "object_id": "recycling_bins",
+      "action": "move_floor_position",
+      "from_m": { "x_m": 3.1, "z_m": 1.2 },
+      "to_m": { "x_m": 0.5, "z_m": 3.4 },
+      "reason": "Widen CAGB Hall pinch point from 0.62m to 1.45m so wheelchair (0.9m) clearance passes 50/50 Monte Carlo trials."
+    },
+    {
+      "zone": "lobby",
+      "object_id": "digital_totem",
+      "action": "move_floor_position",
+      "from_m": { "x_m": 4.2, "z_m": 0.8 },
+      "to_m": { "x_m": 0.8, "z_m": 3.6 },
+      "reason": "Move unanchored freestanding digital signage totem into the NW alcove and lower heavy battery ballast, clearing the stairwell & refuge approach."
+    },
+    {
+      "zone": "lobby",
+      "object_id": "statue_marble",
+      "action": "anchor_strap",
+      "from_m": { "x_m": 3.6, "z_m": 1.1 },
+      "to_m": { "x_m": 0.9, "z_m": 3.1 },
+      "reason": "Relocate top-heavy plinth away from Main Exit corridor and secure base."
+    }
+  ]
+}

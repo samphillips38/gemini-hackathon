@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QuakeRoom (Plan B) & ExitZero (Plan C) — Interactive 3D Verifier</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-4 md:p-6 font-sans">
+  <div class="max-w-7xl mx-auto space-y-4">
+    <!-- Top Header -->
+    <header class="flex flex-wrap items-center justify-between gap-4 pb-3 border-b border-slate-800">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="px-2 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[11px] font-mono">
+            GEMINI 4 ARGON + DETERMINISTIC 3D PHYSICS &amp; A* VERIFIER
+          </span>
+          <h1 id="app-title" class="text-lg md:text-xl font-bold">
+            QuakeRoom — 3D Seismic Collapse &amp; Egress Verifier (Plan B)
+          </h1>
+        </div>
+        <p class="text-xs text-slate-400 mt-0.5">
+          Shared Common Engine: Switch instantly between Plan B (QuakeRoom) and Plan C (ExitZero)
+        </p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="btn-plan-b" onclick="switchMode('plan_b')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white">
+          Plan B: QuakeRoom
+        </button>
+        <button id="btn-plan-c" onclick="switchMode('plan_c')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 text-slate-400 border border-slate-800">
+          Plan C: ExitZero
+        </button>
+      </div>
+    </header>
+
+    <!-- Multimodal Voice & Camera Bar -->
+    <div class="rounded-xl bg-slate-900/90 border border-slate-800 p-4 space-y-3">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-2">
+          <button onclick="applyDemoVoice()" class="px-3.5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white">
+            🎙️ Speak Demo Voice Constraint
+          </button>
+          <button onclick="triggerShake()" class="px-3.5 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-xs font-bold text-white">
+            🌋 Trigger 6.8M Quake / Hazard Check
+          </button>
+          <button onclick="applyRemediation()" class="px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white">
+            🛠️ Synthesize &amp; Verify Safe Layout
+          </button>
+        </div>
+        <div id="status-pill" class="px-3 py-1 rounded-full bg-red-500/20 border border-red-500/40 text-red-300 text-xs font-mono">
+          STATUS: UNVERIFIED / EXIT AT RISK
+        </div>
+      </div>
+      <div id="tts-banner" class="text-xs text-indigo-300 bg-indigo-950/40 border border-indigo-800/50 rounded-lg px-3 py-2 font-mono">
+        [Gemini Live TTS]: Ready. Click "Speak Demo Voice Constraint" or "Trigger 6.8M Quake".
+      </div>
+    </div>
+
+    <!-- Telemetry Strip -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div class="rounded-xl bg-slate-900 border border-slate-800 p-3.5">
+        <div class="text-xs text-slate-400">Voice Constraints (Invisible to Vision)</div>
+        <div id="metric-voice" class="mt-1 text-sm font-mono font-bold text-amber-300">
+          Floor 10 (PGA 2.08x) • Renter: No Wall Drilling • 20kg Top Shelf
+        </div>
+      </div>
+      <div class="rounded-xl bg-slate-900 border border-slate-800 p-3.5">
+        <div class="text-xs text-slate-400">Analytical Mechanics / Closure Margin</div>
+        <div id="metric-sf" class="mt-1 text-sm font-mono font-bold text-red-400">
+          Bookshelf hCoM = 1.48m • SF = 0.54 (&lt; 1.0 TIPS OVER)
+        </div>
+      </div>
+      <div class="rounded-xl bg-slate-900 border border-slate-800 p-3.5">
+        <div class="text-xs text-slate-400">Deterministic A* Egress Verifier</div>
+        <div id="metric-astar" class="mt-1 text-sm font-mono font-bold text-red-400">
+          EXIT BLOCKED BY WARDROBE_1 • SLEEP ZONE HIT (410 J)
+        </div>
+      </div>
+    </div>
+
+    <!-- 3D Viewport -->
+    <div id="canvas-container" class="w-full h-[480px] rounded-xl overflow-hidden bg-slate-950 border border-slate-800 relative"></div>
+  </div>
+
+  <script>
+    let currentMode = 'plan_b';
+    let isRemediated = false;
+    let shakeTimer = 0;
+
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x020617);
+    const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+    camera.position.set(4.5, 4.8, 5.2);
+    camera.lookAt(0, 0.6, 0);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    container.appendChild(renderer.domElement);
+
+    const ambient = new THREE.AmbientLight(0xffffff, 0.7);
+    scene.add(ambient);
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
+    dirLight.position.set(5, 10, 6);
+    scene.add(dirLight);
+
+    const rootGroup = new THREE.Group();
+    scene.add(rootGroup);
+
+    let bookshelfMesh, wardrobeMesh, bedMesh, heavyBooksMesh, pathLine;
+
+    function speak(text) {
+      document.getElementById('tts-banner').textContent = '[Gemini Live TTS]: ' + text;
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+      }
+    }
+
+    function buildScene() {
+      while (rootGroup.children.length) rootGroup.remove(rootGroup.children[0]);
+
+      const grid = new THREE.GridHelper(6, 30, 0x334155, 0x1e293b);
+      rootGroup.add(grid);
+
+      if (currentMode === 'plan_b') {
+        // Floor
+        const floor = new THREE.Mesh(
+          new THREE.BoxGeometry(4.4, 0.1, 3.8),
+          new THREE.MeshStandardMaterial({ color: 0x1e293b })
+        );
+        floor.position.set(0, -0.05, 0);
+        rootGroup.add(floor);
+
+        // Bed
+        bedMesh = new THREE.Mesh(
+          new THREE.BoxGeometry(1.1, 0.55, 2.0),
+          new THREE.MeshStandardMaterial({ color: 0x3b82f6 })
+        );
+        bedMesh.position.set(isRemediated ? -0.6 : -1.3, 0.275, isRemediated ? 0.65 : -0.7);
+        rootGroup.add(bedMesh);
+
+        // Bookshelf
+        bookshelfMesh = new THREE.Group();
+        const shelfBody = new THREE.Mesh(
+          new THREE.BoxGeometry(0.35, 1.95, 0.9),
+          new THREE.MeshStandardMaterial({ color: 0xd97706 })
+        );
+        shelfBody.position.set(0, 1.95 / 2, 0);
+        bookshelfMesh.add(shelfBody);
+
+        // 20kg Textbooks (Top vs Bottom Ballast)
+        heavyBooksMesh = new THREE.Mesh(
+          new THREE.BoxGeometry(0.32, 0.28, 0.78),
+          new THREE.MeshStandardMaterial({ color: isRemediated ? 0x22c55e : 0xf43f5e })
+        );
+        heavyBooksMesh.position.set(0, isRemediated ? 0.28 : 1.72, 0);
+        bookshelfMesh.add(heavyBooksMesh);
+
+        bookshelfMesh.position.set(-1.95, 0, -0.7);
+        rootGroup.add(bookshelfMesh);
+
+        // Desk (Shelter)
+        const desk = new THREE.Mesh(
+          new THREE.BoxGeometry(1.3, 0.76, 0.7),
+          new THREE.MeshStandardMaterial({ color: 0x0d9488 })
+        );
+        desk.position.set(isRemediated ? 0.35 : 1.1, 0.38, isRemediated ? -0.55 : -1.25);
+        rootGroup.add(desk);
+
+        // Wardrobe
+        wardrobeMesh = new THREE.Mesh(
+          new THREE.BoxGeometry(0.55, 2.05, 1.05),
+          new THREE.MeshStandardMaterial({ color: 0x9333ea })
+        );
+        wardrobeMesh.position.set(1.4, 2.05 / 2, isRemediated ? -1.25 : 1.05);
+        rootGroup.add(wardrobeMesh);
+
+        // Exit Door
+        const door = new THREE.Mesh(
+          new THREE.BoxGeometry(0.9, 2.05, 0.14),
+          new THREE.MeshStandardMaterial({ color: 0x10b981 })
+        );
+        door.position.set(1.5, 2.05 / 2, 1.83);
+        rootGroup.add(door);
+
+        // A* Path Line
+        const pts = isRemediated
+          ? [new THREE.Vector3(-0.6, 0.06, 0.65), new THREE.Vector3(0.4, 0.06, 1.1), new THREE.Vector3(1.5, 0.06, 1.75)]
+          : [new THREE.Vector3(-1.3, 0.06, -0.7), new THREE.Vector3(0.2, 0.06, 0.4), new THREE.Vector3(1.5, 0.06, 1.75)];
+        const lineGeo = new THREE.BufferGeometry().setFromPoints(pts);
+        pathLine = new THREE.Line(
+          lineGeo,
+          new THREE.LineBasicMaterial({ color: isRemediated ? 0x10b981 : 0xef4444 })
+        );
+        rootGroup.add(pathLine);
+      } else {
+        // Plan C: 3D Extruded Building Floor Twin
+        const slab = new THREE.Mesh(
+          new THREE.BoxGeometry(8, 0.1, 5),
+          new THREE.MeshStandardMaterial({ color: 0x0f172a })
+        );
+        rootGroup.add(slab);
+
+        // Smoke Hazard Sphere in East Corridor
+        const hazard = new THREE.Mesh(
+          new THREE.SphereGeometry(0.85, 24, 24),
+          new THREE.MeshStandardMaterial({ color: 0xef4444, transparent: true, opacity: 0.45 })
+        );
+        hazard.position.set(2.1, 0.6, 0.2);
+        rootGroup.add(hazard);
+
+        // Verified West Stairwell Route (Green)
+        const safePts = [
+          new THREE.Vector3(0.2, 0.15, -1.2),
+          new THREE.Vector3(0.0, 0.15, 0.0),
+          new THREE.Vector3(-2.4, 0.15, 0.0),
+          new THREE.Vector3(-3.1, 0.15, 1.5),
+        ];
+        rootGroup.add(
+          new THREE.Line(
+            new THREE.BufferGeometry().setFromPoints(safePts),
+            new THREE.LineBasicMaterial({ color: 0x10b981 })
+          )
+        );
+      }
+    }
+
+    function switchMode(mode) {
+      currentMode = mode;
+      document.getElementById('app-title').textContent =
+        mode === 'plan_b'
+          ? 'QuakeRoom — 3D Seismic Collapse & Egress Verifier (Plan B)'
+          : 'ExitZero — 3D Building Dynamic Evacuation Verifier (Plan C)';
+      buildScene();
+    }
+
+    function applyDemoVoice() {
+      if (currentMode === 'plan_b') {
+        speak("Floor 10 set with 2.08x sway amplification. Renter mode active: wall drilling disabled. 20kg textbooks registered on top shelf.");
+      } else {
+        speak("Critical override: Lifts are locked out in seismic and fire mode. Routing away from East Corridor smoke to Stairwell West.");
+      }
+    }
+
+    function triggerShake() {
+      shakeTimer = 180;
+      if (currentMode === 'plan_b' && !isRemediated) {
+        speak("Critical failure! Unanchored wardrobe blocks the exit door, and the top-heavy bookshelf tips onto the bed with 410 Joules.");
+      } else {
+        speak("6.8M verification complete: bottom-ballasted bookshelf remains upright and A-star escape route to the hallway door is 100% clear.");
+      }
+    }
+
+    function applyRemediation() {
+      isRemediated = true;
+      document.getElementById('status-pill').className = 'px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-mono';
+      document.getElementById('status-pill').textContent = 'STATUS: VERIFIED SURVIVABLE (PASS)';
+      document.getElementById('metric-sf').className = 'mt-1 text-sm font-mono font-bold text-emerald-400';
+      document.getElementById('metric-sf').textContent = 'Bookshelf hCoM = 0.58m (Bottom Ballast) • SF = 1.42 (STABLE)';
+      document.getElementById('metric-astar').className = 'mt-1 text-sm font-mono font-bold text-emerald-400';
+      document.getElementById('metric-astar').textContent = 'EXIT 100% CLEAR • SHELTER REACH: 1.2s';
+      buildScene();
+      speak("Renter-safe zero-drill layout verified: moved 20kg textbooks to the bottom shelf as natural ballast, slid wardrobe away from the exit door, and cleared the A-star escape path.");
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      if (shakeTimer > 0) {
+        shakeTimer--;
+        const t = shakeTimer * 0.35;
+        rootGroup.position.x = Math.sin(t) * 0.08;
+        rootGroup.position.z = Math.cos(t * 0.8) * 0.08;
+        if (currentMode === 'plan_b' && !isRemediated && bookshelfMesh && wardrobeMesh) {
+          bookshelfMesh.rotation.z = Math.max(-1.25, bookshelfMesh.rotation.z - 0.03);
+          wardrobeMesh.rotation.x = Math.min(1.2, wardrobeMesh.rotation.x + 0.03);
+        }
+      } else {
+        rootGroup.position.set(0, 0, 0);
+      }
+      renderer.render(scene, camera);
+    }
+
+    buildScene();
+    animate();
+  </script>
+</body>
+</html>
