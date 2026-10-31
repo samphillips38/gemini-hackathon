@@ -2246,7 +2246,7 @@
         document.getElementById('cmd-q-fix').textContent = '🛠️ Apply Argon Fix · Re-Verify 50x';
       }
       const extStr = geminiState.extractedCount !== null
-        ? 'Gemini 4 Argon recovered <strong>' + geminiState.extractedCount + ' / ' + geminiState.totalGroundTruth + '</strong> objects from walk video (' + (pData.note || 'pushkar/extraction_evaluation.json') + ').'
+        ? 'Gemini 4 Argon recovered <strong>' + geminiState.extractedCount + ' / ' + geminiState.totalGroundTruth + '</strong> objects from walk video (' + (pData.median_position_error_m ? 'median error ' + pData.median_position_error_m.toFixed(2) + ' m, mean ' + pData.mean_position_error_m.toFixed(2) + ' m' : (pData.note || 'pushkar/extraction_evaluation.json')) + ').'
         : 'Ground truth: <strong>52 objects</strong> in <code>slava/route_A/scene.json</code>.';
       const fixStr = geminiState.argonFixLoaded
         ? ' Live Argon layout loaded from <code>ava/results/argon_fix_main_exit.json</code>.'

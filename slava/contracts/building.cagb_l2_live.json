@@ -555,5 +555,16 @@
       }
     ],
     "provenance_note": "Computed by slava/viewer/index.html runMonteCarlo() over 8 route-adjacent hazards from slava/route_A/scene.json. Seeded N=50 runs per PGA level."
+  },
+  "gemini_extraction_evaluation": {
+    "source": "pushkar/extraction_evaluation.json",
+    "ground_truth_path": "slava/route_A/scene.json",
+    "ground_truth_object_count": 52,
+    "extracted_object_count": 52,
+    "recovered_object_count": 52,
+    "recovery_rate_pct": 100,
+    "mean_position_error_m": 0.196,
+    "median_position_error_m": 0.157,
+    "max_position_error_m": 0.332
   }
 }
