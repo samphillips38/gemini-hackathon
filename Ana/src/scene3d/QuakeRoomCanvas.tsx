@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useMemo, useEffect } from "react";
+import React, { useRef, useMemo, useEffect, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import {
   OrbitControls,
@@ -23,6 +23,7 @@ interface QuakeRoomCanvasProps {
   isShaking: boolean;
   hasCollapsed: boolean;
   walkthroughActive: boolean;
+  fullScreen?: boolean;
   titleBadge?: string;
 }
 
@@ -123,24 +124,29 @@ function useRugTexture() {
 }
 
 /**
- * First-Person WASD + Guided Escape Walkthrough Controller
+ * First-Person Human Eye-Level Inside Room Controller (Mouse Drag 360° Look + WASD Walk + Optional Auto-Tour)
  */
 function WalkthroughController({
   active,
+  autoWalk,
   escapePath,
   shelterSpot,
   roomWidth,
   roomDepth,
 }: {
   active: boolean;
+  autoWalk: boolean;
   escapePath: Array<{ x_m: number; z_m: number }>;
   shelterSpot: { x_m: number; z_m: number; label: string } | null;
   roomWidth: number;
   roomDepth: number;
 }) {
-  const { camera } = useThree();
+  const { camera, gl } = useThree();
   const keys = useRef<{ [key: string]: boolean }>({});
   const progressRef = useRef(0);
+  const isDragging = useRef(false);
+  const yawRef = useRef(-0.48); // Looking across the bedroom toward bookcase, window, desk & door
+  const pitchRef = useRef(-0.08);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -149,37 +155,63 @@ function WalkthroughController({
     const onKeyUp = (e: KeyboardEvent) => {
       keys.current[e.code] = false;
     };
+    const dom = gl.domElement;
+    const onPointerDown = () => {
+      isDragging.current = true;
+    };
+    const onPointerUp = () => {
+      isDragging.current = false;
+    };
+    const onPointerMove = (e: PointerEvent) => {
+      if (!active || !isDragging.current) return;
+      yawRef.current -= e.movementX * 0.004;
+      pitchRef.current = THREE.MathUtils.clamp(
+        pitchRef.current - e.movementY * 0.0035,
+        -0.75,
+        0.65
+      );
+    };
+
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("keyup", onKeyUp);
+    dom.addEventListener("pointerdown", onPointerDown);
+    window.addEventListener("pointerup", onPointerUp);
+    window.addEventListener("pointermove", onPointerMove);
     return () => {
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
+      dom.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("pointerup", onPointerUp);
+      window.removeEventListener("pointermove", onPointerMove);
     };
-  }, []);
+  }, [active, gl.domElement]);
 
   useEffect(() => {
     if (active) {
       progressRef.current = 0;
-      const startPt = escapePath[0] || { x_m: 1.4, z_m: 2.2 };
+      // Start at human eye-height (1.58m) in the south-west doorway/bedside vantage point looking across the whole room
       camera.position.set(
-        startPt.x_m - roomWidth / 2,
-        1.55,
-        startPt.z_m - roomDepth / 2
+        -roomWidth / 2 + 0.95,
+        1.58,
+        roomDepth / 2 - 0.55
       );
+      yawRef.current = -0.52;
+      pitchRef.current = -0.1;
     } else {
       camera.position.set(2.8, 3.8, 4.9);
       camera.lookAt(0, 0.7, 0);
     }
-  }, [active, camera, escapePath, roomWidth, roomDepth]);
+  }, [active, camera, roomWidth, roomDepth]);
 
   useFrame((_, delta) => {
     if (!active) return;
 
-    const moveSpeed = 2.4 * delta;
-    const forward = new THREE.Vector3();
-    camera.getWorldDirection(forward);
-    forward.y = 0;
-    forward.normalize();
+    const moveSpeed = 2.1 * delta;
+    const forward = new THREE.Vector3(
+      -Math.sin(yawRef.current),
+      0,
+      -Math.cos(yawRef.current)
+    ).normalize();
     const right = new THREE.Vector3().crossVectors(
       forward,
       new THREE.Vector3(0, 1, 0)
@@ -203,8 +235,21 @@ function WalkthroughController({
       manualMoved = true;
     }
 
-    if (!manualMoved && escapePath.length > 1) {
-      progressRef.current = (progressRef.current + delta * 0.25) % 1;
+    // Clamp camera inside the room walls
+    camera.position.x = THREE.MathUtils.clamp(
+      camera.position.x,
+      -roomWidth / 2 + 0.35,
+      roomWidth / 2 - 0.35
+    );
+    camera.position.z = THREE.MathUtils.clamp(
+      camera.position.z,
+      -roomDepth / 2 + 0.35,
+      roomDepth / 2 - 0.35
+    );
+    camera.position.y = 1.58;
+
+    if (autoWalk && !manualMoved && !isDragging.current && escapePath.length > 1) {
+      progressRef.current = (progressRef.current + delta * 0.22) % 1;
       const floatIdx = progressRef.current * (escapePath.length - 1);
       const idx = Math.floor(floatIdx);
       const nextIdx = Math.min(escapePath.length - 1, idx + 1);
@@ -215,19 +260,23 @@ function WalkthroughController({
       const wx = THREE.MathUtils.lerp(p1.x_m, p2.x_m, alpha) - roomWidth / 2;
       const wz = THREE.MathUtils.lerp(p1.z_m, p2.z_m, alpha) - roomDepth / 2;
 
-      camera.position.lerp(new THREE.Vector3(wx, 1.48, wz), 0.12);
+      camera.position.lerp(new THREE.Vector3(wx, 1.56, wz), 0.1);
       const lookTarget = escapePath[escapePath.length - 1];
       camera.lookAt(
         lookTarget.x_m - roomWidth / 2,
-        1.1,
+        1.15,
         lookTarget.z_m - roomDepth / 2
       );
-    } else if (!manualMoved && shelterSpot) {
-      camera.lookAt(
-        shelterSpot.x_m - roomWidth / 2,
-        0.6,
-        shelterSpot.z_m - roomDepth / 2
+    } else {
+      // Look direction driven by mouse yaw/pitch
+      const lookDir = new THREE.Vector3(
+        -Math.sin(yawRef.current) * Math.cos(pitchRef.current),
+        Math.sin(pitchRef.current),
+        -Math.cos(yawRef.current) * Math.cos(pitchRef.current)
       );
+      const target = camera.position.clone().add(lookDir.multiplyScalar(3));
+      void shelterSpot;
+      camera.lookAt(target);
     }
   });
 
@@ -961,11 +1010,13 @@ function ShakeTableRoom({
   evaluation,
   isShaking,
   hasCollapsed,
+  firstPersonInside,
 }: {
   scene: RoomSceneGraph;
   evaluation: EgressAndShelterResult;
   isShaking: boolean;
   hasCollapsed: boolean;
+  firstPersonInside: boolean;
 }) {
   const tableRef = useRef<THREE.Group>(null);
   const { width_m, depth_m, height_m } = scene.room;
@@ -1005,6 +1056,8 @@ function ShakeTableRoom({
     );
   }, [evaluation.escape_path_points_m, width_m, depth_m]);
 
+  const frontWallHeight = firstPersonInside ? height_m : 0.28;
+
   return (
     <group ref={tableRef}>
       {/* ==================== OAK HARDWOOD FLOOR SLAB ==================== */}
@@ -1029,6 +1082,7 @@ function ShakeTableRoom({
       </mesh>
 
       {/* ==================== ARCHITECTURAL PLASTER WALLS & BASEBOARDS ==================== */}
+      {/* North Back Wall */}
       <mesh
         position={[0, height_m / 2, -depth_m / 2 - 0.06]}
         receiveShadow
@@ -1042,6 +1096,7 @@ function ShakeTableRoom({
         <meshStandardMaterial color="#f8fafc" roughness={0.4} />
       </mesh>
 
+      {/* West Left Wall */}
       <mesh
         position={[-width_m / 2 - 0.06, height_m / 2, 0]}
         receiveShadow
@@ -1055,14 +1110,56 @@ function ShakeTableRoom({
         <meshStandardMaterial color="#f8fafc" roughness={0.4} />
       </mesh>
 
-      <mesh position={[width_m / 2 + 0.06, 0.14, 0]} receiveShadow>
-        <boxGeometry args={[0.12, 0.28, depth_m + 0.24]} />
-        <meshStandardMaterial color="#94a3b8" roughness={0.7} />
+      {/* East Right Wall (Full height in 1st-Person Inside view, low cutaway in Orbit view) */}
+      <mesh position={[width_m / 2 + 0.06, frontWallHeight / 2, 0]} receiveShadow>
+        <boxGeometry args={[0.12, frontWallHeight, depth_m + 0.24]} />
+        <meshStandardMaterial color="#e2e8f0" roughness={0.82} />
       </mesh>
-      <mesh position={[0, 0.14, depth_m / 2 + 0.06]} receiveShadow>
-        <boxGeometry args={[width_m + 0.24, 0.28, 0.12]} />
-        <meshStandardMaterial color="#94a3b8" roughness={0.7} />
+      <mesh position={[width_m / 2 - 0.01, 0.06, 0]}>
+        <boxGeometry args={[0.025, 0.12, depth_m]} />
+        <meshStandardMaterial color="#f8fafc" roughness={0.4} />
       </mesh>
+
+      {/* South Front Wall (Full height in 1st-Person Inside view, low cutaway in Orbit view) */}
+      <mesh position={[0, frontWallHeight / 2, depth_m / 2 + 0.06]} receiveShadow>
+        <boxGeometry args={[width_m + 0.24, frontWallHeight, 0.12]} />
+        <meshStandardMaterial color="#cbd5e1" roughness={0.82} />
+      </mesh>
+      <mesh position={[0, 0.06, depth_m / 2 - 0.01]}>
+        <boxGeometry args={[width_m, 0.12, 0.025]} />
+        <meshStandardMaterial color="#f8fafc" roughness={0.4} />
+      </mesh>
+
+      {/* ==================== ARCHITECTURAL CEILING + RECESSED DOWNLIGHTS (IN 1ST PERSON) ==================== */}
+      {firstPersonInside && (
+        <group position={[0, height_m, 0]}>
+          <mesh position={[0, 0.05, 0]} receiveShadow>
+            <boxGeometry args={[width_m + 0.24, 0.1, depth_m + 0.24]} />
+            <meshStandardMaterial color="#f8fafc" roughness={0.9} />
+          </mesh>
+          {/* Central Modern Ceiling Pendant Light Fixture */}
+          <mesh position={[0, -0.08, 0]}>
+            <cylinderGeometry args={[0.32, 0.36, 0.08, 24]} />
+            <meshStandardMaterial
+              color="#fef3c7"
+              emissive="#fde68a"
+              emissiveIntensity={0.95}
+            />
+          </mesh>
+          {/* 4 Recessed Warm Ceiling Downlights */}
+          {[
+            [-width_m * 0.28, -depth_m * 0.28],
+            [width_m * 0.28, -depth_m * 0.28],
+            [-width_m * 0.28, depth_m * 0.28],
+            [width_m * 0.28, depth_m * 0.28],
+          ].map(([lx, lz], i) => (
+            <mesh key={i} position={[lx, -0.01, lz]} rotation={[Math.PI / 2, 0, 0]}>
+              <circleGeometry args={[0.09, 16]} />
+              <meshBasicMaterial color="#fef08a" side={THREE.DoubleSide} />
+            </mesh>
+          ))}
+        </group>
+      )}
 
       {/* Framed Architectural Art Print on West Wall Above Bed */}
       <group
@@ -1198,12 +1295,21 @@ export default function QuakeRoomCanvas({
   isShaking,
   hasCollapsed,
   walkthroughActive,
+  fullScreen = true,
   titleBadge,
 }: QuakeRoomCanvasProps) {
+  const [autoWalk, setAutoWalk] = useState(false);
+
   return (
-    <div className="relative w-full h-full min-h-[440px] bg-slate-950 rounded-xl overflow-hidden border border-slate-800">
+    <div
+      className={`relative w-full bg-slate-950 overflow-hidden ${
+        fullScreen
+          ? "h-screen rounded-none border-0"
+          : "h-[580px] rounded-2xl border border-slate-800 shadow-2xl"
+      }`}
+    >
       {titleBadge && (
-        <div className="absolute top-3 left-3 z-10 px-3 py-1.5 rounded-lg bg-slate-900/90 border border-slate-700 text-xs font-semibold text-slate-200 flex items-center gap-2 shadow-lg">
+        <div className="absolute top-20 left-4 z-10 px-3.5 py-1.5 rounded-xl bg-slate-900/85 backdrop-blur-md border border-slate-700/80 text-xs font-semibold text-slate-200 flex items-center gap-2.5 shadow-xl pointer-events-none">
           <span>{titleBadge}</span>
           <span
             className={`px-2 py-0.5 rounded text-[10px] font-bold ${
@@ -1220,14 +1326,26 @@ export default function QuakeRoomCanvas({
       )}
 
       {walkthroughActive && (
-        <div className="absolute bottom-3 left-3 z-10 px-3 py-1.5 rounded-lg bg-emerald-950/90 border border-emerald-600/50 text-xs text-emerald-200">
-          First-Person Walkthrough Active: Auto-gliding along A* Escape Route (or use WASD / Arrow Keys)
+        <div className="absolute bottom-5 left-4 z-10 flex flex-wrap items-center gap-2">
+          <div className="px-3.5 py-2 rounded-xl bg-slate-900/85 backdrop-blur-md border border-emerald-500/40 text-xs text-emerald-200 shadow-lg">
+            👁️ <strong>First-Person Inside Room:</strong> Drag mouse to look 360° • Use <strong>W A S D / Arrow Keys</strong> to walk inside room
+          </div>
+          <button
+            onClick={() => setAutoWalk((v) => !v)}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold border transition shadow-lg ${
+              autoWalk
+                ? "bg-emerald-600 text-white border-emerald-400"
+                : "bg-slate-900/90 text-slate-200 border-slate-700 hover:border-emerald-500/50"
+            }`}
+          >
+            {autoWalk ? "🚶 Auto-Walk Escape Route: ON" : "🚶 Auto-Walk Escape Route: OFF"}
+          </button>
         </div>
       )}
 
-      <Canvas shadows camera={{ position: [2.8, 3.8, 4.9], fov: 44 }}>
+      <Canvas shadows camera={{ position: [-1.15, 1.58, 1.2], fov: 58 }}>
         <color attach="background" args={["#0b1120"]} />
-        <hemisphereLight args={["#f8fafc", "#334155", 0.75]} />
+        <hemisphereLight args={["#f8fafc", "#334155", 0.85]} />
         <directionalLight
           position={[5, 8, 5]}
           intensity={1.35}
@@ -1236,14 +1354,16 @@ export default function QuakeRoomCanvas({
           shadow-mapSize-height={2048}
           shadow-bias={-0.0005}
         />
-        <pointLight position={[-1.5, 2.4, 0]} intensity={0.45} color="#fef3c7" />
-        <pointLight position={[2.5, 2.2, -1.2]} intensity={0.4} color="#bae6fd" />
+        <pointLight position={[0, 2.35, 0]} intensity={0.85} distance={8} color="#fef3c7" />
+        <pointLight position={[-1.5, 2.2, 0]} intensity={0.45} color="#fef3c7" />
+        <pointLight position={[2.5, 2.2, -1.2]} intensity={0.45} color="#bae6fd" />
 
         <ShakeTableRoom
           scene={scene}
           evaluation={evaluation}
           isShaking={isShaking}
           hasCollapsed={hasCollapsed}
+          firstPersonInside={walkthroughActive}
         />
 
         <ContactShadows
@@ -1256,6 +1376,7 @@ export default function QuakeRoomCanvas({
 
         <WalkthroughController
           active={walkthroughActive}
+          autoWalk={autoWalk}
           escapePath={evaluation.escape_path_points_m}
           shelterSpot={evaluation.safe_shelter_spot_m}
           roomWidth={scene.room.width_m}

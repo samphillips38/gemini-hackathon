@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useRef } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import dynamic from "next/dynamic";
 import {
   Activity,
@@ -9,9 +9,13 @@ import {
   Camera,
   CheckCircle2,
   Compass,
+  Eye,
   FileUp,
   Layers,
+  Maximize2,
+  Menu,
   Mic,
+  Minimize2,
   Play,
   RotateCcw,
   ShieldAlert,
@@ -19,6 +23,7 @@ import {
   Volume2,
   Accessibility,
   SplitSquareVertical,
+  X,
 } from "lucide-react";
 
 import {
@@ -36,6 +41,8 @@ import { verifyBuildingEvacuation } from "@/solver/exitZeroSolver";
 import {
   parseVoiceConstraintTranscript,
   speakCoachMessage,
+  cyclePreferredHumanVoice,
+  getCurrentHumanVoiceLabel,
 } from "@/voice/voiceCoach";
 import {
   RoomSceneGraph,
@@ -47,8 +54,8 @@ import {
 const QuakeRoomCanvas = dynamic(() => import("@/scene3d/QuakeRoomCanvas"), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-[440px] bg-slate-900/60 animate-pulse rounded-xl flex items-center justify-center text-slate-400 text-sm">
-      Loading 3D Shake Table & Housner Physics Engine...
+    <div className="w-full h-screen bg-slate-950 flex items-center justify-center text-slate-300 text-sm">
+      Loading Realistic 3D Room & Housner Physics Engine...
     </div>
   ),
 });
@@ -56,18 +63,37 @@ const QuakeRoomCanvas = dynamic(() => import("@/scene3d/QuakeRoomCanvas"), {
 const ExitZeroCanvas = dynamic(() => import("@/scene3d/ExitZeroCanvas"), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-[440px] bg-slate-900/60 animate-pulse rounded-xl flex items-center justify-center text-slate-400 text-sm">
-      Loading 3D Extruded Building Twin & Time-Expanded Pathfinder...
+    <div className="w-full h-screen bg-slate-950 flex items-center justify-center text-slate-300 text-sm">
+      Loading Realistic 3D Building & Time-Expanded Pathfinder...
     </div>
   ),
 });
 
 export default function SeismicCommandCenter() {
-  // Mode toggle: Plan B (QuakeRoom) vs Plan C (ExitZero)
+  // Main display switcher: Room ("PLAN_B") vs Building ("PLAN_C")
   const [activePlan, setActivePlan] = useState<"PLAN_B" | "PLAN_C">("PLAN_B");
 
+  // Full-screen toggle (ON by default as requested)
+  const [fullScreenMode, setFullScreenMode] = useState<boolean>(true);
+
+  // Collapsible full menu drawer (CLOSED by default so full screen is unobstructed)
+  const [menuOpen, setMenuOpen] = useState<boolean>(false);
+
+  // Voice label state
+  const [voiceLabel, setVoiceLabel] = useState<string>("Natural Neural");
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      const updateVoices = () => {
+        setVoiceLabel(getCurrentHumanVoiceLabel());
+      };
+      window.speechSynthesis.onvoiceschanged = updateVoices;
+      updateVoices();
+    }
+  }, []);
+
   // ==========================================================================
-  // PLAN B STATE (QuakeRoom)
+  // PLAN B STATE (QuakeRoom — Starts in First-Person View inside the Room!)
   // ==========================================================================
   const [roomScene, setRoomScene] = useState<RoomSceneGraph>(
     STUDENT_BEDROOM_UNSAFE
@@ -81,7 +107,8 @@ export default function SeismicCommandCenter() {
 
   const [isShaking, setIsShaking] = useState(false);
   const [hasCollapsed, setHasCollapsed] = useState(false);
-  const [roomWalkthrough, setRoomWalkthrough] = useState(false);
+  // Start in First-Person View inside the room by default!
+  const [roomWalkthrough, setRoomWalkthrough] = useState(true);
   const [isExtractingRoom, setIsExtractingRoom] = useState(false);
   const [isRemediating, setIsRemediating] = useState(false);
   const [voiceInputText, setVoiceInputText] = useState(
@@ -116,7 +143,7 @@ export default function SeismicCommandCenter() {
   );
 
   // ==========================================================================
-  // PLAN C STATE (ExitZero)
+  // PLAN C STATE (ExitZero — Starts in First-Person View inside the Building!)
   // ==========================================================================
   const [floorGraph, setFloorGraph] =
     useState<BuildingFloorGraph>(IMPERIAL_FLOOR_GRAPH);
@@ -130,9 +157,10 @@ export default function SeismicCommandCenter() {
     "walking_running" | "wheelchair_accessible"
   >("walking_running");
   const [askedForLift, setAskedForLift] = useState(true);
-  const [buildingWalkthrough, setBuildingWalkthrough] = useState(false);
+  // Start in First-Person View inside the building by default!
+  const [buildingWalkthrough, setBuildingWalkthrough] = useState(true);
   const [planCVoiceText, setPlanCVoiceText] = useState(
-    "I'm outside Lecture Theatre 1 (Room 302)! The main east corridor just collapsed—what's the fastest route to the lift?!"
+    "I'm outside Lecture Theatre 1 (Room 302)! The main east corridor just collapsed — what's the fastest route to the lift?!"
   );
   const [isScanningHazard, setIsScanningHazard] = useState(false);
   const floorPlanInputRef = useRef<HTMLInputElement>(null);
@@ -169,12 +197,12 @@ export default function SeismicCommandCenter() {
       setHasCollapsed(true);
       if (!currentEvaluation.survivable) {
         speakCoachMessage(
-          "Critical failure! You cannot reach the exit door—and never take a lift in a seismic event. Your wardrobe's 2-meter fall shadow seals the exit door, and the top-heavy bookshelf crushes the sleep zone.",
+          "Critical alert. You cannot reach the exit door right now, and never take an elevator during an earthquake. Your wardrobe has tipped across the doorway, and the top-heavy bookshelf fell into the bed zone.",
           true
         );
       } else {
         speakCoachMessage(
-          "Verification passed! Zero casualties, bottom-weighted shelves stayed upright, and the green A-star evacuation path to the exit door is 100 percent clear.",
+          "Room verification passed! Because your heavy textbooks are now on the bottom shelf and the wardrobe was shifted away from the door, everything stayed safe and your escape path is completely clear.",
           false
         );
       }
@@ -198,9 +226,9 @@ export default function SeismicCommandCenter() {
       return next;
     });
     speakCoachMessage(
-      `Updated physics constraints: Floor ${
+      `Got it. I've updated the room physics for floor ${
         parsed.floorLevel || roomScene.room.floor_level
-      } sway amplification enabled, Renter No-Drill constraint active.`,
+      } sway amplification, and enabled renter-friendly no-drill mode.`,
       false
     );
   };
@@ -256,21 +284,20 @@ export default function SeismicCommandCenter() {
       const data = await res.json();
       const proposal: RemediationProposal =
         data.proposal || DEFAULT_REMEDIATION_PROPOSAL;
-      // Sync magnitude and floor level with current slider
       proposal.updated_scene.earthquake.magnitude_mw =
         roomScene.earthquake.magnitude_mw;
       proposal.updated_scene.room.floor_level = roomScene.room.floor_level;
 
       setRemediationProposal(proposal);
       setRemediatedScene(proposal.updated_scene);
-      setSplitScreenCompare(true);
-      setHasCollapsed(true);
+      setRoomScene(proposal.updated_scene);
+      setHasCollapsed(false);
       speakCoachMessage(proposal.summary_spoken, false);
     } catch (e) {
       console.error(e);
       setRemediationProposal(DEFAULT_REMEDIATION_PROPOSAL);
       setRemediatedScene(STUDENT_BEDROOM_REMEDIATED);
-      setSplitScreenCompare(true);
+      setRoomScene(STUDENT_BEDROOM_REMEDIATED);
     } finally {
       setIsRemediating(false);
     }
@@ -357,585 +384,584 @@ export default function SeismicCommandCenter() {
     reader.readAsDataURL(file);
   };
 
+  const isFirstPersonActive =
+    activePlan === "PLAN_B" ? roomWalkthrough : buildingWalkthrough;
+
+  const toggleFirstPersonView = () => {
+    if (activePlan === "PLAN_B") {
+      setRoomWalkthrough((v) => !v);
+    } else {
+      setBuildingWalkthrough((v) => !v);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      {/* TOP COMMAND HEADER */}
-      <header className="border-b border-slate-800 bg-slate-900/80 backdrop-blur px-6 py-3.5 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-            <Activity className="h-6 w-6 text-slate-950" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-lg font-bold tracking-tight text-white">
-                SeismicTwin 3D
-              </h1>
-              <span className="px-2 py-0.5 text-[11px] font-semibold rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-                Gemini 4 Argon + Deterministic Physics & A* Verifier
-              </span>
+    <div
+      className={`relative bg-slate-950 text-slate-100 ${
+        fullScreenMode
+          ? "w-screen h-screen overflow-hidden"
+          : "min-h-screen p-6"
+      }`}
+    >
+      {/* ==================================================================== */}
+      {/* FLOATING MINIMAL TOP HUD BAR (ALWAYS ACCESSIBLE, UNOBSTRUCTED 3D)    */}
+      {/* ==================================================================== */}
+      <header
+        className={`${
+          fullScreenMode
+            ? "fixed top-3 left-3 right-3 z-30"
+            : "mb-4"
+        } flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 rounded-2xl bg-slate-900/85 backdrop-blur-xl border border-slate-700/80 shadow-2xl`}
+      >
+        {/* Left: Brand & Room vs Building Switcher */}
+        <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex items-center gap-2 pr-2 border-r border-slate-700/80">
+            <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-emerald-500 to-cyan-600 flex items-center justify-center shadow-md">
+              <Activity className="h-4 w-4 text-slate-950" />
             </div>
-            <p className="text-xs text-slate-400">
-              Upload Room Video / Blueprint → 3D Quake Simulation → Structural Remediation → First-Person Escape Walkthrough
-            </p>
+            <span className="text-sm font-bold tracking-tight text-white hidden sm:inline">
+              SeismicTwin 3D
+            </span>
           </div>
+
+          {/* ROOM vs BUILDING DISPLAY SWITCH BUTTONS */}
+          <div className="flex items-center gap-1 bg-slate-950/90 p-1 rounded-xl border border-slate-800">
+            <button
+              onClick={() => setActivePlan("PLAN_B")}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                activePlan === "PLAN_B"
+                  ? "bg-emerald-500 text-slate-950 shadow-md"
+                  : "text-slate-300 hover:text-white"
+              }`}
+            >
+              <Layers className="h-3.5 w-3.5" />
+              🏠 3D Room Display
+            </button>
+            <button
+              onClick={() => setActivePlan("PLAN_C")}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                activePlan === "PLAN_C"
+                  ? "bg-cyan-500 text-slate-950 shadow-md"
+                  : "text-slate-300 hover:text-white"
+              }`}
+            >
+              <Building2 className="h-3.5 w-3.5" />
+              🏢 3D Building Display
+            </button>
+          </div>
+
+          {/* 1ST PERSON (INSIDE) vs 3D ORBIT SWITCHER */}
+          <button
+            onClick={toggleFirstPersonView}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold border transition flex items-center gap-1.5 ${
+              isFirstPersonActive
+                ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/50"
+                : "bg-slate-800/90 text-slate-200 border-slate-700 hover:border-slate-500"
+            }`}
+          >
+            <Eye className="h-3.5 w-3.5" />
+            {isFirstPersonActive
+              ? "👁️ View: 1st Person (Inside)"
+              : "🌐 View: 3D Dollhouse Orbit"}
+          </button>
+
+          {/* FULL SCREEN ON / OFF BUTTON */}
+          <button
+            onClick={() => setFullScreenMode((v) => !v)}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition flex items-center gap-1.5 ${
+              fullScreenMode
+                ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/50"
+                : "bg-slate-800/90 text-slate-300 border-slate-700"
+            }`}
+          >
+            {fullScreenMode ? (
+              <>
+                <Minimize2 className="h-3.5 w-3.5" />
+                Full Screen: ON
+              </>
+            ) : (
+              <>
+                <Maximize2 className="h-3.5 w-3.5" />
+                Full Screen: OFF
+              </>
+            )}
+          </button>
         </div>
 
-        {/* PLAN B vs PLAN C MODE SWITCHER */}
-        <div className="flex items-center gap-2 bg-slate-950 p-1.5 rounded-xl border border-slate-800">
+        {/* Right: Quick Simulation Actions + Human Voice Switcher + Menu Toggle Button */}
+        <div className="flex flex-wrap items-center gap-2">
+          {activePlan === "PLAN_B" ? (
+            <>
+              <button
+                onClick={handleTriggerQuake}
+                disabled={isShaking}
+                className="px-3.5 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-xs font-bold text-white shadow-lg flex items-center gap-1.5 transition"
+              >
+                <Play className="h-3.5 w-3.5" />
+                {isShaking ? "Shaking..." : "Simulate Quake"}
+              </button>
+              <button
+                onClick={handleSynthesizeRemediation}
+                disabled={isRemediating}
+                className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white shadow-lg flex items-center gap-1.5 transition"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                {isRemediating ? "Fixing..." : "Apply Renter Fix"}
+              </button>
+              <button
+                onClick={() => {
+                  setRoomScene(STUDENT_BEDROOM_UNSAFE);
+                  setRemediatedScene(null);
+                  setSplitScreenCompare(false);
+                  setHasCollapsed(false);
+                }}
+                className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-300 transition"
+                title="Reset Unsafe Room"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() =>
+                  setLiveHazards((prev) =>
+                    prev.length > 0 ? [] : DEFAULT_LIVE_HAZARDS
+                  )
+                }
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold border transition flex items-center gap-1.5 ${
+                  liveHazards.length > 0
+                    ? "bg-red-600 text-white border-red-400"
+                    : "bg-slate-800 text-slate-300 border-slate-700"
+                }`}
+              >
+                <AlertTriangle className="h-3.5 w-3.5" />
+                {liveHazards.length > 0
+                  ? "East Corridor Blocked"
+                  : "Corridors Clear"}
+              </button>
+              <button
+                onClick={() =>
+                  setMobilityMode((m) =>
+                    m === "walking_running"
+                      ? "wheelchair_accessible"
+                      : "walking_running"
+                  )
+                }
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition flex items-center gap-1.5 ${
+                  mobilityMode === "wheelchair_accessible"
+                    ? "bg-purple-600 text-white border-purple-400"
+                    : "bg-slate-800 text-slate-300 border-slate-700"
+                }`}
+              >
+                <Accessibility className="h-3.5 w-3.5" />
+                {mobilityMode === "wheelchair_accessible"
+                  ? "♿ Wheelchair Refuge"
+                  : "🚶 Walking Mode"}
+              </button>
+            </>
+          )}
+
+          {/* HUMAN VOICE SWITCHER BUTTON */}
           <button
-            onClick={() => setActivePlan("PLAN_B")}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
-              activePlan === "PLAN_B"
-                ? "bg-emerald-500 text-slate-950 shadow-md"
-                : "text-slate-400 hover:text-white"
-            }`}
+            onClick={() => {
+              const nextName = cyclePreferredHumanVoice();
+              setVoiceLabel(nextName);
+            }}
+            className="px-3 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-amber-300 flex items-center gap-1.5 transition"
+            title="Click to switch to another human-like voice"
           >
-            <Layers className="h-4 w-4" />
-            Plan B: QuakeRoom (3D Room Collapse & Fix)
+            <Volume2 className="h-3.5 w-3.5" />
+            <span className="hidden md:inline">Voice:</span>{" "}
+            <span className="max-w-[110px] truncate">{voiceLabel}</span>
           </button>
+
+          {/* OPEN / CLOSE FULL MENU BUTTON */}
           <button
-            onClick={() => setActivePlan("PLAN_C")}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
-              activePlan === "PLAN_C"
-                ? "bg-cyan-500 text-slate-950 shadow-md"
-                : "text-slate-400 hover:text-white"
+            onClick={() => setMenuOpen((v) => !v)}
+            className={`px-4 py-1.5 rounded-xl text-xs font-bold border transition flex items-center gap-1.5 shadow-lg ${
+              menuOpen
+                ? "bg-amber-500 text-slate-950 border-amber-400"
+                : "bg-slate-100 text-slate-950 border-white hover:bg-emerald-400"
             }`}
           >
-            <Building2 className="h-4 w-4" />
-            Plan C: ExitZero (3D Floor-Plan Evacuation Twin)
+            {menuOpen ? (
+              <>
+                <X className="h-4 w-4" />
+                Hide Menu
+              </>
+            ) : (
+              <>
+                <Menu className="h-4 w-4" />
+                Open Full Menu
+              </>
+            )}
           </button>
         </div>
       </header>
 
       {/* ==================================================================== */}
-      {/* PLAN B: QUAKEROOM VIEW */}
+      {/* MAIN 3D VIEWPORT (FULL-SCREEN OR FRAMED)                             */}
       {/* ==================================================================== */}
-      {activePlan === "PLAN_B" && (
-        <main className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-5 p-5">
-          {/* LEFT CONTROL COLUMN (4 COLS) */}
-          <div className="lg:col-span-4 space-y-4 flex flex-col">
-            {/* 1. Upload Video / Photo / Blueprint + Presets */}
-            <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <h2 className="text-sm font-bold text-white flex items-center gap-2">
-                  <Camera className="h-4 w-4 text-emerald-400" />
-                  1. Scan Room Video / Photo / Blueprint
-                </h2>
-                <span className="text-[11px] text-slate-400">Vision → 3D Graph</span>
-              </div>
-
-              <input
-                ref={roomFileInputRef}
-                type="file"
-                accept="image/*,video/*"
-                onChange={handleRoomFileUpload}
-                className="hidden"
-              />
-
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => roomFileInputRef.current?.click()}
-                  disabled={isExtractingRoom}
-                  className="px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-200 flex items-center justify-center gap-2 transition"
-                >
-                  <FileUp className="h-4 w-4 text-emerald-400" />
-                  {isExtractingRoom ? "Extracting 3D..." : "Upload Photo / Video"}
-                </button>
-                <button
-                  onClick={() => {
-                    setRoomScene(STUDENT_BEDROOM_UNSAFE);
-                    setRemediatedScene(null);
-                    setSplitScreenCompare(false);
-                    setHasCollapsed(false);
-                  }}
-                  className="px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-amber-300 flex items-center justify-center gap-1.5 transition"
-                >
-                  <RotateCcw className="h-3.5 w-3.5" />
-                  Load Imperial Student Room
-                </button>
-              </div>
-
-              {uploadedPreviewUrl && (
-                <div className="flex items-center gap-3 p-2 rounded-lg bg-slate-950 border border-slate-800">
-                  <img
-                    src={uploadedPreviewUrl}
-                    alt="Uploaded scan"
-                    className="h-12 w-16 object-cover rounded"
-                  />
-                  <div className="text-xs text-emerald-300 font-medium">
-                    Scanned & snapped to 3D floor grid via Deterministic Sanitizer
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* 2. Gemini Live Voice Context (Floor Level, Renter Mode, Shelf Loads) */}
-            <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <h2 className="text-sm font-bold text-white flex items-center gap-2">
-                  <Mic className="h-4 w-4 text-cyan-400" />
-                  2. Gemini Live Voice Constraints
-                </h2>
-                <span className="text-[11px] text-cyan-300 font-medium">
-                  Invisible Physics Context
-                </span>
-              </div>
-
-              <textarea
-                value={voiceInputText}
-                onChange={(e) => setVoiceInputText(e.target.value)}
-                rows={2}
-                className="w-full rounded-lg bg-slate-950 border border-slate-800 p-2.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500"
-                placeholder="Speak or type floor level, renter drilling rules, and shelf masses..."
-              />
-
-              <button
-                onClick={handleApplyVoiceConstraints}
-                className="w-full py-2 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/40 text-xs font-bold text-cyan-300 flex items-center justify-center gap-2 transition"
-              >
-                <Volume2 className="h-4 w-4" />
-                Apply Voice Constraints to Physics Engine
-              </button>
-
-              {/* Live Parameter Sliders */}
-              <div className="grid grid-cols-2 gap-3 pt-1">
-                <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-slate-400">Quake Magnitude:</span>
-                    <span className="font-bold text-rose-400">
-                      {roomScene.earthquake.magnitude_mw.toFixed(1)} Mw
-                    </span>
-                  </div>
-                  <input
-                    type="range"
-                    min={4.5}
-                    max={8.0}
-                    step={0.1}
-                    value={roomScene.earthquake.magnitude_mw}
-                    onChange={(e) =>
-                      setRoomScene((prev) => ({
-                        ...prev,
-                        earthquake: {
-                          ...prev.earthquake,
-                          magnitude_mw: parseFloat(e.target.value),
-                        },
-                      }))
-                    }
-                    className="w-full accent-rose-500"
-                  />
-                </div>
-
-                <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-slate-400">Building Floor:</span>
-                    <span className="font-bold text-amber-300">
-                      Floor {roomScene.room.floor_level} ({currentPgaG}g PGA)
-                    </span>
-                  </div>
-                  <input
-                    type="range"
-                    min={1}
-                    max={25}
-                    step={1}
-                    value={roomScene.room.floor_level}
-                    onChange={(e) =>
-                      setRoomScene((prev) => ({
-                        ...prev,
-                        room: {
-                          ...prev.room,
-                          floor_level: parseInt(e.target.value, 10),
-                        },
-                      }))
-                    }
-                    className="w-full accent-amber-400"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between text-xs bg-slate-950 px-3 py-2 rounded-lg border border-slate-800">
-                <span className="text-slate-300">
-                  Renter Constraint (No Wall Drilling):
-                </span>
-                <button
-                  onClick={() =>
-                    setRoomScene((prev) => ({
-                      ...prev,
-                      room: {
-                        ...prev.room,
-                        renter_no_drill: !prev.room.renter_no_drill,
-                      },
-                    }))
-                  }
-                  className={`px-2.5 py-0.5 rounded font-bold ${
-                    roomScene.room.renter_no_drill
-                      ? "bg-amber-500/20 text-amber-300 border border-amber-500/40"
-                      : "bg-slate-800 text-slate-400"
-                  }`}
-                >
-                  {roomScene.room.renter_no_drill ? "ACTIVE (Zero-Drill)" : "OFF"}
-                </button>
-              </div>
-            </div>
-
-            {/* 3. Trigger Quake & Synthesize Remediation */}
-            <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4 space-y-3">
-              <h2 className="text-sm font-bold text-white flex items-center gap-2">
-                <ShieldAlert className="h-4 w-4 text-rose-400" />
-                3. Simulate Quake & Auto-Remediate Room
-              </h2>
-
-              <div className="grid grid-cols-1 gap-2.5">
-                <button
-                  onClick={handleTriggerQuake}
-                  disabled={isShaking}
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-rose-600 to-orange-600 hover:from-rose-500 hover:to-orange-500 text-white font-bold text-xs shadow-lg shadow-rose-600/25 flex items-center justify-center gap-2 transition"
-                >
-                  <Play className="h-4 w-4 fill-current" />
-                  {isShaking
-                    ? `Shaking 3D Floor (${roomScene.earthquake.magnitude_mw}M)...`
-                    : `Trigger ${roomScene.earthquake.magnitude_mw}M Earthquake`}
-                </button>
-
-                <button
-                  onClick={handleSynthesizeRemediation}
-                  disabled={isRemediating}
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transition"
-                >
-                  <Sparkles className="h-4 w-4" />
-                  {isRemediating
-                    ? "Synthesizing & Verifying Layout..."
-                    : "Synthesize & Verify Renter-Safe Layout"}
-                </button>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => setRoomWalkthrough((w) => !w)}
-                    className={`py-2 px-3 rounded-lg text-xs font-bold border flex items-center justify-center gap-1.5 transition ${
-                      roomWalkthrough
-                        ? "bg-emerald-500 text-slate-950 border-emerald-400"
-                        : "bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700"
-                    }`}
-                  >
-                    <Compass className="h-4 w-4" />
-                    {roomWalkthrough ? "Exit 1st-Person" : "Play 1st-Person Escape"}
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      if (!remediatedScene) {
-                        setRemediatedScene(STUDENT_BEDROOM_REMEDIATED);
-                        setRemediationProposal(DEFAULT_REMEDIATION_PROPOSAL);
-                      }
-                      setSplitScreenCompare((s) => !s);
-                    }}
-                    className={`py-2 px-3 rounded-lg text-xs font-bold border flex items-center justify-center gap-1.5 transition ${
-                      splitScreenCompare
-                        ? "bg-cyan-500 text-slate-950 border-cyan-400"
-                        : "bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700"
-                    }`}
-                  >
-                    <SplitSquareVertical className="h-4 w-4" />
-                    {splitScreenCompare ? "Single 3D View" : "Split Before/After"}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* 4. Proposed Structural / Furniture Changes List */}
-            {remediationProposal && (
-              <div className="bg-emerald-950/30 border border-emerald-500/40 rounded-xl p-4 space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
-                    <CheckCircle2 className="h-4 w-4" />
-                    Gemini 4 Argon Verified Structural Fixes
-                  </h3>
-                  <button
-                    onClick={() => {
-                      if (remediatedScene) {
-                        setRoomScene(remediatedScene);
-                        setSplitScreenCompare(false);
-                      }
-                    }}
-                    className="px-2 py-1 rounded bg-emerald-500 text-slate-950 text-[11px] font-bold hover:bg-emerald-400"
-                  >
-                    Apply Fix to Main Room
-                  </button>
-                </div>
-                <p className="text-xs text-slate-300 italic">
-                  &ldquo;{remediationProposal.summary_spoken}&rdquo;
-                </p>
-                <div className="space-y-1.5 pt-1">
-                  {remediationProposal.changes.map((c, i) => (
-                    <div
-                      key={i}
-                      className="text-xs bg-slate-950/80 border border-slate-800 rounded-lg p-2"
-                    >
-                      <span className="font-bold text-emerald-400">
-                        [{c.object_id} → {c.action}]:
-                      </span>{" "}
-                      <span className="text-slate-300">{c.reason}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* RIGHT 3D VIEWPORT & TELEMETRY COLUMN (8 COLS) */}
-          <div className="lg:col-span-8 flex flex-col gap-4">
-            {/* 3D Canvas Area (Single or Split-Screen Before vs Verified After) */}
+      <div className={fullScreenMode ? "w-screen h-screen" : "w-full"}>
+        {activePlan === "PLAN_B" ? (
+          splitScreenCompare ? (
             <div
-              className={`grid gap-4 flex-1 min-h-[440px] ${
-                splitScreenCompare ? "grid-cols-1 xl:grid-cols-2" : "grid-cols-1"
+              className={`grid grid-cols-1 md:grid-cols-2 gap-2 ${
+                fullScreenMode ? "w-screen h-screen" : "w-full"
               }`}
             >
               <QuakeRoomCanvas
-                scene={roomScene}
-                evaluation={currentEvaluation}
+                scene={STUDENT_BEDROOM_UNSAFE}
+                evaluation={evaluateRoomScene(STUDENT_BEDROOM_UNSAFE)}
                 isShaking={isShaking}
-                hasCollapsed={hasCollapsed}
+                hasCollapsed={true}
                 walkthroughActive={roomWalkthrough}
-                titleBadge="BEFORE: Original Scanned Layout"
+                fullScreen={fullScreenMode}
+                titleBadge="BEFORE: UNSAFE ROOM (Top-Loaded Shelf + Door Blocked)"
               />
-
-              {splitScreenCompare && (
-                <QuakeRoomCanvas
-                  scene={remediatedScene || STUDENT_BEDROOM_REMEDIATED}
-                  evaluation={remediatedEvaluation}
-                  isShaking={isShaking}
-                  hasCollapsed={hasCollapsed}
-                  walkthroughActive={roomWalkthrough}
-                  titleBadge="VERIFIED AFTER: Renter-Safe Ballasted Layout"
-                />
-              )}
+              <QuakeRoomCanvas
+                scene={remediatedScene || STUDENT_BEDROOM_REMEDIATED}
+                evaluation={remediatedEvaluation}
+                isShaking={isShaking}
+                hasCollapsed={true}
+                walkthroughActive={roomWalkthrough}
+                fullScreen={fullScreenMode}
+                titleBadge="AFTER: RENTER-SAFE FIX (Ballast Lowered + Exit Clear)"
+              />
             </div>
+          ) : (
+            <QuakeRoomCanvas
+              scene={roomScene}
+              evaluation={currentEvaluation}
+              isShaking={isShaking}
+              hasCollapsed={hasCollapsed}
+              walkthroughActive={roomWalkthrough}
+              fullScreen={fullScreenMode}
+              titleBadge={`Floor ${roomScene.room.floor_level} Room Twin • ${roomScene.earthquake.magnitude_mw.toFixed(1)} Mw (${currentPgaG}g Floor PGA)`}
+            />
+          )
+        ) : (
+          <ExitZeroCanvas
+            floorGraph={floorGraph}
+            hazards={liveHazards}
+            verification={evacuationResult}
+            walkthroughActive={buildingWalkthrough}
+            fullScreen={fullScreenMode}
+          />
+        )}
+      </div>
 
-            {/* Deterministic Physics, N=50 Monte Carlo & A* Pathfinder Telemetry Cards */}
-            <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4 space-y-3">
-              {/* 2-Phase Official Seismic Safety Protocol Banner (Slava + Ana Spec) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                <div className="p-2.5 rounded-lg bg-cyan-950/30 border border-cyan-500/30 flex items-center justify-between text-xs">
-                  <div>
-                    <span className="font-bold text-cyan-300 uppercase tracking-wider text-[10px] block">
-                      Phase 1 — DURING Shaking (Do Not Run to Door)
-                    </span>
-                    <span className="text-slate-200 font-medium">
-                      {currentEvaluation.safe_shelter_spot_m?.label ||
-                        "Drop, Cover & Hold On Under Study Desk"}
-                    </span>
-                  </div>
-                  <span className="px-2 py-1 rounded bg-cyan-500/20 text-cyan-300 font-bold whitespace-nowrap">
-                    {currentEvaluation.shelter_reach_time_s}s reach
-                  </span>
+      {/* ==================================================================== */}
+      {/* SLIDE-OVER FULL MENU DRAWER (ONLY VISIBLE WHEN USER CLICKS MENU)     */}
+      {/* ==================================================================== */}
+      {menuOpen && (
+        <div className="fixed inset-y-0 right-0 z-40 w-full max-w-xl bg-slate-950/95 backdrop-blur-2xl border-l border-slate-800 shadow-2xl overflow-y-auto p-6 pt-20 space-y-5">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div>
+              <h2 className="text-base font-bold text-white">
+                {activePlan === "PLAN_B"
+                  ? "Plan B: QuakeRoom Controls & Physics Telemetry"
+                  : "Plan C: ExitZero Building Controls & Route Verifier"}
+              </h2>
+              <p className="text-xs text-slate-400">
+                Click &ldquo;Hide Menu&rdquo; anytime to return to unobstructed full-screen 3D view.
+              </p>
+            </div>
+            <button
+              onClick={() => setMenuOpen(false)}
+              className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          {activePlan === "PLAN_B" ? (
+            <>
+              {/* 1. Upload Video / Photo / Blueprint + Presets */}
+              <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                    <Camera className="h-4 w-4 text-emerald-400" />
+                    1. Scan Room Video / Photo / Blueprint
+                  </h3>
+                  <span className="text-[11px] text-slate-400">Vision → 3D Graph</span>
                 </div>
 
-                <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-between text-xs">
-                  <div>
-                    <span className="font-bold text-emerald-300 uppercase tracking-wider text-[10px] block">
-                      Phase 2 — AFTER Shaking Stops (Post-Collapse A* Egress)
-                    </span>
-                    <span className="text-slate-300">
-                      Walk (0.4m):{" "}
-                      <strong
-                        className={
-                          currentEvaluation.exit_reachable_post_quake
-                            ? "text-emerald-400"
-                            : "text-rose-400"
-                        }
-                      >
-                        {currentEvaluation.exit_reachable_post_quake
-                          ? "CLEAR"
-                          : "BLOCKED"}
-                      </strong>{" "}
-                      | Wheelchair (0.9m):{" "}
-                      <strong
-                        className={
-                          currentEvaluation.wheelchair_reachable_post_quake
-                            ? "text-emerald-400"
-                            : "text-rose-400"
-                        }
-                      >
-                        {currentEvaluation.wheelchair_reachable_post_quake
-                          ? "CLEAR"
-                          : "BLOCKED"}
-                      </strong>
-                    </span>
+                <input
+                  ref={roomFileInputRef}
+                  type="file"
+                  accept="image/*,video/*"
+                  onChange={handleRoomFileUpload}
+                  className="hidden"
+                />
+
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => roomFileInputRef.current?.click()}
+                    disabled={isExtractingRoom}
+                    className="px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-200 flex items-center justify-center gap-2 transition"
+                  >
+                    <FileUp className="h-4 w-4 text-emerald-400" />
+                    {isExtractingRoom ? "Extracting 3D..." : "Upload Photo / Video"}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setRoomScene(STUDENT_BEDROOM_UNSAFE);
+                      setRemediatedScene(null);
+                      setSplitScreenCompare(false);
+                      setHasCollapsed(false);
+                    }}
+                    className="px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-amber-300 flex items-center justify-center gap-1.5 transition"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5" />
+                    Reset Unsafe Student Room
+                  </button>
+                </div>
+
+                {uploadedPreviewUrl && (
+                  <div className="flex items-center gap-3 p-2 rounded-lg bg-slate-950 border border-slate-800">
+                    <img
+                      src={uploadedPreviewUrl}
+                      alt="Uploaded scan"
+                      className="h-12 w-16 object-cover rounded"
+                    />
+                    <div className="text-xs text-emerald-300 font-medium">
+                      Scanned & snapped to 3D floor grid via Deterministic Sanitizer
+                    </div>
                   </div>
-                  {currentEvaluation.monte_carlo && (
-                    <div className="text-right">
-                      <span className="text-[10px] text-slate-400 block">
-                        N={currentEvaluation.monte_carlo.runs} Monte Carlo (Seed{" "}
-                        {currentEvaluation.monte_carlo.seed})
-                      </span>
-                      <span className="font-bold text-amber-300">
-                        Walk:{" "}
-                        {Math.round(
-                          currentEvaluation.monte_carlo.exit_reachable_p.walk *
-                            100
-                        )}
-                        % ({currentEvaluation.monte_carlo.exit_clear_walk_count}/
-                        {currentEvaluation.monte_carlo.runs})
-                        {splitScreenCompare &&
-                          remediatedEvaluation.monte_carlo && (
-                            <span className="text-emerald-400 ml-1">
-                              →{" "}
-                              {Math.round(
-                                remediatedEvaluation.monte_carlo
-                                  .exit_reachable_p.walk * 100
-                              )}
-                              %
-                            </span>
-                          )}
+                )}
+              </div>
+
+              {/* 2. Gemini Live Voice Context */}
+              <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                    <Mic className="h-4 w-4 text-cyan-400" />
+                    2. Gemini Live Voice Constraints & Physics Sliders
+                  </h3>
+                </div>
+
+                <textarea
+                  value={voiceInputText}
+                  onChange={(e) => setVoiceInputText(e.target.value)}
+                  rows={2}
+                  className="w-full rounded-lg bg-slate-950 border border-slate-800 p-2.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500"
+                />
+
+                <button
+                  onClick={handleApplyVoiceConstraints}
+                  className="w-full py-2 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/40 text-xs font-bold text-cyan-300 flex items-center justify-center gap-2 transition"
+                >
+                  <Volume2 className="h-4 w-4" />
+                  Apply Voice Constraints to Physics Engine
+                </button>
+
+                <div className="grid grid-cols-2 gap-3 pt-1">
+                  <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="text-slate-400">Quake Magnitude:</span>
+                      <span className="font-bold text-amber-400">
+                        {roomScene.earthquake.magnitude_mw.toFixed(1)} Mw
                       </span>
                     </div>
-                  )}
+                    <input
+                      type="range"
+                      min={5.0}
+                      max={7.8}
+                      step={0.1}
+                      value={roomScene.earthquake.magnitude_mw}
+                      onChange={(e) => {
+                        const mw = parseFloat(e.target.value);
+                        setRoomScene((prev) => ({
+                          ...prev,
+                          earthquake: { ...prev.earthquake, magnitude_mw: mw },
+                        }));
+                      }}
+                      className="w-full accent-amber-400"
+                    />
+                  </div>
+
+                  <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="text-slate-400">Building Floor:</span>
+                      <span className="font-bold text-cyan-300">
+                        Floor {roomScene.room.floor_level} ({currentPgaG}g)
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min={1}
+                      max={20}
+                      step={1}
+                      value={roomScene.room.floor_level}
+                      onChange={(e) => {
+                        const fl = parseInt(e.target.value, 10);
+                        setRoomScene((prev) => ({
+                          ...prev,
+                          room: { ...prev.room, floor_level: fl },
+                        }));
+                      }}
+                      className="w-full accent-cyan-400"
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                  Deterministic Housner Overturning ($SF = (b/h_&#123;\text&#123;CoM&#125;&#125;)/(a_&#123;\text&#123;floor&#125;&#125;/g)$) & Post-Collapse A* Egress Telemetry
-                </h3>
-                <div className="flex items-center gap-3 text-xs">
-                  {currentEvaluation.monte_carlo && (
-                    <span className="text-slate-400">
-                      PGA Ensemble:{" "}
-                      <strong className="text-cyan-300">
-                        {currentEvaluation.monte_carlo.pga_g_range[0]}g–
-                        {currentEvaluation.monte_carlo.pga_g_range[1]}g
-                      </strong>
-                    </span>
-                  )}
-                  <span
-                    className={`px-2.5 py-0.5 rounded font-bold ${
-                      currentEvaluation.exit_reachable_post_quake
-                        ? "bg-emerald-500/20 text-emerald-300"
-                        : "bg-red-500/20 text-red-300"
+              {/* 3. Compare Split Screen & Remediation Actions */}
+              <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-emerald-400" />
+                    3. Self-Correcting Renter Remediation & Compare
+                  </h3>
+                  <button
+                    onClick={() => setSplitScreenCompare((v) => !v)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold border flex items-center gap-1.5 ${
+                      splitScreenCompare
+                        ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
+                        : "bg-slate-800 text-slate-300 border-slate-700"
                     }`}
                   >
-                    {currentEvaluation.exit_reachable_post_quake
-                      ? "A* EXIT DOOR CLEAR"
-                      : `EXIT BLOCKED BY: ${currentEvaluation.blocking_object_ids.join(", ")}`}
-                  </span>
+                    <SplitSquareVertical className="h-3.5 w-3.5" />
+                    {splitScreenCompare ? "Split Compare: ON" : "Split Compare: OFF"}
+                  </button>
+                </div>
+
+                {remediationProposal && (
+                  <div className="space-y-2 pt-1">
+                    {remediationProposal.changes.map((chg, i) => (
+                      <div
+                        key={i}
+                        className="p-2.5 rounded-lg bg-slate-950 border border-emerald-500/30 text-xs space-y-1"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-emerald-300">
+                            {chg.object_id}
+                          </span>
+                          <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 text-[10px] font-semibold">
+                            {chg.action.replace(/_/g, " ")}
+                          </span>
+                        </div>
+                        <p className="text-slate-300">{chg.reason}</p>
+                        {(chg.new_shelf_level || chg.new_x_m !== undefined) && (
+                          <p className="text-[11px] text-cyan-300 font-mono">
+                            Target:{" "}
+                            {chg.new_shelf_level
+                              ? `shelf -> ${chg.new_shelf_level}`
+                              : `pos -> (${chg.new_x_m}m, ${chg.new_z_m}m)`}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* 4. Housner Overturning & Monte Carlo Telemetry */}
+              <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4 space-y-3">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  Housner Overturning Safety Factors & Monte Carlo Egress
+                </h3>
+                <div className="grid grid-cols-2 gap-2.5">
+                  {currentEvaluation.object_results.map((res) => {
+                    const obj = roomScene.objects.find(
+                      (o) => o.id === res.object_id
+                    );
+                    const danger =
+                      res.tipped_over ||
+                      res.shattered_or_fell ||
+                      res.analytical_safety_factor < 1.0;
+                    return (
+                      <div
+                        key={res.object_id}
+                        className={`p-2.5 rounded-lg border text-xs ${
+                          danger
+                            ? "bg-red-950/25 border-red-500/40 text-red-200"
+                            : "bg-slate-950 border-slate-800 text-slate-300"
+                        }`}
+                      >
+                        <div className="font-bold truncate">
+                          {obj?.label || res.object_id}
+                        </div>
+                        <div className="flex items-center justify-between mt-1 text-[11px]">
+                          <span>
+                            SF:{" "}
+                            <strong
+                              className={
+                                res.analytical_safety_factor < 1.0
+                                  ? "text-red-400"
+                                  : "text-emerald-400"
+                              }
+                            >
+                              {res.analytical_safety_factor}
+                            </strong>
+                          </span>
+                          <span>h_CoM: {res.com_height_m}m</span>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
+            </>
+          ) : (
+            <>
+              {/* PLAN C MENU CONTROLS */}
+              <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4 space-y-3">
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <Building2 className="h-4 w-4 text-cyan-400" />
+                  1. Imperial CAGB Level 2 Floor Plan & Live Hazard Feed
+                </h3>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
-                {currentEvaluation.object_results.map((res) => {
-                  const obj = roomScene.objects.find(
-                    (o) => o.id === res.object_id
-                  );
-                  const danger =
-                    res.tipped_over ||
-                    res.shattered_or_fell ||
-                    res.analytical_safety_factor < 1.0;
-                  return (
-                    <div
-                      key={res.object_id}
-                      className={`p-2.5 rounded-lg border text-xs ${
-                        danger
-                          ? "bg-red-950/25 border-red-500/40 text-red-200"
-                          : "bg-slate-950 border-slate-800 text-slate-300"
-                      }`}
-                    >
-                      <div className="font-bold truncate">
-                        {obj?.label || res.object_id}
-                      </div>
-                      <div className="flex items-center justify-between mt-1 text-[11px]">
-                        <span>
-                          SF:{" "}
-                          <strong
-                            className={
-                              res.analytical_safety_factor < 1.0
-                                ? "text-red-400"
-                                : "text-emerald-400"
-                            }
-                          >
-                            {res.analytical_safety_factor}
-                          </strong>
-                        </span>
-                        <span>h_CoM: {res.com_height_m}m</span>
-                      </div>
-                      <div className="mt-1 text-[10px] text-slate-400 flex justify-between">
-                        <span>Impact: {res.peak_kinetic_energy_joules} J</span>
-                        {res.hit_occupant_zone && (
-                          <span className="text-red-400 font-bold">
-                            HITS BED!
-                          </span>
-                        )}
-                        {res.blocked_exit_corridor && (
-                          <span className="text-red-400 font-bold">
-                            BLOCKS DOOR!
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </main>
-      )}
+                <input
+                  ref={floorPlanInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFloorPlanUpload}
+                  className="hidden"
+                />
+                <input
+                  ref={hazardCamInputRef}
+                  type="file"
+                  accept="image/*,video/*"
+                  onChange={handleHazardCameraUpload}
+                  className="hidden"
+                />
 
-      {/* ==================================================================== */}
-      {/* PLAN C: EXITZERO VIEW (2D Floor-Plan + Live Camera -> 3D Evacuation) */}
-      {/* ==================================================================== */}
-      {activePlan === "PLAN_C" && (
-        <main className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-5 p-5">
-          {/* LEFT CONTROL COLUMN (4 COLS) */}
-          <div className="lg:col-span-4 space-y-4 flex flex-col">
-            {/* 1. Scan Building Floor-Plan Sign & Live Corridor Camera */}
-            <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4 space-y-3">
-              <h2 className="text-sm font-bold text-white flex items-center gap-2">
-                <Building2 className="h-4 w-4 text-cyan-400" />
-                1. Scan Wall Floor-Plan Sign & Live Corridor Hazard
-              </h2>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => floorPlanInputRef.current?.click()}
+                    disabled={isScanningHazard}
+                    className="px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-200 flex items-center justify-center gap-1.5 transition"
+                  >
+                    <FileUp className="h-4 w-4 text-cyan-400" />
+                    Upload 2D Floor Plan
+                  </button>
+                  <button
+                    onClick={() => hazardCamInputRef.current?.click()}
+                    disabled={isScanningHazard}
+                    className="px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-red-300 flex items-center justify-center gap-1.5 transition"
+                  >
+                    <Camera className="h-4 w-4 text-red-400" />
+                    Scan Corridor Hazard
+                  </button>
+                </div>
 
-              <input
-                ref={floorPlanInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFloorPlanUpload}
-                className="hidden"
-              />
-              <input
-                ref={hazardCamInputRef}
-                type="file"
-                accept="image/*,video/*"
-                onChange={handleHazardCameraUpload}
-                className="hidden"
-              />
-
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => floorPlanInputRef.current?.click()}
-                  className="px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-200 flex items-center justify-center gap-1.5"
-                >
-                  <FileUp className="h-4 w-4 text-cyan-400" />
-                  Upload 2D Floor Plan
-                </button>
-                <button
-                  onClick={() => hazardCamInputRef.current?.click()}
-                  className="px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-rose-300 flex items-center justify-center gap-1.5"
-                >
-                  <Camera className="h-4 w-4 text-rose-400" />
-                  Scan Corridor Blockade
-                </button>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[11px] text-slate-400 block mb-1">
-                    Your Current Location:
+                  <label className="text-xs text-slate-400 block mb-1">
+                    Your Starting Room / Location:
                   </label>
                   <select
                     value={userStartNodeId}
                     onChange={(e) => setUserStartNodeId(e.target.value)}
-                    className="w-full rounded-lg bg-slate-950 border border-slate-800 px-2.5 py-2 text-xs text-slate-200"
+                    className="w-full rounded-lg bg-slate-950 border border-slate-800 p-2 text-xs text-slate-200"
                   >
                     {floorGraph.nodes
-                      .filter((n) => n.type === "room" || n.type === "corridor_junction")
+                      .filter(
+                        (n) =>
+                          n.type === "room" || n.type === "corridor_junction"
+                      )
                       .map((n) => (
                         <option key={n.id} value={n.id}>
                           {n.label}
@@ -943,229 +969,53 @@ export default function SeismicCommandCenter() {
                       ))}
                   </select>
                 </div>
-
-                <div>
-                  <label className="text-[11px] text-slate-400 block mb-1">
-                    Emergency Mode:
-                  </label>
-                  <select
-                    value={emergencyType}
-                    onChange={(e) =>
-                      setEmergencyType(e.target.value as "earthquake" | "fire")
-                    }
-                    className="w-full rounded-lg bg-slate-950 border border-slate-800 px-2.5 py-2 text-xs text-slate-200"
-                  >
-                    <option value="earthquake">6.8M Earthquake + Aftershock</option>
-                    <option value="fire">Corridor Fire & Smoke Spread</option>
-                  </select>
-                </div>
               </div>
-            </div>
 
-            {/* 2. Gemini Live Spotter & "Lift Trap" Interceptor */}
-            <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <h2 className="text-sm font-bold text-white flex items-center gap-2">
+              <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4 space-y-3">
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
                   <Mic className="h-4 w-4 text-emerald-400" />
-                  2. Gemini Live Voice Spotter & Lift Override
-                </h2>
-                {isScanningHazard && (
-                  <span className="text-xs text-cyan-400 animate-pulse">
-                    Analyzing...
-                  </span>
-                )}
-              </div>
-
-              <textarea
-                value={planCVoiceText}
-                onChange={(e) => setPlanCVoiceText(e.target.value)}
-                rows={2}
-                className="w-full rounded-lg bg-slate-950 border border-slate-800 p-2.5 text-xs text-slate-200"
-              />
-
-              <div className="grid grid-cols-2 gap-2">
+                  2. Live Voice Evacuee Report & Lift Override
+                </h3>
+                <textarea
+                  value={planCVoiceText}
+                  onChange={(e) => setPlanCVoiceText(e.target.value)}
+                  rows={2}
+                  className="w-full rounded-lg bg-slate-950 border border-slate-800 p-2.5 text-xs text-slate-200"
+                />
                 <button
                   onClick={handlePlanCVoiceSubmit}
-                  className="py-2.5 px-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5"
+                  className="w-full py-2.5 rounded-lg bg-gradient-to-r from-cyan-600 to-emerald-600 text-xs font-bold text-white flex items-center justify-center gap-2 shadow-lg"
                 >
                   <Volume2 className="h-4 w-4" />
-                  Verify & Speak Guidance
-                </button>
-
-                <button
-                  onClick={() => {
-                    const nextMode =
-                      mobilityMode === "walking_running"
-                        ? "wheelchair_accessible"
-                        : "walking_running";
-                    setMobilityMode(nextMode);
-                    speakCoachMessage(
-                      nextMode === "wheelchair_accessible"
-                        ? "Wheelchair accessible mode activated. Lifts are locked out and stairs are impassable; routing to Fire-Rated Evacuation Refuge Point R2."
-                        : "Walking evacuation mode active; routing to Stairwell B via West Fire Core.",
-                      false
-                    );
-                  }}
-                  className={`py-2.5 px-3 rounded-lg font-bold text-xs border flex items-center justify-center gap-1.5 transition ${
-                    mobilityMode === "wheelchair_accessible"
-                      ? "bg-purple-500 text-white border-purple-400"
-                      : "bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700"
-                  }`}
-                >
-                  <Accessibility className="h-4 w-4" />
-                  {mobilityMode === "wheelchair_accessible"
-                    ? "Wheelchair Refuge Mode"
-                    : "Switch to Wheelchair Mode"}
+                  Verify Evacuation Route & Speak Guidance
                 </button>
               </div>
 
-              <button
-                onClick={() => setBuildingWalkthrough((b) => !b)}
-                className={`w-full py-2.5 rounded-lg text-xs font-bold border flex items-center justify-center gap-2 transition ${
-                  buildingWalkthrough
-                    ? "bg-cyan-500 text-slate-950 border-cyan-400"
-                    : "bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700"
-                }`}
-              >
-                <Compass className="h-4 w-4" />
-                {buildingWalkthrough
-                  ? "Stop Guided 3D Corridor Walkthrough"
-                  : "Play First-Person Guided Evacuation Route"}
-              </button>
-            </div>
-
-            {/* 3. Deterministic Time-Expanded Route Verifier Comparison */}
-            <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4 space-y-3">
-              <h2 className="text-sm font-bold text-white flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-amber-400" />
-                3. Time-Expanded Dijkstra / A* Verifier
-              </h2>
-
-              {/* Lift Lockout Alert */}
-              {evacuationResult.lift_override_triggered && (
-                <div className="p-2.5 rounded-lg bg-red-950/40 border border-red-500/50 text-xs text-red-200">
-                  <div className="font-bold text-red-400 mb-0.5">
-                    LIFT LOCKOUT OVERRIDE TRIGGERED
+              {/* Naive vs Verified Route Comparison */}
+              <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4 space-y-3">
+                <div className="p-3 rounded-lg bg-red-950/25 border border-red-500/40 space-y-1">
+                  <div className="text-xs font-bold text-red-300">
+                    ❌ Naive Shortest Path ({evacuationResult.naive_shortest_route.status})
                   </div>
-                  {evacuationResult.lift_override_reason}
-                </div>
-              )}
-
-              {/* Naive Shortest Route (Rejected) */}
-              <div className="p-3 rounded-lg bg-slate-950 border border-red-500/40 space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-red-400">
-                    Naive Shortest Route (East Hall / Lift)
-                  </span>
-                  <span className="px-2 py-0.5 rounded bg-red-500/20 text-[10px] font-bold text-red-300">
-                    REJECTED ({evacuationResult.naive_shortest_route.status})
-                  </span>
-                </div>
-                <p className="text-xs text-slate-300">
-                  {evacuationResult.naive_shortest_route.failure_reason}
-                </p>
-              </div>
-
-              {/* Verified Safe Route */}
-              {evacuationResult.verified_safe_route && (
-                <div className="p-3 rounded-lg bg-emerald-950/30 border border-emerald-500/50 space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-emerald-300">
-                      Verified Safe Route:{" "}
-                      {evacuationResult.verified_safe_route.target_exit_label}
-                    </span>
-                    <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-[10px] font-bold text-emerald-300">
-                      +{evacuationResult.verified_safe_route.safety_margin_before_closure_s}s BUFFER
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-4 text-xs text-slate-300">
-                    <span>
-                      Distance:{" "}
-                      <strong>
-                        {evacuationResult.verified_safe_route.total_distance_m}m
-                      </strong>
-                    </span>
-                    <span>
-                      Travel Time:{" "}
-                      <strong>
-                        {evacuationResult.verified_safe_route.estimated_travel_time_s}s
-                      </strong>
-                    </span>
-                  </div>
-                  <p className="text-xs text-emerald-200 italic pt-1">
-                    &ldquo;{evacuationResult.verified_safe_route.turn_by_turn_voice}&rdquo;
+                  <p className="text-xs text-slate-300">
+                    {evacuationResult.naive_shortest_route.failure_reason}
                   </p>
                 </div>
-              )}
-            </div>
-          </div>
 
-          {/* RIGHT 3D BUILDING TWIN COLUMN (8 COLS) */}
-          <div className="lg:col-span-8 flex flex-col gap-4">
-            <div className="flex-1 min-h-[460px]">
-              <ExitZeroCanvas
-                floorGraph={floorGraph}
-                hazards={liveHazards}
-                verification={evacuationResult}
-                walkthroughActive={buildingWalkthrough}
-              />
-            </div>
-
-            {/* Official CAGB Level 2 Floorplan Calibration + Video Evidence & Macro-to-Micro Bridge */}
-            <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4 grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-              <div className="md:col-span-5 flex items-center gap-2.5">
-                <img
-                  src="/floorplans/cagb-L2-preview.jpg"
-                  alt="Imperial CAGB Level 2 Official Map"
-                  className="h-20 w-24 object-cover rounded-lg border border-slate-700 bg-slate-950"
-                />
-                <img
-                  src="/floorplans/routes/routes_overview.png"
-                  alt="CAGB Level 2 Routes A-D Overview"
-                  className="h-20 w-24 object-cover rounded-lg border border-cyan-500/40 bg-slate-950"
-                />
-                <div className="text-xs space-y-1">
-                  <div className="font-bold text-white">
-                    CAGB Level 2 Venue & Routes A–D
+                {evacuationResult.verified_safe_route && (
+                  <div className="p-3 rounded-lg bg-emerald-950/25 border border-emerald-500/40 space-y-1">
+                    <div className="text-xs font-bold text-emerald-300">
+                      ✅ Verified Safe Route → {evacuationResult.verified_safe_route.target_exit_label}
+                    </div>
+                    <p className="text-xs text-emerald-200">
+                      &ldquo;{evacuationResult.verified_safe_route.turn_by_turn_voice}&rdquo;
+                    </p>
                   </div>
-                  <div className="text-[11px] text-slate-400">
-                    Scale Lock (<code className="text-cyan-300">11.43 px/m</code>): Exhibition Rd ={" "}
-                    <strong className="text-emerald-300">2.10m</strong>; Dalby Ct ={" "}
-                    <strong className="text-amber-300">1.12m</strong>
-                  </div>
-                </div>
+                )}
               </div>
-
-              <div className="md:col-span-4 text-xs space-y-1 bg-slate-950 p-3 rounded-lg border border-slate-800">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-rose-400">
-                    Video Hazard Evidence
-                  </span>
-                  {liveHazards[0]?.video_evidence && (
-                    <span className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-mono text-[10px]">
-                      {liveHazards[0].video_evidence.video_file} @ t=
-                      {liveHazards[0].video_evidence.timestamp_s}s
-                    </span>
-                  )}
-                </div>
-                <p className="text-[11px] text-slate-300">
-                  {liveHazards[0]?.video_evidence?.quote ||
-                    liveHazards[0]?.description}
-                </p>
-              </div>
-
-              <div className="md:col-span-3 flex flex-col gap-2">
-                <button
-                  onClick={() => setActivePlan("PLAN_B")}
-                  className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-bold text-xs shadow-md flex items-center justify-center gap-1.5 transition"
-                >
-                  <Layers className="h-4 w-4" />
-                  Zoom Inside Room 3D Shake Table →
-                </button>
-              </div>
-            </div>
-          </div>
-        </main>
+            </>
+          )}
+        </div>
       )}
     </div>
   );

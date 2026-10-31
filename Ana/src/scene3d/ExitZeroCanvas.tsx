@@ -23,6 +23,7 @@ interface ExitZeroCanvasProps {
   hazards: LiveHazardEvent[];
   verification: EvacuationVerificationResult;
   walkthroughActive: boolean;
+  fullScreen?: boolean;
 }
 
 /**
@@ -109,41 +110,162 @@ function useFloorplanImageTexture(url: string): THREE.Texture | null {
 }
 
 /**
- * Guided First-Person Evacuation Walkthrough along the Verified Safe Route
+ * First-Person Inside Building Controller (360° Mouse Drag Look + WASD Walk + Optional Auto-Walk along Verified Route)
  */
 function BuildingWalkthroughCamera({
   active,
+  autoWalk,
   routeNodes,
   widthM,
   depthM,
 }: {
   active: boolean;
+  autoWalk: boolean;
   routeNodes: Array<{ x_m: number; z_m: number; label: string }>;
   widthM: number;
   depthM: number;
 }) {
-  const { camera } = useThree();
+  const { camera, gl } = useThree();
   const progressRef = useRef(0);
+  const keys = useRef<{ [key: string]: boolean }>({});
+  const isDragging = useRef(false);
+  const yawRef = useRef(-Math.PI / 2); // Looking East down the main CAGB corridor
+  const pitchRef = useRef(-0.04);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      keys.current[e.code] = true;
+    };
+    const onKeyUp = (e: KeyboardEvent) => {
+      keys.current[e.code] = false;
+    };
+    const dom = gl.domElement;
+    const onPointerDown = () => {
+      isDragging.current = true;
+    };
+    const onPointerUp = () => {
+      isDragging.current = false;
+    };
+    const onPointerMove = (e: PointerEvent) => {
+      if (!active || !isDragging.current) return;
+      yawRef.current -= e.movementX * 0.004;
+      pitchRef.current = THREE.MathUtils.clamp(
+        pitchRef.current - e.movementY * 0.0035,
+        -0.75,
+        0.65
+      );
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
+    dom.addEventListener("pointerdown", onPointerDown);
+    window.addEventListener("pointerup", onPointerUp);
+    window.addEventListener("pointermove", onPointerMove);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
+      dom.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("pointerup", onPointerUp);
+      window.removeEventListener("pointermove", onPointerMove);
+    };
+  }, [active, gl.domElement]);
+
+  useEffect(() => {
+    if (active) {
+      progressRef.current = 0;
+      const startNode = routeNodes[0] || { x_m: 10.0, z_m: 12.5 };
+      camera.position.set(
+        startNode.x_m - widthM / 2,
+        1.68,
+        startNode.z_m - depthM / 2
+      );
+      if (routeNodes.length >= 2) {
+        const nextNode = routeNodes[1];
+        yawRef.current = Math.atan2(
+          -(nextNode.x_m - startNode.x_m),
+          -(nextNode.z_m - startNode.z_m)
+        );
+      } else {
+        yawRef.current = -Math.PI / 2;
+      }
+      pitchRef.current = -0.04;
+    } else {
+      camera.position.set(0, 26, 25);
+      camera.lookAt(0, 0, 0);
+    }
+  }, [active, camera, routeNodes, widthM, depthM]);
 
   useFrame((_, delta) => {
-    if (!active || routeNodes.length < 2) return;
-    progressRef.current = (progressRef.current + delta * 0.14) % 1;
-    const fIdx = progressRef.current * (routeNodes.length - 1);
-    const i = Math.floor(fIdx);
-    const t = fIdx - i;
+    if (!active) return;
 
-    const curr = routeNodes[i];
-    const next = routeNodes[Math.min(i + 1, routeNodes.length - 1)];
+    const moveSpeed = 4.2 * delta;
+    const forward = new THREE.Vector3(
+      -Math.sin(yawRef.current),
+      0,
+      -Math.cos(yawRef.current)
+    ).normalize();
+    const right = new THREE.Vector3().crossVectors(
+      forward,
+      new THREE.Vector3(0, 1, 0)
+    );
 
-    const x = THREE.MathUtils.lerp(curr.x_m, next.x_m, t) - widthM / 2;
-    const z = THREE.MathUtils.lerp(curr.z_m, next.z_m, t) - depthM / 2;
+    let manualMoved = false;
+    if (keys.current["KeyW"] || keys.current["ArrowUp"]) {
+      camera.position.addScaledVector(forward, moveSpeed);
+      manualMoved = true;
+    }
+    if (keys.current["KeyS"] || keys.current["ArrowDown"]) {
+      camera.position.addScaledVector(forward, -moveSpeed);
+      manualMoved = true;
+    }
+    if (keys.current["KeyA"] || keys.current["ArrowLeft"]) {
+      camera.position.addScaledVector(right, -moveSpeed);
+      manualMoved = true;
+    }
+    if (keys.current["KeyD"] || keys.current["ArrowRight"]) {
+      camera.position.addScaledVector(right, moveSpeed);
+      manualMoved = true;
+    }
 
-    const lookNext = routeNodes[Math.min(i + 2, routeNodes.length - 1)];
-    const lx = lookNext.x_m - widthM / 2;
-    const lz = lookNext.z_m - depthM / 2;
+    camera.position.x = THREE.MathUtils.clamp(
+      camera.position.x,
+      -widthM / 2 + 1.8,
+      widthM / 2 - 1.8
+    );
+    camera.position.z = THREE.MathUtils.clamp(
+      camera.position.z,
+      -depthM / 2 + 1.8,
+      depthM / 2 - 1.8
+    );
+    camera.position.y = 1.68;
 
-    camera.position.lerp(new THREE.Vector3(x, 1.75, z), 0.12);
-    camera.lookAt(lx, 1.5, lz);
+    if (autoWalk && !manualMoved && !isDragging.current && routeNodes.length >= 2) {
+      progressRef.current = (progressRef.current + delta * 0.14) % 1;
+      const fIdx = progressRef.current * (routeNodes.length - 1);
+      const i = Math.floor(fIdx);
+      const t = fIdx - i;
+
+      const curr = routeNodes[i];
+      const next = routeNodes[Math.min(i + 1, routeNodes.length - 1)];
+
+      const x = THREE.MathUtils.lerp(curr.x_m, next.x_m, t) - widthM / 2;
+      const z = THREE.MathUtils.lerp(curr.z_m, next.z_m, t) - depthM / 2;
+
+      const lookNext = routeNodes[Math.min(i + 2, routeNodes.length - 1)];
+      const lx = lookNext.x_m - widthM / 2;
+      const lz = lookNext.z_m - depthM / 2;
+
+      camera.position.lerp(new THREE.Vector3(x, 1.68, z), 0.12);
+      camera.lookAt(lx, 1.55, lz);
+    } else {
+      const lookDir = new THREE.Vector3(
+        -Math.sin(yawRef.current) * Math.cos(pitchRef.current),
+        Math.sin(pitchRef.current),
+        -Math.cos(yawRef.current) * Math.cos(pitchRef.current)
+      );
+      const target = camera.position.clone().add(lookDir.multiplyScalar(5));
+      camera.lookAt(target);
+    }
   });
 
   return null;
@@ -841,10 +963,12 @@ export default function ExitZeroCanvas({
   hazards,
   verification,
   walkthroughActive,
+  fullScreen = true,
 }: ExitZeroCanvasProps) {
   const { width_m: widthM, depth_m: depthM } = floorGraph;
   const tileTexture = useArchitecturalFloorTexture();
   const floorplanImageTex = useFloorplanImageTexture("/floorplans/cagb-L2-1280.jpg");
+  const [autoWalk, setAutoWalk] = useState(true);
 
   const verifiedIds = useMemo(
     () => verification.verified_safe_route?.node_ids ?? [],
@@ -895,14 +1019,20 @@ export default function ExitZeroCanvas({
   }, [widthM, depthM]);
 
   return (
-    <div className="relative w-full h-[540px] rounded-xl overflow-hidden border border-slate-800 bg-slate-950 shadow-2xl">
+    <div
+      className={`relative w-full overflow-hidden bg-slate-950 ${
+        fullScreen
+          ? "h-screen rounded-none border-0"
+          : "h-[580px] rounded-2xl border border-slate-800 shadow-2xl"
+      }`}
+    >
       {/* Top Overlay Status Pill */}
-      <div className="absolute top-3 left-3 z-10 flex flex-wrap gap-2 pointer-events-none">
-        <span className="px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase bg-slate-900/90 text-slate-100 border border-slate-700">
+      <div className="absolute top-20 left-4 z-10 flex flex-wrap gap-2 pointer-events-none">
+        <span className="px-3.5 py-1.5 rounded-xl text-xs font-bold tracking-wider uppercase bg-slate-900/85 backdrop-blur-md text-slate-100 border border-slate-700 shadow-lg">
           {floorGraph.building_name} • Level {floorGraph.floor_number}
         </span>
         <span
-          className={`px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase ${
+          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold tracking-wider uppercase backdrop-blur-md shadow-lg ${
             verification.verified_safe_route
               ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
               : "bg-red-500/20 text-red-300 border border-red-500/40"
@@ -913,29 +1043,48 @@ export default function ExitZeroCanvas({
             : "NO UNBLOCKED ROUTE — SEEK REFUGE"}
         </span>
         {verification.lift_override_triggered && (
-          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-red-950/90 text-red-300 border border-red-700/60">
+          <span className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-red-950/90 text-red-300 border border-red-700/60 shadow-lg">
             ⛔ LIFTS LOCKED (SEISMIC/FIRE OVERRIDE)
           </span>
         )}
       </div>
 
-      {/* Bottom Legend */}
-      <div className="absolute bottom-3 left-3 z-10 flex flex-wrap gap-3 text-xs bg-slate-900/90 px-3 py-1.5 rounded-lg border border-slate-800 text-slate-300 pointer-events-none">
-        <span className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block" />
-          Verified Stairwell Route
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block" />
-          Blocked Naive Path / 3D Hazard Zone
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-purple-400 inline-block" />
-          Accessible Refuge Bay
-        </span>
+      {/* Bottom First-Person Controls & Legend */}
+      <div className="absolute bottom-5 left-4 z-10 flex flex-wrap items-center gap-2">
+        {walkthroughActive && (
+          <>
+            <div className="px-3.5 py-2 rounded-xl bg-slate-900/85 backdrop-blur-md border border-emerald-500/40 text-xs text-emerald-200 shadow-lg">
+              👁️ <strong>First-Person Inside Building:</strong> Drag mouse to look 360° • Use <strong>W A S D / Arrow Keys</strong> to walk
+            </div>
+            <button
+              onClick={() => setAutoWalk((v) => !v)}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold border transition shadow-lg ${
+                autoWalk
+                  ? "bg-emerald-600 text-white border-emerald-400"
+                  : "bg-slate-900/90 text-slate-200 border-slate-700 hover:border-emerald-500/50"
+              }`}
+            >
+              {autoWalk ? "🚶 Auto-Walk Verified Route: ON" : "🚶 Auto-Walk Verified Route: OFF"}
+            </button>
+          </>
+        )}
+        <div className="flex flex-wrap gap-3 text-xs bg-slate-900/85 backdrop-blur-md px-3.5 py-2 rounded-xl border border-slate-800 text-slate-300 pointer-events-none shadow-lg">
+          <span className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block" />
+            Verified Stairwell Route
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block" />
+            Blocked Naive Path / 3D Hazard Zone
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-purple-400 inline-block" />
+            Accessible Refuge Bay
+          </span>
+        </div>
       </div>
 
-      <Canvas shadows camera={{ position: [0, 26, 25], fov: 44 }}>
+      <Canvas shadows camera={{ position: [-10, 1.68, 0], fov: 56 }}>
         <color attach="background" args={["#0b1120"]} />
         <fog attach="fog" args={["#0b1120", 38, 78]} />
 
@@ -1117,8 +1266,27 @@ export default function ExitZeroCanvas({
           />
         ))}
 
+        {/* ======================================================== */}
+        {/* SUSPENDED ACOUSTIC CEILING & LED CORRIDOR PANELS (IN 1ST PERSON) */}
+        {/* ======================================================== */}
+        {walkthroughActive && (
+          <group position={[0, 3.12, 0]}>
+            <mesh position={[0, 0.05, 0]}>
+              <boxGeometry args={[widthM, 0.08, depthM]} />
+              <meshStandardMaterial color="#e2e8f0" roughness={0.9} />
+            </mesh>
+            {[-14, -7, 0, 7, 14].map((lx, idx) => (
+              <mesh key={idx} position={[lx, -0.01, 0]} rotation={[Math.PI / 2, 0, 0]}>
+                <planeGeometry args={[2.2, 0.65]} />
+                <meshBasicMaterial color="#f8fafc" side={THREE.DoubleSide} />
+              </mesh>
+            ))}
+          </group>
+        )}
+
         <BuildingWalkthroughCamera
           active={walkthroughActive}
+          autoWalk={autoWalk}
           routeNodes={routeNodes}
           widthM={widthM}
           depthM={depthM}
