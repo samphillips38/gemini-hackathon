@@ -194,6 +194,24 @@ export interface LiveHazardEvent {
   severity: "blocked" | "slow_crawl";
   detected_from: "live_camera" | "voice_report";
   description: string;
+  video_evidence?: {
+    video_file: string;
+    timestamp_s: number;
+    quote: string;
+  };
+}
+
+export interface CAGBRouteSpec {
+  id: "A" | "B" | "C" | "D";
+  title: string;
+  video: string;
+  image: string;
+  waypoints_px: Array<[number, number]>;
+  landmarks: Array<{
+    number: number;
+    waypoint_index: number;
+    say: string;
+  }>;
 }
 
 export interface EvacuationVerificationResult {
@@ -208,6 +226,7 @@ export interface EvacuationVerificationResult {
     failure_reason?: string;
     total_distance_m?: number;
     estimated_travel_time_s?: number;
+    overlap_margin_s?: number;
   };
   verified_safe_route: {
     node_ids: string[];

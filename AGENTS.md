@@ -1,43 +1,45 @@
 # AGENTS.md — Shared Multi-Agent Coordination Hub (Google DeepMind Hackathon at Imperial)
 
 > **Authoritative Blueprint:** [`ava/HACKATHON_PLANS_B_AND_C.md`](./ava/HACKATHON_PLANS_B_AND_C.md)  
-> All coding agents (Antigravity, Codex, Cursor, Claude Code) MUST follow `ava/HACKATHON_PLANS_B_AND_C.md` and keep this root `AGENTS.md` updated as modules land on `main`.
+> **Live Discord Channel:** `#agent-comms` (`1566074283900272824` in Guild `1566057184297619506`)  
+> All coding agents (`[Ava-Agent]`, `[Sam-Agent]`, `sam-openclaw-agent`, `@geminiproject`, `[Ana bot]`) MUST follow `ava/HACKATHON_PLANS_B_AND_C.md` and keep this root `AGENTS.md` updated as modules land on `main`.
 
 ---
 
 ## 1. Active Project Scope: Dual-Ready Shared Core for **Plan B (`QuakeRoom`)** & **Plan C (`ExitZero`)**
 
-While the team finalizes the exact stage pitch between **Plan B (QuakeRoom)** and **Plan C (ExitZero)**, we are building the shared components that power **both** blueprints from [`ava/HACKATHON_PLANS_B_AND_C.md`](./ava/HACKATHON_PLANS_B_AND_C.md):
+We are building and integrating the shared components that power **both** blueprints from [`ava/HACKATHON_PLANS_B_AND_C.md`](./ava/HACKATHON_PLANS_B_AND_C.md), anchored on the actual hackathon venue (**CAGB Level 2 — Room 200 Lecture Theatre -> Routes A–D -> Room 203 Deep-Dive**):
 
 1. **Plan B — `QuakeRoom` (Seismic Room Collapse, Safe-Shelter & Escape Route Verifier):**
    - **Input:** Room video / photo scan + Gemini Live voice context (`floor_level`, `renter_no_drill`, top-shelf heavy loads).
-   - **3D Scene:** Procedural 3D room twin (`RoomSceneGraph`) with `bed`, `bookshelf` (with `bottom`/`middle`/`top` shelf child items), `wardrobe`, `desk`, `chair`, `tv_monitor`, `heavy_item`, `fragile_glass`, `window`, `exit_door`.
+   - **3D Scene:** Procedural 3D room twin (`RoomSceneGraph`) with `bed`, `bookshelf` (with `bottom`/`middle`/`top` shelf child items), `wardrobe`, `desk`, `chair`, `tv_monitor`, `heavy_item`, `fragile_glass`, `window`, `exit_door`, plus **CAGB Level 2 Room 203** (`cagb_room_203`).
    - **Deterministic Verifier:**
      1. Analytical Housner Center-of-Mass overturning safety factor: $SF = \frac{b / h_{\text{CoM}}}{a_{\text{floor}} / g}$ (accounting for stacked child items on top vs. bottom shelves).
-     2. 3D rigid-body / tipping simulation + fall-shadow projection.
-     3. Post-collapse 2D grid **A\* pathfinder** (`0.2m` grid) verifying `occupant_start -> exit_door` (`escape_path_points_m`) and `occupant_start -> safe_shelter_spot_m` (under sturdy desk).
+     2. **N=50 Monte Carlo Shake Ensembles:** Perturbs friction and pulse phase across 50 runs to compute `walk_clear_prob` (`0.4m` capsule) and `wheelchair_clear_prob` (`0.9m` capsule).
+     3. **2-Phase Seismic Safety Framing:** Phase 1 (During Shaking: Drop, Cover & Hold On under sturdy desk) + Phase 2 (Post-Collapse Egress: 2D grid **A\* pathfinder** on `0.2m` grid verifying `occupant_start -> exit_door`).
    - **Self-Correcting Loop:** Gemini 4 Argon proposes a renter-safe `RemediationProposal` (moving `20kg` textbooks from `top` shelf to `bottom` shelf as ballast, sliding `wardrobe` away from `exit_door`, shifting `bed` out of window glass shatter zone) and re-verifies in the solver.
 
 2. **Plan C — `ExitZero` (2D Floor-Plan + Live Camera Hazard to 3D Building Evacuation Verifier):**
-   - **Input:** Photo of a 2D wall fire-exit floor plan (`BuildingFloorGraph`) + live camera / voice hazard report (`LiveHazardEvent`).
-   - **3D Scene:** 3D extruded building floor (`WallSegment[]`), topological `NavNode[]` (`room`, `corridor_junction`, `stairwell_exit`, `lift_elevator`, `accessible_refuge`), `NavEdge[]`, expanding hazard zones, and 3D route ribbons.
-   - **Deterministic Verifier:** Time-expanded Dijkstra / A\* evacuation solver ($t_{\text{human}}(e) < t_{\text{hazard\_closure}}(e)$) + deterministic **Lift Lockout Override** in seismic/fire emergencies + Wheelchair Accessible Refuge routing (`EvacuationVerificationResult`).
+   - **Input:** Calibrated **CAGB Level 2** floorplan (`cagb-L2.jpg`, `11.43 px/m` calibrated on `2.10m` Exhibition Rd double doors, Routes A–D in `routes.json`) + live camera / voice hazard report (`LiveHazardEvent` with `video_evidence`).
+   - **3D Scene:** 3D extruded building floor (`WallSegment[]`), topological `NavNode[]` (`room_200`, `room_203`, `breakout_space`, `exit_exhibition_rd`, `exit_dalby_court`, `lift_central`, `refuge_r2`), `NavEdge[]`, expanding hazard zones, and 3D route ribbons.
+   - **Deterministic Verifier:** Time-expanded Dijkstra / A\* evacuation solver ($t_{\text{human}}(e) < t_{\text{hazard\_closure}}(e)$) + deterministic **Lift Lockout Override** in seismic/fire emergencies + Wheelchair Accessible Refuge routing (`EvacuationVerificationResult`) + **1-click Route C -> Room 203 Macro-to-Micro transition**.
 
 ---
 
-## 2. Repository Structure & Per-Teammate Folder Isolation
+## 2. Live 5-Agent Coordination Map (`#agent-comms` & GitHub)
 
-To prevent merge conflicts while all 5 teammates commit directly to `main`:
-- **Each teammate works strictly inside their own top-level folder** (`ava/`, `sam/`, `Ana/`, `Pinky/`, etc.) during parallel development.
+To prevent merge conflicts while all teammates commit directly to `main`:
+- **Each agent works strictly inside their own top-level folder** (`ava/`, `sam/`, `Ana/`, `Pinky/`, `pushkar/`).
 - **NEVER modify or delete files inside another teammate's folder.**
-- **Only shared root file:** This `/AGENTS.md` file at the repo root, which any agent may update to log status and exported modules.
+- **Only shared root file:** This `/AGENTS.md` file at the repo root.
 
-| Teammate Folder | Owner / Focus | Current Status & Key Modules |
+| Teammate Folder | Active Agent(s) in `#agent-comms` | Current Status & Key Modules on `main` |
 | :--- | :--- | :--- |
-| **`ava/`** | **Ava** — Authoritative Blueprint (`ava/HACKATHON_PLANS_B_AND_C.md`), Shared 3D Room & Building Creation (`RoomCanvas3D.tsx`, `BuildingCanvas3D.tsx`), Gemini 4 Argon API Suite (`/api/extract-room`, `/api/extract-floorplan`, `/api/remediate`, `/api/hazard`), Deterministic Physics + A\* Verifier (`roomVerifier.ts`, `buildingVerifier.ts`), Unified Plan B + Plan C App (`src/app/page.tsx`) | Complete & Live (`ava/`) |
-| **`sam/`** | **Sam** — Plan B (`quakeRoomSolver.ts`) & Plan C (`exitZeroSolver.ts`) Solvers, Vision/Floorplan Extractors, Voice/Remediation Routes, 3D Scenes | Active (`sam/`) |
-| **`Ana/`** | **Ana** — Plan B & C Solvers, 3D Shake Table & Building Extruder, API routes | Active (`Ana/`) |
-| **`Pinky/`** | **Pinky** — Teammate workspace | Active (`Pinky/`) |
+| **`ava/`** | **`[Ava-Agent]`** (Antigravity) | **Complete & Synced:** Authoritative Blueprint (`ava/HACKATHON_PLANS_B_AND_C.md`), CAGB Level 2 Routes A–D (`public/floorplans/`), 4-Stage Coordinate Transforms (`11.43 px/m`), Room 203 Macro-to-Micro Deep Dive (`cagb_room_203`), 2-Phase Seismic Safety Banner, N=50 Monte Carlo (`0.4m` Walk / `0.9m` Wheelchair), Video Evidence Badges, Gemini 4 Argon APIs, Discord Bridge (`discord.mjs`) |
+| **`sam/`** | **`[Sam-Agent]`** & **`sam-openclaw-agent`** (`<@1566070613490270288>`) | **Active & Synced:** Plan B (`quakeRoomSolver.ts`) & Plan C (`exitZeroSolver.ts`), CAGB Route Twin 3D R3F view (`buildModel`/`makeMaterials`), 4-stage coordinate transforms, N=50 Monte Carlo |
+| **`Ana/`** | **`[Ana bot]`** | **Active & Synced:** Command Center UI, Plan B & C Solvers, CAGB Level 2 Routes A–D, 3D Shake Table & Building Extruder |
+| **`Pinky/` & `pushkar/`** | **`@geminiproject`** (`<@1566055877352497282>`) | **Active & Synced:** Live Video/Webcam Keyframe Extractor (`Pinky/src/vision/videoKeyframeExtractor.ts`, `/api/video-evidence`), WebAudio P-wave/S-wave Seismic Synth & 2-Phase Voice Coach (`Pinky/src/voice/`), Gemini 4 Argon Object Verifier (`pushkar/verify_route_A.mjs` -> `pushkar/argon_verification.json`) |
+| **`assets/floorplans/`** | Shared Venue Assets | Calibrated CAGB Level 2 (`cagb-L2.jpg`, `cagb-L2-1280.jpg`, `routes.json`, `route_A..D.png`) |
 
 ---
 
@@ -45,7 +47,7 @@ To prevent merge conflicts while all 5 teammates commit directly to `main`:
 
 - **Framework:** Next.js 14 (App Router, TypeScript, Tailwind CSS)
 - **3D & Physics:** `three`, `@types/three`, `@react-three/fiber`, `@react-three/drei`, `@react-three/rapier`
-- **AI SDK:** `@google/genai` (Gemini 4 Argon / `gemini-2.5-pro` / `gemini-2.5-flash` structured JSON extraction & remediation + Web Speech / Gemini Live voice)
+- **AI SDK:** `@google/genai` (Gemini 4 Argon / `gemini-2.5-pro` / `gemini-2.5-flash` structured JSON extraction & remediation + Web Speech / WebAudio voice)
 - **Commands:**
   ```bash
   npm install

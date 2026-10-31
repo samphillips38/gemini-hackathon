@@ -631,3 +631,53 @@ export function synthesizeVerifiedRemediation(
     verified_result: verifiedResult,
   };
 }
+
+// ============================================================================
+// 4-STAGE COORDINATE PIPELINE (CAGB Level 2 Floorplan <-> Building Metric <-> Three.js)
+// Calibrated on Main Entrance (Exhibition Road) 2.10m clear double doors = 24px -> 11.43 px/m
+// ============================================================================
+
+export const CAGB_L2_PLAN_PX_PER_M = 11.43;
+export const CAGB_L2_IMAGE_HEIGHT_PX = 1366;
+
+export function floorplanPxToBuildingMetric(
+  u_px: number,
+  v_px: number,
+  z_elevation_m = 0,
+  pxPerM = CAGB_L2_PLAN_PX_PER_M,
+  imageHeightPx = CAGB_L2_IMAGE_HEIGHT_PX
+): { X_b: number; Y_b: number; Z_b: number } {
+  return {
+    X_b: Number((u_px / pxPerM).toFixed(3)),
+    Y_b: Number(((imageHeightPx - v_px) / pxPerM).toFixed(3)),
+    Z_b: z_elevation_m,
+  };
+}
+
+export function buildingMetricToFloorplanPx(
+  X_b: number,
+  Y_b: number,
+  pxPerM = CAGB_L2_PLAN_PX_PER_M,
+  imageHeightPx = CAGB_L2_IMAGE_HEIGHT_PX
+): { u_px: number; v_px: number } {
+  return {
+    u_px: Math.round(X_b * pxPerM),
+    v_px: Math.round(imageHeightPx - Y_b * pxPerM),
+  };
+}
+
+export function mujocoToThreePose(
+  pos_z_up: [number, number, number],
+  quat_wxyz: [number, number, number, number] = [1, 0, 0, 0]
+): {
+  position: [number, number, number];
+  quaternion: [number, number, number, number];
+} {
+  const [x_r, y_r, z_r] = pos_z_up;
+  const [qw, qx, qy, qz] = quat_wxyz;
+  return {
+    position: [x_r, z_r, -y_r],
+    quaternion: [qx, qz, -qy, qw],
+  };
+}
+

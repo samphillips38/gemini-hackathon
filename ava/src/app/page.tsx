@@ -5,10 +5,13 @@ import dynamic from "next/dynamic";
 import {
   Accessibility,
   AlertTriangle,
+  ArrowRight,
   Building2,
   CheckCircle2,
+  Film,
   Flame,
   Home,
+  MapPin,
   Mic,
   Play,
   RotateCcw,
@@ -20,11 +23,13 @@ import {
   Zap,
 } from "lucide-react";
 import {
+  CAGB_FILMING_ROUTES,
   DEFAULT_LIVE_HAZARDS,
   IMPERIAL_FLOOR_GRAPH,
   PRESET_ROOMS,
 } from "@/presets/mockRooms";
 import {
+  CAGB_L2_PLAN_PX_PER_M,
   synthesizeVerifiedRemediation,
   verifyRoomSafetyAndEgress,
 } from "@/solver/roomVerifier";
@@ -69,11 +74,12 @@ export default function HackathonPage() {
   const [remediation, setRemediation] = useState<RemediationProposal | null>(null);
   const [isRemediatedView, setIsRemediatedView] = useState<boolean>(false);
 
-  // Plan C (ExitZero) State
+  // Plan C (ExitZero — CAGB Level 2) State
   const [floorGraph, setFloorGraph] = useState<BuildingFloorGraph>(IMPERIAL_FLOOR_GRAPH);
   const [liveHazards, setLiveHazards] = useState<LiveHazardEvent[]>(DEFAULT_LIVE_HAZARDS);
   const [startNodeId, setStartNodeId] = useState<string>("room_302");
   const [emergencyType, setEmergencyType] = useState<"earthquake" | "fire">("earthquake");
+  const [selectedRouteId, setSelectedRouteId] = useState<"A" | "B" | "C" | "D">("A");
 
   // Shared Multimodal Voice & Vision Upload State
   const [voiceNote, setVoiceNote] = useState<string>(
@@ -104,6 +110,11 @@ export default function HackathonPage() {
     [floorGraph, startNodeId, liveHazards, emergencyType, clearanceMode]
   );
 
+  const activeCAGBRoute = useMemo(
+    () => CAGB_FILMING_ROUTES.find((r) => r.id === selectedRouteId) || CAGB_FILMING_ROUTES[0],
+    [selectedRouteId]
+  );
+
   const speakText = (text: string) => {
     if (!voiceEnabled || typeof window === "undefined" || !("speechSynthesis" in window)) return;
     window.speechSynthesis.cancel();
@@ -124,6 +135,18 @@ export default function HackathonPage() {
     setStatusBanner(null);
   };
 
+  // 1-Click Macro (Plan C CAGB Level 2 Route C) -> Micro (Plan B Room 203 Shake Table)
+  const handleEnterRoom203DeepDive = () => {
+    setActivePlan("PLAN_B");
+    handleSelectPreset("cagb_room_203");
+    setStatusBanner(
+      "Macro → Micro Transition: Entered CAGB Level 2 Room 203 from Route C (Calibrated at 11.43 px/m)."
+    );
+    speakText(
+      "Entering CAGB Level 2 Room 203 3D Shake Table. Ready to simulate 6.8 magnitude seismic overturning and post-collapse A-star egress."
+    );
+  };
+
   // Trigger Plan B 6.8M Quake & Deterministic Verification
   const handleTriggerEarthquake = () => {
     setSimState("shaking");
@@ -132,11 +155,11 @@ export default function HackathonPage() {
       setSimState("collapsed");
       if (!v.survivable) {
         speakText(
-          `Critical failure! Never take a lift in a seismic event. Your wardrobe's 2-meter fall shadow seals the exit door, and the top-heavy bookshelf crushes the sleep zone. During shaking, Drop, Cover, and Hold On under the sturdy study desk.`
+          `Critical failure! Never take a lift in a seismic event. Phase 1 during shaking: Drop, Cover, and Hold On under the sturdy desk. Phase 2 after shaking: your wardrobe's 2-meter fall shadow seals the exit door, and the top-heavy bookshelf crushes the sleep zone.`
         );
       } else {
         speakText(
-          `Verified! Both the under-desk safe shelter and the post-collapse A-star evacuation route to the exit door remain 100 percent clear.`
+          `Verified! Phase 1 under-desk safe shelter and Phase 2 post-collapse A-star evacuation route to the exit door remain clear across ${v.monte_carlo.walk_clear_count} of 50 Monte Carlo quakes.`
         );
       }
     }, 2400);
@@ -220,6 +243,11 @@ export default function HackathonPage() {
           severity: "blocked",
           detected_from: "live_camera",
           description: `Live camera hazard blockade & expanding smoke at ${nodeLabel}`,
+          video_evidence: {
+            video_file: "route_B.mp4",
+            timestamp_s: 4.2,
+            quote: `Live walk camera spotted corridor blockage at ${nodeLabel}.`,
+          },
         },
       ];
     });
@@ -384,20 +412,20 @@ export default function HackathonPage() {
             <Zap className="w-5 h-5" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <h1 className="font-bold text-base tracking-tight text-white">
                 {activePlan === "PLAN_B"
                   ? "Plan B: QuakeRoom — 3D Seismic Room Collapse & Egress Verifier"
-                  : "Plan C: ExitZero — 3D Building Floor-Plan & Dynamic Evacuation Verifier"}
+                  : "Plan C: ExitZero — CAGB Level 2 Floor-Plan & Dynamic Evacuation Verifier"}
               </h1>
               <span className="text-[11px] px-2 py-0.5 rounded-full bg-indigo-500/20 border border-indigo-400/40 text-indigo-300 font-medium">
-                Gemini 4 Argon × Deterministic Physics &amp; A* Verifier
+                Gemini 4 Argon × Deterministic Physics &amp; N=50 Monte Carlo A*
               </span>
             </div>
             <p className="text-xs text-slate-400">
               {activePlan === "PLAN_B"
-                ? "Room Video + Voice Constraints → 3D Shake Table + Housner Tipping Math + Post-Collapse A* Escape & Safe Shelter"
-                : "2D Wall Floor-Plan Photo + Live Camera Hazard → 3D Extruded Building Twin + Lift Lockout + Time-Expanded Dijkstra/A*"}
+                ? "Room Video + Voice Constraints → 3D Shake Table + Housner Tipping Math + Post-Collapse A* Escape (0.4m Walk / 0.9m Wheelchair)"
+                : `Imperial CAGB Level 2 (Room 200 Venue, ${CAGB_L2_PLAN_PX_PER_M} px/m on 2.10m Exhibition Rd Doors) → 3D Extruded Twin + Lift Lockout`}
             </p>
           </div>
         </div>
@@ -425,7 +453,7 @@ export default function HackathonPage() {
               }`}
             >
               <Building2 className="w-3.5 h-3.5" />
-              Plan C: ExitZero (3D Building)
+              Plan C: ExitZero (CAGB L2)
             </button>
           </div>
 
@@ -436,7 +464,8 @@ export default function HackathonPage() {
               className="bg-slate-900 border border-slate-700 text-xs rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-400"
             >
               <option value="student_dorm">Preset 1: Student Bedroom (10th Floor — Renter)</option>
-              <option value="studio_lab">Preset 2: High-Rise Studio / Lab (12th Floor)</option>
+              <option value="cagb_room_203">Preset 2: CAGB Level 2 — Room 203 (Route C Deep-Dive)</option>
+              <option value="studio_lab">Preset 3: High-Rise Studio / Lab (12th Floor)</option>
             </select>
           )}
 
@@ -473,6 +502,27 @@ export default function HackathonPage() {
           </button>
         </div>
       </header>
+
+      {/* 2-Phase Seismic Safety Framing Strip (Judge Verification Check) */}
+      <div className="bg-slate-950 border-b border-slate-800/80 px-5 py-1.5 flex flex-wrap items-center justify-between gap-2 text-[11px]">
+        <div className="flex flex-wrap items-center gap-4">
+          <span className="flex items-center gap-1.5 text-cyan-300 font-semibold">
+            <span className="px-1.5 py-0.5 rounded bg-cyan-500/20 border border-cyan-400/40 font-bold">
+              PHASE 1 (DURING SHAKING)
+            </span>
+            Drop, Cover &amp; Hold On under sturdy desk ({verification.shelter_reach_time_s}s reach) — never run to doors or lifts while shaking
+          </span>
+          <span className="flex items-center gap-1.5 text-emerald-300 font-semibold">
+            <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 border border-emerald-400/40 font-bold">
+              PHASE 2 (AFTER SHAKING STOPS)
+            </span>
+            Post-Collapse A* Egress to Stairwell Exit (Walk 0.4m: {verification.monte_carlo.walk_clear_count}/50 • Wheelchair 0.9m: {verification.monte_carlo.wheelchair_clear_count}/50)
+          </span>
+        </div>
+        <span className="text-rose-300 font-bold">
+          LIFT LOCKOUT: ACTIVE
+        </span>
+      </div>
 
       {statusBanner && (
         <div className="bg-indigo-950/80 border-b border-indigo-500/40 px-5 py-1.5 text-xs text-indigo-200 flex items-center justify-between">
@@ -551,11 +601,11 @@ export default function HackathonPage() {
                 <div className="flex items-center gap-3 text-[11px] text-slate-300">
                   <span className="flex items-center gap-1">
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block" />
-                    A* Escape Path
+                    Phase 2 A* Egress
                   </span>
                   <span className="flex items-center gap-1">
                     <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 inline-block" />
-                    Drop-Cover-Hold Shelter
+                    Phase 1 Drop-Cover-Hold
                   </span>
                 </div>
               </div>
@@ -583,14 +633,14 @@ export default function HackathonPage() {
                     {verification.survivable ? (
                       <>
                         <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                        VERIFIED SURVIVABLE — 0 CASUALTIES &amp; EXIT CLEAR (
-                        {verification.monte_carlo.walk_clear_count}/50 RUNS)
+                        VERIFIED SURVIVABLE — WALK {verification.monte_carlo.walk_clear_count}/50 • WHEELCHAIR{" "}
+                        {verification.monte_carlo.wheelchair_clear_count}/50 RUNS
                       </>
                     ) : (
                       <>
                         <AlertTriangle className="w-4 h-4 text-rose-400" />
                         {!verification.exit_reachable_post_quake
-                          ? "EXIT BLOCKED BY WARDROBE — OCCUPANT TRAPPED"
+                          ? `EXIT BLOCKED BY WARDROBE — WALK ${verification.monte_carlo.walk_clear_count}/50 • WHEELCHAIR ${verification.monte_carlo.wheelchair_clear_count}/50`
                           : "CRITICAL HAZARD: SLEEP ZONE IN BOOKSHELF / GLASS FALL SHADOW"}
                       </>
                     )}
@@ -618,7 +668,7 @@ export default function HackathonPage() {
                       .filter((n) => n.type === "room")
                       .map((n) => (
                         <option key={n.id} value={n.id}>
-                          Start Location: {n.label}
+                          Start: {n.label}
                         </option>
                       ))}
                   </select>
@@ -629,7 +679,7 @@ export default function HackathonPage() {
                     }
                     className="px-3 py-2 rounded-lg bg-rose-600/25 border border-rose-500/50 text-rose-200 text-xs font-bold"
                   >
-                    Emergency: {emergencyType.toUpperCase()} (Lifts Locked)
+                    {emergencyType.toUpperCase()} (Lifts Locked)
                   </button>
 
                   <button
@@ -644,8 +694,16 @@ export default function HackathonPage() {
                   >
                     <Accessibility className="w-3.5 h-3.5" />
                     {clearanceMode === "wheelchair"
-                      ? "Wheelchair Mode (Routes to Refuge R2)"
-                      : "Walking / Running Mode (Stairwells)"}
+                      ? "Wheelchair (0.9m → Refuge R2)"
+                      : "Walking (0.4m → Exhibition Rd 2.10m)"}
+                  </button>
+
+                  <button
+                    onClick={handleEnterRoom203DeepDive}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold shadow transition"
+                  >
+                    <ArrowRight className="w-3.5 h-3.5" />
+                    Route C → Enter Room 203 (3D Shake Table)
                   </button>
 
                   <button
@@ -658,12 +716,8 @@ export default function HackathonPage() {
                     className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-slate-950 text-xs font-bold"
                   >
                     <Volume2 className="w-3.5 h-3.5" />
-                    Speak Turn-by-Turn Guidance
+                    Speak Route
                   </button>
-                </div>
-
-                <div className="text-[11px] text-slate-400">
-                  Click any room node to move start • Click corridor junction to toggle live hazard
                 </div>
               </div>
 
@@ -680,7 +734,7 @@ export default function HackathonPage() {
                 <div className="absolute top-3 left-3 pointer-events-none flex flex-col gap-1.5">
                   <div className="px-3 py-1.5 rounded-lg bg-rose-950/90 border border-rose-500 text-rose-200 text-xs font-bold flex items-center gap-2 shadow-lg">
                     <ShieldAlert className="w-4 h-4 text-rose-400" />
-                    LIFT LOCKOUT OVERRIDE ACTIVE — CENTRAL LIFTS FORBIDDEN IN{" "}
+                    LIFT LOCKOUT OVERRIDE ACTIVE — CAGB CENTRAL LIFTS FORBIDDEN IN{" "}
                     {emergencyType.toUpperCase()}
                   </div>
                   {buildingVerification.verified_safe_route && (
@@ -795,12 +849,17 @@ export default function HackathonPage() {
 
           {activePlan === "PLAN_B" ? (
             <>
-              {/* Plan B Card 2: Deterministic Housner Physics & Post-Collapse A* Telemetry */}
+              {/* Plan B Card 2: Deterministic Housner Physics & N=50 Monte Carlo A* Telemetry */}
               <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5 flex flex-col gap-2.5">
-                <h2 className="text-xs font-bold uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  2. Housner Overturning &amp; A* Egress Verifier
-                </h2>
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    2. Housner &amp; N=50 Monte Carlo Verifier
+                  </h2>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono">
+                    PGA {verification.monte_carlo.pga_range_g[0]}g–{verification.monte_carlo.pga_range_g[1]}g
+                  </span>
+                </div>
 
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div
@@ -810,21 +869,22 @@ export default function HackathonPage() {
                         : "bg-rose-950/50 border-rose-500/50 text-rose-200"
                     }`}
                   >
-                    <div className="text-[10px] uppercase opacity-75">Post-Quake Exit</div>
+                    <div className="text-[10px] uppercase opacity-75">
+                      Walk (0.4m) / Wheelchair (0.9m)
+                    </div>
                     <div className="font-bold text-sm mt-0.5">
-                      {verification.exit_reachable_post_quake
-                        ? `CLEAR (${verification.escape_distance_m}m)`
-                        : "BLOCKED BY WARDROBE"}
+                      {verification.monte_carlo.walk_clear_count}/50 •{" "}
+                      {verification.monte_carlo.wheelchair_clear_count}/50
                     </div>
                   </div>
 
                   <div className="p-2 rounded-lg border bg-cyan-950/40 border-cyan-500/40 text-cyan-200">
                     <div className="text-[10px] uppercase opacity-75">
-                      Drop-Cover-Hold Shelter
+                      Phase 1 Shelter (Under Desk)
                     </div>
                     <div className="font-bold text-sm mt-0.5">
                       {verification.safe_shelter_spot_m
-                        ? `Under Desk (${verification.shelter_reach_time_s}s)`
+                        ? `Reach in ${verification.shelter_reach_time_s}s`
                         : "None Found"}
                     </div>
                   </div>
@@ -914,65 +974,110 @@ export default function HackathonPage() {
             </>
           ) : (
             <>
-              {/* Plan C Card 2: Naive Shortest Route vs Verified Safe Route Comparison */}
+              {/* Plan C Card 2: CAGB Level 2 Filming Routes A–D & Time-Expanded Evacuation Verifier */}
               <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5 flex flex-col gap-2.5">
-                <h2 className="text-xs font-bold uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  2. Time-Expanded Evacuation Verifier
-                </h2>
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5" />
+                    2. CAGB Level 2 Routes A–D (11.43 px/m)
+                  </h2>
+                  <div className="flex gap-1">
+                    {(["A", "B", "C", "D"] as const).map((rId) => (
+                      <button
+                        key={rId}
+                        onClick={() => setSelectedRouteId(rId)}
+                        className={`px-2 py-0.5 rounded text-[11px] font-bold transition ${
+                          selectedRouteId === rId
+                            ? "bg-indigo-600 text-white"
+                            : "bg-slate-800 text-slate-400 hover:text-white"
+                        }`}
+                      >
+                        Route {rId}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-                {/* Rejected Naive Route */}
-                <div className="p-2.5 rounded-lg bg-rose-950/50 border border-rose-500/50 text-xs space-y-1">
-                  <div className="flex items-center justify-between font-bold text-rose-300">
-                    <span>Naive Shortest Route (East Core / Lift)</span>
-                    <span className="px-1.5 py-0.5 rounded bg-rose-500/30 text-[10px]">
+                {/* Official CAGB Level 2 Route Map Preview */}
+                <div className="relative rounded-lg overflow-hidden border border-slate-800 bg-slate-950">
+                  <img
+                    src={activeCAGBRoute.image}
+                    alt={activeCAGBRoute.title}
+                    className="w-full h-32 object-cover opacity-90"
+                  />
+                  <div className="p-2 bg-slate-950/95 border-t border-slate-800">
+                    <div className="text-[11px] font-bold text-indigo-200">
+                      {activeCAGBRoute.title}
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 mt-1">
+                      {activeCAGBRoute.landmarks.map((lm) => (
+                        <span
+                          key={lm.number}
+                          className="text-[10px] px-1.5 py-0.5 rounded bg-slate-900 border border-slate-700 text-slate-300"
+                        >
+                          #{lm.number}: {lm.say}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Rejected Naive Route vs Verified Route */}
+                <div className="p-2 rounded-lg bg-rose-950/50 border border-rose-500/50 text-xs space-y-0.5">
+                  <div className="flex items-center justify-between font-bold text-rose-300 text-[11px]">
+                    <span>Naive Route (Dalby Court / Central Lift)</span>
+                    <span className="px-1.5 py-0.5 rounded bg-rose-500/30 text-[9px]">
                       REJECTED ({buildingVerification.naive_shortest_route.status})
                     </span>
                   </div>
-                  <p className="text-[11px] text-rose-200/90 leading-snug">
+                  <p className="text-[10px] text-rose-200/90 leading-snug">
                     {buildingVerification.naive_shortest_route.failure_reason}
                   </p>
                 </div>
 
-                {/* Verified Safe Route */}
                 {buildingVerification.verified_safe_route && (
-                  <div className="p-2.5 rounded-lg bg-emerald-950/45 border border-emerald-500/50 text-xs space-y-1">
-                    <div className="flex items-center justify-between font-bold text-emerald-300">
+                  <div className="p-2 rounded-lg bg-emerald-950/45 border border-emerald-500/50 text-xs space-y-0.5">
+                    <div className="flex items-center justify-between font-bold text-emerald-300 text-[11px]">
                       <span>{buildingVerification.verified_safe_route.target_exit_label}</span>
-                      <span className="px-1.5 py-0.5 rounded bg-emerald-500/30 text-[10px]">
-                        VERIFIED (+
-                        {buildingVerification.verified_safe_route.safety_margin_before_closure_s}s
-                        margin)
+                      <span className="px-1.5 py-0.5 rounded bg-emerald-500/30 text-[9px]">
+                        +{buildingVerification.verified_safe_route.safety_margin_before_closure_s}s
                       </span>
                     </div>
-                    <div className="text-[11px] text-slate-300">
-                      Distance: {buildingVerification.verified_safe_route.total_distance_m}m • Travel
-                      Time: {buildingVerification.verified_safe_route.estimated_travel_time_s}s
-                    </div>
-                    <p className="text-[11px] text-emerald-200/90 leading-snug pt-1">
+                    <p className="text-[10px] text-emerald-200/90 leading-snug">
                       &ldquo;{buildingVerification.verified_safe_route.turn_by_turn_voice}&rdquo;
                     </p>
                   </div>
                 )}
               </div>
 
-              {/* Plan C Card 3: Active Live Camera / Voice Hazards */}
+              {/* Plan C Card 3: Active Live Camera / Voice Hazards with Video Timestamp Evidence */}
               <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5 flex-1 flex flex-col gap-2">
                 <h2 className="text-xs font-bold uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
                   <Flame className="w-3.5 h-3.5" />
-                  3. Live Camera &amp; Voice Hazard Feed
+                  3. Live Camera Hazard Evidence
                 </h2>
                 <div className="space-y-2">
                   {liveHazards.map((h) => (
                     <div
                       key={h.id}
-                      className="p-2.5 rounded-lg bg-slate-950 border border-orange-500/40 text-xs"
+                      className="p-2.5 rounded-lg bg-slate-950 border border-orange-500/40 text-xs space-y-1.5"
                     >
                       <div className="font-bold text-orange-300 flex justify-between">
                         <span>{h.hazard_type.toUpperCase()}</span>
                         <span>Spread: {h.spread_rate_m_per_s} m/s</span>
                       </div>
-                      <p className="text-[11px] text-slate-300 mt-1">{h.description}</p>
+                      <p className="text-[11px] text-slate-300">{h.description}</p>
+                      {h.video_evidence && (
+                        <div className="p-1.5 rounded bg-indigo-950/50 border border-indigo-500/30 text-[10px] text-indigo-200 flex items-start gap-1.5">
+                          <Film className="w-3.5 h-3.5 text-indigo-400 shrink-0 mt-0.5" />
+                          <div>
+                            <span className="font-bold text-indigo-300">
+                              {h.video_evidence.video_file} @ t={h.video_evidence.timestamp_s}s:
+                            </span>{" "}
+                            &ldquo;{h.video_evidence.quote}&rdquo;
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
