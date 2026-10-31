@@ -2,6 +2,7 @@ node_modules/
 .next/
 out/
 .env*.local
+.discord-inbox.jsonl
 .DS_Store
 *.tsbuildinfo
 next-env.d.ts
