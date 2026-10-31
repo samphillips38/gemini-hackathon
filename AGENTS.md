@@ -1,7 +1,7 @@
 # AGENTS.md — Shared Multi-Agent Coordination Hub (Google DeepMind Hackathon at Imperial)
 
 > **Authoritative Blueprint:** [`ava/HACKATHON_PLANS_B_AND_C.md`](./ava/HACKATHON_PLANS_B_AND_C.md)  
-> All coding agents (Antigravity, Codex, Cursor, Claude Code) MUST read `ava/HACKATHON_PLANS_B_AND_C.md` and keep this root `AGENTS.md` updated as modules land on `main`.
+> All coding agents (Antigravity, Codex, Cursor, Claude Code) MUST follow `ava/HACKATHON_PLANS_B_AND_C.md` and keep this root `AGENTS.md` updated as modules land on `main`.
 
 ---
 
@@ -11,12 +11,12 @@ While the team finalizes the exact stage pitch between **Plan B (QuakeRoom)** an
 
 1. **Plan B — `QuakeRoom` (Seismic Room Collapse, Safe-Shelter & Escape Route Verifier):**
    - **Input:** Room video / photo scan + Gemini Live voice context (`floor_level`, `renter_no_drill`, top-shelf heavy loads).
-   - **3D Scene:** Procedural 3D room twin (`RoomSceneGraph`) with `bed`, `bookshelf`, `wardrobe`, `desk`, `chair`, `tv_monitor`, `heavy_item`, `fragile_glass`, `window`, `exit_door`.
+   - **3D Scene:** Procedural 3D room twin (`RoomSceneGraph`) with `bed`, `bookshelf` (with `bottom`/`middle`/`top` shelf child items), `wardrobe`, `desk`, `chair`, `tv_monitor`, `heavy_item`, `fragile_glass`, `window`, `exit_door`.
    - **Deterministic Verifier:**
      1. Analytical Housner Center-of-Mass overturning safety factor: $SF = \frac{b / h_{\text{CoM}}}{a_{\text{floor}} / g}$ (accounting for stacked child items on top vs. bottom shelves).
      2. 3D rigid-body / tipping simulation + fall-shadow projection.
      3. Post-collapse 2D grid **A\* pathfinder** (`0.2m` grid) verifying `occupant_start -> exit_door` (`escape_path_points_m`) and `occupant_start -> safe_shelter_spot_m` (under sturdy desk).
-   - **Self-Correcting Loop:** Gemini 4 Argon proposes a renter-safe `RemediationProposal` (e.g., moving `20kg` textbooks from `top` shelf to `bottom` shelf as ballast, sliding `wardrobe` away from `exit_door`, shifting `bed` out of window glass shatter zone) and re-verifies in the solver.
+   - **Self-Correcting Loop:** Gemini 4 Argon proposes a renter-safe `RemediationProposal` (moving `20kg` textbooks from `top` shelf to `bottom` shelf as ballast, sliding `wardrobe` away from `exit_door`, shifting `bed` out of window glass shatter zone) and re-verifies in the solver.
 
 2. **Plan C — `ExitZero` (2D Floor-Plan + Live Camera Hazard to 3D Building Evacuation Verifier):**
    - **Input:** Photo of a 2D wall fire-exit floor plan (`BuildingFloorGraph`) + live camera / voice hazard report (`LiveHazardEvent`).
@@ -28,19 +28,20 @@ While the team finalizes the exact stage pitch between **Plan B (QuakeRoom)** an
 ## 2. Repository Structure & Per-Teammate Folder Isolation
 
 To prevent merge conflicts while all 5 teammates commit directly to `main`:
-- **Each teammate works strictly inside their own top-level folder** (`ava/`, `sam/`, `Pinky/`, etc.) during parallel development.
+- **Each teammate works strictly inside their own top-level folder** (`ava/`, `sam/`, `Ana/`, `Pinky/`, etc.) during parallel development.
 - **NEVER modify or delete files inside another teammate's folder.**
 - **Only shared root file:** This `/AGENTS.md` file at the repo root, which any agent may update to log status and exported modules.
 
 | Teammate Folder | Owner / Focus | Current Status & Key Modules |
 | :--- | :--- | :--- |
-| **`ava/`** | **Ava** — Shared 3D Room & Building Creation (`RoomCanvas3D`, `BuildingCanvas3D`), Vision-to-3D Extraction API (`/api/extract-room`, `/api/extract-floorplan`), Deterministic Physics + A\* Verifier, Unified Plan B + Plan C Interactive App | Active (`ava/src/types/contracts.ts`, `ava/src/scene3d/`, `ava/src/solver/`, `ava/src/presets/`, `ava/src/app/page.tsx`) |
-| **`sam/`** | **Sam** — Plan B (`quakeRoomSolver.ts`) & Plan C (`exitZeroSolver.ts`) Solvers, Vision/Floorplan Extractors, Voice/Remediation Routes, 3D Scenes | Active (`sam/src/types/contracts.ts`, `sam/src/solver/`, `sam/src/scene3d/`) |
-| **`Pinky/`** | **Pinky** — Teammate workspace | Active |
+| **`ava/`** | **Ava** — Authoritative Blueprint (`ava/HACKATHON_PLANS_B_AND_C.md`), Shared 3D Room & Building Creation (`RoomCanvas3D.tsx`, `BuildingCanvas3D.tsx`), Gemini 4 Argon API Suite (`/api/extract-room`, `/api/extract-floorplan`, `/api/remediate`, `/api/hazard`), Deterministic Physics + A\* Verifier (`roomVerifier.ts`, `buildingVerifier.ts`), Unified Plan B + Plan C App (`src/app/page.tsx`) | Complete & Live (`ava/`) |
+| **`sam/`** | **Sam** — Plan B (`quakeRoomSolver.ts`) & Plan C (`exitZeroSolver.ts`) Solvers, Vision/Floorplan Extractors, Voice/Remediation Routes, 3D Scenes | Active (`sam/`) |
+| **`Ana/`** | **Ana** — Plan B & C Solvers, 3D Shake Table & Building Extruder, API routes | Active (`Ana/`) |
+| **`Pinky/`** | **Pinky** — Teammate workspace | Active (`Pinky/`) |
 
 ---
 
-## 3. Tech Stack & Standard Commands (Inside Each App Folder e.g. `ava/` or `sam/`)
+## 3. Tech Stack & Standard Commands (Inside Each App Folder e.g. `ava/`)
 
 - **Framework:** Next.js 14 (App Router, TypeScript, Tailwind CSS)
 - **3D & Physics:** `three`, `@types/three`, `@react-three/fiber`, `@react-three/drei`, `@react-three/rapier`
@@ -62,8 +63,8 @@ To prevent merge conflicts while all 5 teammates commit directly to `main`:
    ```
 2. **Stage ONLY your own folder (and root `AGENTS.md` if updating status):**
    ```bash
-   git add ava/ AGENTS.md
-   git commit -m "ava: <concise summary>"
+   git add <your-folder>/ AGENTS.md
+   git commit -m "<your-name>: <concise summary>"
    git push origin main
    ```
 3. **Commit & push frequently (every 2–3 files)** so all teammates and their coding agents have real-time visibility.
