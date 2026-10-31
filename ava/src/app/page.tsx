@@ -30,6 +30,7 @@ import {
 } from "@/presets/mockRooms";
 import cagbRouteARooms from "@/presets/cagbRouteARooms.json";
 import { seismicAudio } from "@/voice/seismicAudioSynth";
+import { speakCoachMessage } from "@/voice/voiceCoach";
 import {
   CAGB_L2_PLAN_PX_PER_M,
   synthesizeVerifiedRemediation,
@@ -123,12 +124,8 @@ export default function HackathonPage() {
   );
 
   const speakText = (text: string) => {
-    if (!voiceEnabled || typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    window.speechSynthesis.cancel();
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.rate = 1.06;
-    utter.pitch = 1.0;
-    window.speechSynthesis.speak(utter);
+    if (!voiceEnabled) return;
+    speakCoachMessage(text, false);
   };
 
   // Switch Plan B preset room
