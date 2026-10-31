@@ -1,0 +1,218 @@
+{
+ "_about": "CAGB Level 2 'hall' from slava/route_A/scene.json. x_m = X - 133.0, z_m = Y - 59.5 (building frame, metres, z_m = north). Real objects from the walk videos.",
+ "room": {
+  "width_m": 26.0,
+  "depth_m": 22.5,
+  "height_m": 7.5,
+  "floor_level": 2,
+  "renter_no_drill": true
+ },
+ "earthquake": {
+  "magnitude_mw": 6.8,
+  "duration_s": 15.0,
+  "dominant_axis": "XZ",
+  "pga_g": 0.4,
+  "pga_g_range": [
+   0.3,
+   0.5
+  ]
+ },
+ "objects": [
+  {
+   "id": "banner_build_future",
+   "category": "heavy_item",
+   "label": "Pull-up banner 'Build the Future. Together.'",
+   "parent_id": null,
+   "x_m": 6.94,
+   "z_m": 7.59,
+   "width_m": 0.85,
+   "height_m": 2.0,
+   "depth_m": 0.35,
+   "rotation_deg": 90,
+   "mass_kg": 7,
+   "anchored_to_wall": false,
+   "is_fragile": false,
+   "source_id": "banner_build_future",
+   "model": "banner",
+   "yaw_deg": 59.7,
+   "tip_threshold_g": 0.17,
+   "hazard": "Topples into the 3-4 m vestibule lane right outside Room 200.",
+   "evidence": [
+    "H 68",
+    "H 74"
+   ]
+  },
+  {
+   "id": "recycling_bins",
+   "category": "heavy_item",
+   "label": "Recycling bins x3",
+   "parent_id": null,
+   "x_m": 5.2,
+   "z_m": 5.72,
+   "width_m": 1.4,
+   "height_m": 1.0,
+   "depth_m": 0.45,
+   "rotation_deg": 0,
+   "mass_kg": 36,
+   "anchored_to_wall": false,
+   "is_fragile": false,
+   "source_id": "recycling_bins",
+   "model": "bins",
+   "yaw_deg": 0,
+   "tip_threshold_g": 0.45,
+   "hazard": "Light, roll/topple; minor obstruction.",
+   "evidence": [
+    "H 70"
+   ]
+  },
+  {
+   "id": "blue_benches",
+   "category": "chair",
+   "label": "Blue modular benches along the glazing",
+   "parent_id": null,
+   "x_m": 24.4,
+   "z_m": 13.0,
+   "width_m": 1.0,
+   "height_m": 0.8,
+   "depth_m": 12.0,
+   "rotation_deg": 0,
+   "mass_kg": 300,
+   "anchored_to_wall": false,
+   "is_fragile": false,
+   "source_id": "blue_benches",
+   "model": "bench_row",
+   "yaw_deg": 0,
+   "tip_threshold_g": 1.25,
+   "hazard": "Slide on polished terrazzo; can pin against glass.",
+   "evidence": [
+    "V 78",
+    "V 86",
+    "H 58",
+    "H 66"
+   ]
+  },
+  {
+   "id": "jet_engine_exhibit",
+   "category": "heavy_item",
+   "label": "Turbofan engine exhibit on A-frame stand",
+   "parent_id": null,
+   "x_m": 17.2,
+   "z_m": 17.8,
+   "width_m": 1.6,
+   "height_m": 1.9,
+   "depth_m": 1.1,
+   "rotation_deg": 180,
+   "mass_kg": 250,
+   "anchored_to_wall": false,
+   "is_fragile": false,
+   "source_id": "jet_engine_exhibit",
+   "model": "jet_engine",
+   "yaw_deg": 225,
+   "tip_threshold_g": 0.48,
+   "hazard": "Top-heavy freestanding exhibit by the route: high topple risk.",
+   "evidence": [
+    "H 56",
+    "V 88"
+   ]
+  },
+  {
+   "id": "refreshment_table",
+   "category": "desk",
+   "label": "Refreshment table (urns, cups)",
+   "parent_id": null,
+   "x_m": 12.33,
+   "z_m": 5.64,
+   "width_m": 1.2,
+   "height_m": 0.75,
+   "depth_m": 0.6,
+   "rotation_deg": 90,
+   "mass_kg": 25,
+   "anchored_to_wall": false,
+   "is_fragile": false,
+   "source_id": "refreshment_table",
+   "model": "folding_tables",
+   "yaw_deg": 59.7,
+   "tip_threshold_g": 0.8,
+   "hazard": "Topple + hot-water spill near the route.",
+   "evidence": [
+    "H 64",
+    "V 76"
+   ]
+  },
+  {
+   "id": "fire_extinguishers",
+   "category": "heavy_item",
+   "label": "Fire extinguishers on floor stand (x2)",
+   "parent_id": null,
+   "x_m": 18.5,
+   "z_m": 12.31,
+   "width_m": 0.6,
+   "height_m": 0.65,
+   "depth_m": 0.3,
+   "rotation_deg": 0,
+   "mass_kg": 24,
+   "anchored_to_wall": false,
+   "is_fragile": false,
+   "source_id": "fire_extinguishers",
+   "model": "extinguishers",
+   "yaw_deg": 0,
+   "tip_threshold_g": 0.46,
+   "hazard": "Can topple and roll; needed after the quake.",
+   "evidence": [
+    "H 64",
+    "H 62"
+   ]
+  },
+  {
+   "id": "spiral_glass_stair",
+   "category": "fragile_glass",
+   "label": "Glass-walled spiral stair",
+   "parent_id": null,
+   "x_m": 21.5,
+   "z_m": 19.5,
+   "width_m": 3.0,
+   "height_m": 7.0,
+   "depth_m": 3.0,
+   "rotation_deg": 0,
+   "mass_kg": 0,
+   "anchored_to_wall": true,
+   "is_fragile": true,
+   "source_id": "spiral_glass_stair",
+   "model": "spiral_stair",
+   "yaw_deg": 0,
+   "tip_threshold_g": null,
+   "hazard": "Glass hazard zone around enclosure.",
+   "evidence": [
+    "V 86"
+   ]
+  },
+  {
+   "id": "glazing_hall_east",
+   "category": "window",
+   "label": "Full-height glazing (hall east)",
+   "parent_id": null,
+   "x_m": 26.0,
+   "z_m": 13.75,
+   "width_m": 17.5,
+   "height_m": 7.5,
+   "depth_m": 0.05,
+   "rotation_deg": 90,
+   "mass_kg": 0,
+   "anchored_to_wall": true,
+   "is_fragile": true,
+   "source_id": "glazing_hall_east",
+   "model": "glazing",
+   "yaw_deg": 90,
+   "tip_threshold_g": null,
+   "hazard": "Shatter zone: keep 1.5 m from glass while shaking.",
+   "evidence": [
+    "V 78",
+    "H 56"
+   ]
+  }
+ ],
+ "origin_building_m": [
+  133.0,
+  59.5
+ ]
+}

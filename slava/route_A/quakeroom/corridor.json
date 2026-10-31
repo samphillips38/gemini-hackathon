@@ -1,0 +1,120 @@
+{
+ "_about": "CAGB Level 2 'corridor' from slava/route_A/scene.json. x_m = X - 142.0, z_m = Y - 82.0 (building frame, metres, z_m = north). Real objects from the walk videos.",
+ "room": {
+  "width_m": 8.0,
+  "depth_m": 8.1,
+  "height_m": 3.3,
+  "floor_level": 2,
+  "renter_no_drill": true
+ },
+ "earthquake": {
+  "magnitude_mw": 6.8,
+  "duration_s": 15.0,
+  "dominant_axis": "XZ",
+  "pga_g": 0.4,
+  "pga_g_range": [
+   0.3,
+   0.5
+  ]
+ },
+ "objects": [
+  {
+   "id": "accessible_wc",
+   "category": "exit_door",
+   "label": "Accessible WC door (blue)",
+   "parent_id": null,
+   "x_m": 1.0,
+   "z_m": 1.86,
+   "width_m": 1.0,
+   "height_m": 2.1,
+   "depth_m": 0.1,
+   "rotation_deg": 90,
+   "mass_kg": 0,
+   "anchored_to_wall": true,
+   "is_fragile": false,
+   "source_id": "accessible_wc",
+   "model": "door_single_blue",
+   "yaw_deg": 90,
+   "tip_threshold_g": null,
+   "hazard": "",
+   "evidence": [
+    "V 96"
+   ]
+  },
+  {
+   "id": "reception_L2",
+   "category": "desk",
+   "label": "Curved reception desk (Level 2)",
+   "parent_id": null,
+   "x_m": 5.8,
+   "z_m": 4.91,
+   "width_m": 2.4,
+   "height_m": 1.1,
+   "depth_m": 0.9,
+   "rotation_deg": 0,
+   "mass_kg": 200,
+   "anchored_to_wall": true,
+   "is_fragile": false,
+   "source_id": "reception_L2",
+   "model": "reception_curved",
+   "yaw_deg": 0,
+   "tip_threshold_g": null,
+   "hazard": "Likely fixed.",
+   "evidence": [
+    "V 100",
+    "V 98"
+   ]
+  },
+  {
+   "id": "lounge_chair",
+   "category": "chair",
+   "label": "High-back lounge chair",
+   "parent_id": null,
+   "x_m": 5.6,
+   "z_m": 7.01,
+   "width_m": 0.9,
+   "height_m": 1.2,
+   "depth_m": 0.9,
+   "rotation_deg": 0,
+   "mass_kg": 35,
+   "anchored_to_wall": false,
+   "is_fragile": false,
+   "source_id": "lounge_chair",
+   "model": "armchair",
+   "yaw_deg": 0,
+   "tip_threshold_g": 0.75,
+   "hazard": "Slides; minor.",
+   "evidence": [
+    "V 102"
+   ]
+  },
+  {
+   "id": "auto_glass_doors_cg",
+   "category": "exit_door",
+   "label": "Automatic glass double doors (C&G)",
+   "parent_id": null,
+   "x_m": 4.0,
+   "z_m": 8.1,
+   "width_m": 1.8,
+   "height_m": 2.2,
+   "depth_m": 0.1,
+   "rotation_deg": 0,
+   "mass_kg": 0,
+   "anchored_to_wall": true,
+   "is_fragile": true,
+   "source_id": "auto_glass_doors_cg",
+   "model": "door_glass_auto",
+   "yaw_deg": 14.7,
+   "tip_threshold_g": null,
+   "hazard": "Glass; may stop on power loss: use manual push.",
+   "evidence": [
+    "V 106",
+    "H 48"
+   ]
+  }
+ ],
+ "origin_building_m": [
+  142.0,
+  82.0
+ ]
+}
