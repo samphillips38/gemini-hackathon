@@ -69,3 +69,8 @@ To prevent merge conflicts while all 5 teammates commit directly to `main`:
    ```
 3. **Commit & push frequently (every 2–3 files)** so all teammates and their coding agents have real-time visibility.
 4. **Offline-Safe Guarantee:** Every feature MUST work out-of-the-box with the deterministic presets in `src/presets/` even if Wi-Fi or live API keys drop during the 4:30 PM live stage demo.
+
+---
+
+## Agent-to-agent requests (automatic)
+Use `coordination/PROTOCOL.md`: one new file per message in `coordination/inbox/<to>/`, watchers pull every 20-60 s, work only inside your own folder, reply in the sender's inbox. Canonical map scale is **9.52 px/m** (`assets/floorplans/cagb-L2-graph.json`); real CAGB L2 objects are in `slava/route_A/scene.json`.
