@@ -212,6 +212,296 @@ const WING_OBSTACLES: WingObstacle[] = [
   },
 ];
 
+/**
+ * Flowing, Multi-Layered 3D Architectural Evacuation Path Model for Building Wing
+ */
+function FlowingWingPathRibbon({
+  points,
+  color = "#10b981",
+  emissive = "#059669",
+}: {
+  points: Array<[number, number, number]>;
+  color?: string;
+  emissive?: string;
+}) {
+  const diamondRef = useRef<THREE.Mesh>(null);
+  const gyroRingRef = useRef<THREE.Mesh>(null);
+  const chevronRefs = useRef<Array<THREE.Group | null>>([]);
+  const halfWidth = 0.42;
+  const gliderCount = 14;
+
+  const pathData = useMemo(() => {
+    if (points.length < 2) return null;
+    const vecs = points.map((p) => new THREE.Vector3(p[0], 0.04, p[2]));
+    const curve = new THREE.CatmullRomCurve3(vecs, false, "catmullrom", 0.4);
+    const totalLength = curve.getLength();
+    const segments = Math.max(90, points.length * 24);
+
+    const positions: number[] = [];
+    const normals: number[] = [];
+    const uvs: number[] = [];
+    const indices: number[] = [];
+
+    const leftRailPts: THREE.Vector3[] = [];
+    const rightRailPts: THREE.Vector3[] = [];
+    const centerWavePts: THREE.Vector3[] = [];
+    const uvRepeatAlongPath = Math.max(2, totalLength / 1.1);
+
+    for (let i = 0; i <= segments; i++) {
+      const u = i / segments;
+      const pt = curve.getPointAt(u);
+      const tan = curve.getTangentAt(u).normalize();
+      const perp = new THREE.Vector3(-tan.z, 0, tan.x).normalize();
+
+      positions.push(
+        pt.x - perp.x * halfWidth,
+        0.04,
+        pt.z - perp.z * halfWidth,
+        pt.x + perp.x * halfWidth,
+        0.04,
+        pt.z + perp.z * halfWidth
+      );
+      normals.push(0, 1, 0, 0, 1, 0);
+
+      const uCoord = u * uvRepeatAlongPath;
+      uvs.push(uCoord, 0, uCoord, 1);
+
+      const railOffset = halfWidth * 0.88;
+      leftRailPts.push(
+        new THREE.Vector3(
+          pt.x - perp.x * railOffset,
+          0.055,
+          pt.z - perp.z * railOffset
+        )
+      );
+      rightRailPts.push(
+        new THREE.Vector3(
+          pt.x + perp.x * railOffset,
+          0.055,
+          pt.z + perp.z * railOffset
+        )
+      );
+      centerWavePts.push(
+        new THREE.Vector3(
+          pt.x,
+          0.068 + Math.sin(u * Math.PI * 14) * 0.012,
+          pt.z
+        )
+      );
+
+      if (i < segments) {
+        const base = i * 2;
+        indices.push(base, base + 1, base + 2, base + 1, base + 3, base + 2);
+      }
+    }
+
+    const ribbonGeom = new THREE.BufferGeometry();
+    ribbonGeom.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(positions, 3)
+    );
+    ribbonGeom.setAttribute(
+      "normal",
+      new THREE.Float32BufferAttribute(normals, 3)
+    );
+    ribbonGeom.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
+    ribbonGeom.setIndex(indices);
+
+    return {
+      curve,
+      ribbonGeom,
+      leftRailGeom: new THREE.TubeGeometry(
+        new THREE.CatmullRomCurve3(leftRailPts),
+        segments,
+        0.02,
+        8,
+        false
+      ),
+      rightRailGeom: new THREE.TubeGeometry(
+        new THREE.CatmullRomCurve3(rightRailPts),
+        segments,
+        0.02,
+        8,
+        false
+      ),
+      centerSpineGeom: new THREE.TubeGeometry(
+        new THREE.CatmullRomCurve3(centerWavePts),
+        segments,
+        0.026,
+        10,
+        false
+      ),
+    };
+  }, [points]);
+
+  const flowTexture = useMemo(() => {
+    if (typeof document === "undefined") return null;
+    const canvas = document.createElement("canvas");
+    canvas.width = 512;
+    canvas.height = 256;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+
+    const bgGrad = ctx.createLinearGradient(0, 0, 0, 256);
+    bgGrad.addColorStop(0.0, "rgba(0, 0, 0, 0)");
+    bgGrad.addColorStop(0.1, `${emissive}55`);
+    bgGrad.addColorStop(0.5, `${color}88`);
+    bgGrad.addColorStop(0.9, `${emissive}55`);
+    bgGrad.addColorStop(1.0, "rgba(0, 0, 0, 0)");
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, 512, 256);
+
+    const drawChevron = (cx: number, width: number) => {
+      const grad = ctx.createLinearGradient(cx - width, 0, cx + width * 0.6, 0);
+      grad.addColorStop(0, "rgba(255, 255, 255, 0)");
+      grad.addColorStop(0.5, color);
+      grad.addColorStop(1, "rgba(255, 255, 255, 0.95)");
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.moveTo(cx - width * 0.55, 42);
+      ctx.lineTo(cx + width * 0.15, 42);
+      ctx.lineTo(cx + width * 0.65, 128);
+      ctx.lineTo(cx + width * 0.15, 214);
+      ctx.lineTo(cx - width * 0.55, 214);
+      ctx.lineTo(cx - width * 0.05, 128);
+      ctx.closePath();
+      ctx.fill();
+    };
+
+    drawChevron(140, 115);
+    drawChevron(396, 115);
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.ClampToEdgeWrapping;
+    tex.needsUpdate = true;
+    return tex;
+  }, [color, emissive]);
+
+  useFrame(({ clock }, delta) => {
+    const t = clock.getElapsedTime();
+    if (flowTexture) flowTexture.offset.x -= delta * 1.45;
+    if (diamondRef.current) {
+      diamondRef.current.rotation.y = t * 2.2;
+      diamondRef.current.position.y = 0.62 + Math.sin(t * 3.2) * 0.08;
+    }
+    if (gyroRingRef.current) {
+      gyroRingRef.current.rotation.z = -t * 1.6;
+      gyroRingRef.current.rotation.x = Math.sin(t * 1.5) * 0.35;
+    }
+    if (pathData) {
+      for (let i = 0; i < gliderCount; i++) {
+        const glider = chevronRefs.current[i];
+        if (!glider) continue;
+        const u = (i / gliderCount + t * 0.1) % 1;
+        const pos = pathData.curve.getPointAt(u);
+        const tan = pathData.curve.getTangentAt(u).normalize();
+        glider.position.set(
+          pos.x,
+          0.095 + Math.sin(u * Math.PI * 8 - t * 5) * 0.018,
+          pos.z
+        );
+        glider.rotation.set(0, Math.atan2(tan.x, tan.z), 0);
+        const fade = u < 0.08 ? u / 0.08 : u > 0.92 ? (1 - u) / 0.08 : 1;
+        glider.scale.setScalar(Math.max(0.01, fade));
+      }
+    }
+  });
+
+  if (!pathData || points.length < 2) return null;
+  const endPt = points[points.length - 1];
+
+  return (
+    <group>
+      <mesh geometry={pathData.ribbonGeom} receiveShadow>
+        <meshStandardMaterial
+          map={flowTexture}
+          color={color}
+          emissive={emissive}
+          emissiveMap={flowTexture}
+          emissiveIntensity={1.35}
+          roughness={0.25}
+          metalness={0.35}
+          transparent
+          opacity={0.88}
+          depthWrite={false}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+      <mesh geometry={pathData.leftRailGeom}>
+        <meshStandardMaterial
+          color="#f8fafc"
+          emissive={color}
+          emissiveIntensity={1.15}
+          roughness={0.2}
+          metalness={0.8}
+        />
+      </mesh>
+      <mesh geometry={pathData.rightRailGeom}>
+        <meshStandardMaterial
+          color="#f8fafc"
+          emissive={color}
+          emissiveIntensity={1.15}
+          roughness={0.2}
+          metalness={0.8}
+        />
+      </mesh>
+      <mesh geometry={pathData.centerSpineGeom}>
+        <meshStandardMaterial
+          color="#ffffff"
+          emissive={color}
+          emissiveIntensity={1.75}
+          roughness={0.15}
+          metalness={0.6}
+        />
+      </mesh>
+      {Array.from({ length: gliderCount }).map((_, idx) => (
+        <group
+          key={`wing-glider-${idx}`}
+          ref={(el) => {
+            chevronRefs.current[idx] = el;
+          }}
+        >
+          <mesh position={[-0.095, 0, -0.05]} rotation={[0, 0.58, 0]}>
+            <boxGeometry args={[0.22, 0.022, 0.055]} />
+            <meshStandardMaterial
+              color="#ffffff"
+              emissive={color}
+              emissiveIntensity={2.0}
+            />
+          </mesh>
+          <mesh position={[0.095, 0, -0.05]} rotation={[0, -0.58, 0]}>
+            <boxGeometry args={[0.22, 0.022, 0.055]} />
+            <meshStandardMaterial
+              color="#ffffff"
+              emissive={color}
+              emissiveIntensity={2.0}
+            />
+          </mesh>
+        </group>
+      ))}
+      <group position={[endPt[0], 0, endPt[2]]}>
+        <mesh ref={gyroRingRef} position={[0, 0.62, 0]}>
+          <torusGeometry args={[0.34, 0.02, 12, 36]} />
+          <meshStandardMaterial
+            color="#ffffff"
+            emissive={color}
+            emissiveIntensity={1.8}
+          />
+        </mesh>
+        <mesh ref={diamondRef} position={[0, 0.62, 0]}>
+          <octahedronGeometry args={[0.2, 0]} />
+          <meshStandardMaterial
+            color="#ffffff"
+            emissive={emissive}
+            emissiveIntensity={2.1}
+          />
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
 function WingScene({
   floorGraph,
   hazards,
@@ -547,14 +837,14 @@ function WingScene({
     }
   });
 
-  // Glowing 3D Optimal Safe Route Tube
-  const verifiedTubeGeom = useMemo(() => {
-    if (verifiedRouteNodes.length < 2) return null;
-    const pts = verifiedRouteNodes.map(
-      (n) => new THREE.Vector3(n.x_m - W / 2, 0.14, n.z_m - D / 2)
-    );
-    const curve = new THREE.CatmullRomCurve3(pts, false, "catmullrom", 0.35);
-    return new THREE.TubeGeometry(curve, 64, 0.12, 12, false);
+  // Flowing 3D Optimal Safe Route Waypoints
+  const verifiedRoutePoints = useMemo<Array<[number, number, number]>>(() => {
+    if (verifiedRouteNodes.length < 2) return [];
+    return verifiedRouteNodes.map((n) => [
+      n.x_m - W / 2,
+      0.04,
+      n.z_m - D / 2,
+    ]);
   }, [verifiedRouteNodes, W, D]);
 
   // Player avatar in 3D orbit view
@@ -802,17 +1092,9 @@ function WingScene({
         );
       })}
 
-      {/* Glowing Optimal Safe Evacuation Tube */}
-      {verifiedTubeGeom && (
-        <mesh geometry={verifiedTubeGeom}>
-          <meshStandardMaterial
-            color="#10b981"
-            emissive="#059669"
-            emissiveIntensity={1.35}
-            roughness={0.2}
-            metalness={0.5}
-          />
-        </mesh>
+      {/* Flowing Multi-Layered 3D Optimal Safe Evacuation Path */}
+      {verifiedRoutePoints.length >= 2 && (
+        <FlowingWingPathRibbon points={verifiedRoutePoints} />
       )}
 
       {/* Player Avatar */}

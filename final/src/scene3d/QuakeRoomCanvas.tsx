@@ -560,7 +560,12 @@ function MemoryPalaceChandelier({
 }
 
 /**
- * Glowing 3D Optimal Path Spline Tube + Rotating Diamond Beacons
+ * Flowing, Multi-Layered 3D Architectural Evacuation Path Model:
+ * - Sculpted wide translucent energy runway ribbon flush with the floor
+ * - Continuously scrolling animated procedural chevron & wave flow texture
+ * - Twin raised metallic-emissive lateral edge guide rails + central harmonic spine
+ * - 3D floating aerodynamic V-chevron gliders streaming smoothly along the spline
+ * - Multi-ring counter-rotating destination portal beacon
  */
 function OptimalPathRibbon({
   points,
@@ -574,62 +579,392 @@ function OptimalPathRibbon({
   label?: string;
 }) {
   const diamondRef = useRef<THREE.Mesh>(null);
+  const gyroRingRef = useRef<THREE.Mesh>(null);
+  const floorPortalRef = useRef<THREE.Mesh>(null);
+  const chevronRefs = useRef<Array<THREE.Group | null>>([]);
 
-  const tubeGeom = useMemo(() => {
+  const isPrimaryRoute = points.length >= 5;
+  const halfWidth = isPrimaryRoute ? 0.28 : 0.19;
+  const gliderCount = isPrimaryRoute ? 12 : 4;
+
+  // Build smooth Catmull-Rom curve, sculpted flat ribbon BufferGeometry, and twin edge rails
+  const pathData = useMemo(() => {
     if (points.length < 2) return null;
-    const vecs = points.map((p) => new THREE.Vector3(p[0], p[1], p[2]));
-    const curve = new THREE.CatmullRomCurve3(vecs, false, "catmullrom", 0.35);
-    return new THREE.TubeGeometry(curve, 72, 0.052, 12, false);
-  }, [points]);
+    const vecs = points.map((p) => new THREE.Vector3(p[0], 0.026, p[2]));
+    const curve = new THREE.CatmullRomCurve3(vecs, false, "catmullrom", 0.42);
+    const totalLength = curve.getLength();
+    const segments = Math.max(80, points.length * 22);
 
-  useFrame(({ clock }) => {
-    if (!diamondRef.current) return;
+    const positions: number[] = [];
+    const normals: number[] = [];
+    const uvs: number[] = [];
+    const indices: number[] = [];
+
+    const leftRailPts: THREE.Vector3[] = [];
+    const rightRailPts: THREE.Vector3[] = [];
+    const centerWavePts: THREE.Vector3[] = [];
+
+    const uvRepeatAlongPath = Math.max(2, totalLength / 0.85);
+
+    for (let i = 0; i <= segments; i++) {
+      const u = i / segments;
+      const pt = curve.getPointAt(u);
+      const tan = curve.getTangentAt(u).normalize();
+      // Horizontal perpendicular vector in XZ plane
+      const perp = new THREE.Vector3(-tan.z, 0, tan.x).normalize();
+
+      const lx = pt.x - perp.x * halfWidth;
+      const lz = pt.z - perp.z * halfWidth;
+      const rx = pt.x + perp.x * halfWidth;
+      const rz = pt.z + perp.z * halfWidth;
+
+      positions.push(lx, 0.026, lz);
+      positions.push(rx, 0.026, rz);
+
+      normals.push(0, 1, 0, 0, 1, 0);
+
+      const uCoord = u * uvRepeatAlongPath;
+      uvs.push(uCoord, 0);
+      uvs.push(uCoord, 1);
+
+      const railOffset = halfWidth * 0.88;
+      leftRailPts.push(
+        new THREE.Vector3(
+          pt.x - perp.x * railOffset,
+          0.036,
+          pt.z - perp.z * railOffset
+        )
+      );
+      rightRailPts.push(
+        new THREE.Vector3(
+          pt.x + perp.x * railOffset,
+          0.036,
+          pt.z + perp.z * railOffset
+        )
+      );
+      centerWavePts.push(
+        new THREE.Vector3(
+          pt.x,
+          0.044 + Math.sin(u * Math.PI * 12) * 0.008,
+          pt.z
+        )
+      );
+
+      if (i < segments) {
+        const base = i * 2;
+        indices.push(base, base + 1, base + 2);
+        indices.push(base + 1, base + 3, base + 2);
+      }
+    }
+
+    const ribbonGeom = new THREE.BufferGeometry();
+    ribbonGeom.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(positions, 3)
+    );
+    ribbonGeom.setAttribute(
+      "normal",
+      new THREE.Float32BufferAttribute(normals, 3)
+    );
+    ribbonGeom.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
+    ribbonGeom.setIndex(indices);
+
+    const leftCurve = new THREE.CatmullRomCurve3(leftRailPts);
+    const rightCurve = new THREE.CatmullRomCurve3(rightRailPts);
+    const centerCurve = new THREE.CatmullRomCurve3(centerWavePts);
+
+    const leftRailGeom = new THREE.TubeGeometry(
+      leftCurve,
+      segments,
+      0.013,
+      8,
+      false
+    );
+    const rightRailGeom = new THREE.TubeGeometry(
+      rightCurve,
+      segments,
+      0.013,
+      8,
+      false
+    );
+    const centerSpineGeom = new THREE.TubeGeometry(
+      centerCurve,
+      segments,
+      0.018,
+      10,
+      false
+    );
+
+    return {
+      curve,
+      ribbonGeom,
+      leftRailGeom,
+      rightRailGeom,
+      centerSpineGeom,
+    };
+  }, [points, halfWidth]);
+
+  // Procedural scrolling flow texture with feathered edges, lane ticks & glowing forward chevrons
+  const flowTexture = useMemo(() => {
+    if (typeof document === "undefined") return null;
+    const canvas = document.createElement("canvas");
+    canvas.width = 512;
+    canvas.height = 256;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+
+    ctx.clearRect(0, 0, 512, 256);
+
+    // 1. Transverse energy runway gradient (feathered outer margins, glowing body)
+    const bgGrad = ctx.createLinearGradient(0, 0, 0, 256);
+    bgGrad.addColorStop(0.0, "rgba(0, 0, 0, 0)");
+    bgGrad.addColorStop(0.08, `${emissive}44`);
+    bgGrad.addColorStop(0.15, `${color}88`);
+    bgGrad.addColorStop(0.5, `${emissive}40`);
+    bgGrad.addColorStop(0.85, `${color}88`);
+    bgGrad.addColorStop(0.92, `${emissive}44`);
+    bgGrad.addColorStop(1.0, "rgba(0, 0, 0, 0)");
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, 512, 256);
+
+    // 2. Longitudinal harmonic wave streaks
+    ctx.strokeStyle = "#ffffff44";
+    ctx.lineWidth = 3;
+    for (const yLine of [36, 220]) {
+      ctx.setLineDash([18, 14]);
+      ctx.beginPath();
+      ctx.moveTo(0, yLine);
+      ctx.lineTo(512, yLine);
+      ctx.stroke();
+    }
+    ctx.setLineDash([]);
+
+    // 3. Draw 2 sculpted forward-flowing chevron pulses per tile
+    const drawFlowChevron = (cx: number, width: number, alpha: number) => {
+      const grad = ctx.createLinearGradient(cx - width, 0, cx + width * 0.6, 0);
+      grad.addColorStop(0, "rgba(255, 255, 255, 0)");
+      grad.addColorStop(0.55, `${color}`);
+      grad.addColorStop(1, `rgba(255, 255, 255, ${alpha})`);
+
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.moveTo(cx - width * 0.55, 44);
+      ctx.lineTo(cx + width * 0.15, 44);
+      ctx.lineTo(cx + width * 0.65, 128);
+      ctx.lineTo(cx + width * 0.15, 212);
+      ctx.lineTo(cx - width * 0.55, 212);
+      ctx.lineTo(cx - width * 0.05, 128);
+      ctx.closePath();
+      ctx.fill();
+    };
+
+    drawFlowChevron(140, 115, 0.95);
+    drawFlowChevron(396, 115, 0.95);
+    drawFlowChevron(268, 70, 0.55);
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.ClampToEdgeWrapping;
+    tex.needsUpdate = true;
+    return tex;
+  }, [color, emissive]);
+
+  useFrame(({ clock }, delta) => {
     const t = clock.getElapsedTime();
-    diamondRef.current.rotation.y = t * 2.4;
-    diamondRef.current.position.y = 0.42 + Math.sin(t * 3.4) * 0.07;
+
+    // Scroll the runway flow texture forward along the spline
+    if (flowTexture) {
+      flowTexture.offset.x -= delta * 1.45;
+    }
+
+    // Animate destination beacon crystal & gyro rings
+    if (diamondRef.current) {
+      diamondRef.current.rotation.y = t * 2.2;
+      diamondRef.current.position.y = 0.46 + Math.sin(t * 3.2) * 0.06;
+    }
+    if (gyroRingRef.current) {
+      gyroRingRef.current.rotation.z = -t * 1.6;
+      gyroRingRef.current.rotation.x = Math.sin(t * 1.5) * 0.35;
+    }
+    if (floorPortalRef.current) {
+      const pulse = 1 + Math.sin(t * 4.0) * 0.08;
+      floorPortalRef.current.scale.set(pulse, pulse, 1);
+    }
+
+    // Animate 3D floating aerodynamic V-chevron gliders along the spline
+    if (pathData) {
+      const { curve } = pathData;
+      for (let i = 0; i < gliderCount; i++) {
+        const glider = chevronRefs.current[i];
+        if (!glider) continue;
+        const u = (i / gliderCount + t * 0.11) % 1;
+        const pos = curve.getPointAt(u);
+        const tan = curve.getTangentAt(u).normalize();
+        const waveY = 0.062 + Math.sin(u * Math.PI * 8 - t * 5.0) * 0.014;
+        glider.position.set(pos.x, waveY, pos.z);
+        glider.rotation.set(0, Math.atan2(tan.x, tan.z), 0);
+
+        // Smooth scale fade-in at origin and fade-out at destination portal
+        const edgeFade =
+          u < 0.08 ? u / 0.08 : u > 0.92 ? (1 - u) / 0.08 : 1.0;
+        const s = Math.max(0.01, edgeFade * (isPrimaryRoute ? 1.0 : 0.72));
+        glider.scale.set(s, s, s);
+      }
+    }
   });
 
-  if (!tubeGeom || points.length < 2) return null;
+  if (!pathData || points.length < 2) return null;
+  const startPt = points[0];
   const endPt = points[points.length - 1];
 
   return (
     <group>
-      <mesh geometry={tubeGeom}>
+      {/* 1. Wide Sculpted Translucent Energy Runway Ribbon with Scrolling Flow Texture */}
+      <mesh geometry={pathData.ribbonGeom} receiveShadow>
         <meshStandardMaterial
+          map={flowTexture}
           color={color}
           emissive={emissive}
-          emissiveIntensity={1.3}
+          emissiveMap={flowTexture}
+          emissiveIntensity={1.35}
+          roughness={0.25}
+          metalness={0.35}
+          transparent
+          opacity={0.88}
+          depthWrite={false}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+
+      {/* 2. Twin Raised Metallic-Emissive Edge Guide Rails */}
+      <mesh geometry={pathData.leftRailGeom}>
+        <meshStandardMaterial
+          color="#f8fafc"
+          emissive={color}
+          emissiveIntensity={1.15}
           roughness={0.2}
-          metalness={0.5}
+          metalness={0.8}
+        />
+      </mesh>
+      <mesh geometry={pathData.rightRailGeom}>
+        <meshStandardMaterial
+          color="#f8fafc"
+          emissive={color}
+          emissiveIntensity={1.15}
+          roughness={0.2}
+          metalness={0.8}
+        />
+      </mesh>
+
+      {/* 3. Central Harmonic Undulating Fibre-Optic Spine */}
+      <mesh geometry={pathData.centerSpineGeom}>
+        <meshStandardMaterial
+          color="#ffffff"
+          emissive={color}
+          emissiveIntensity={1.75}
+          roughness={0.15}
+          metalness={0.6}
           transparent
           opacity={0.92}
         />
       </mesh>
-      {/* Waypoint Floor Rings along the path */}
-      {points.map((pt, idx) => (
+
+      {/* 4. 3D Floating Aerodynamic V-Chevron Gliders Streaming Along the Path */}
+      {Array.from({ length: gliderCount }).map((_, idx) => (
+        <group
+          key={`glider-${idx}`}
+          ref={(el) => {
+            chevronRefs.current[idx] = el;
+          }}
+        >
+          {/* Left swept wing of 3D V-chevron */}
+          <mesh position={[-0.068, 0, -0.04]} rotation={[0, 0.58, 0]}>
+            <boxGeometry args={[0.16, 0.016, 0.042]} />
+            <meshStandardMaterial
+              color="#ffffff"
+              emissive={color}
+              emissiveIntensity={2.0}
+              roughness={0.15}
+              metalness={0.7}
+            />
+          </mesh>
+          {/* Right swept wing of 3D V-chevron */}
+          <mesh position={[0.068, 0, -0.04]} rotation={[0, -0.58, 0]}>
+            <boxGeometry args={[0.16, 0.016, 0.042]} />
+            <meshStandardMaterial
+              color="#ffffff"
+              emissive={color}
+              emissiveIntensity={2.0}
+              roughness={0.15}
+              metalness={0.7}
+            />
+          </mesh>
+        </group>
+      ))}
+
+      {/* 5. Origin Anchor Pad & Intermediate Waypoint Relay Nodes */}
+      <group position={[startPt[0], 0.028, startPt[2]]}>
+        <mesh rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.18, 0.26, 28]} />
+          <meshBasicMaterial color={color} transparent opacity={0.85} />
+        </mesh>
+      </group>
+      {points.slice(1, -1).map((pt, idx) => (
+        <group key={idx} position={[pt[0], 0.028, pt[2]]}>
+          <mesh rotation={[-Math.PI / 2, 0, 0]}>
+            <ringGeometry args={[0.09, 0.13, 24]} />
+            <meshBasicMaterial color={color} transparent opacity={0.55} />
+          </mesh>
+        </group>
+      ))}
+
+      {/* 6. Destination Harmonic Portal Beacon */}
+      <group position={[endPt[0], 0, endPt[2]]}>
+        {/* Pulsing concentric floor target pad */}
         <mesh
-          key={idx}
-          position={[pt[0], 0.025, pt[2]]}
+          ref={floorPortalRef}
+          position={[0, 0.03, 0]}
           rotation={[-Math.PI / 2, 0, 0]}
         >
-          <ringGeometry args={[0.11, 0.16, 20]} />
-          <meshBasicMaterial color={color} transparent opacity={0.75} />
+          <ringGeometry args={[0.24, 0.36, 32]} />
+          <meshBasicMaterial color={color} transparent opacity={0.9} />
         </mesh>
-      ))}
-      <group position={[endPt[0], 0, endPt[2]]}>
-        <mesh ref={diamondRef} position={[0, 0.42, 0]}>
-          <octahedronGeometry args={[0.16, 0]} />
-          <meshStandardMaterial
+        {/* Vertical translucent light column */}
+        <mesh position={[0, 0.38, 0]}>
+          <cylinderGeometry args={[0.22, 0.28, 0.72, 24, 1, true]} />
+          <meshBasicMaterial
             color={color}
-            emissive={emissive}
-            emissiveIntensity={1.6}
-            metalness={0.7}
+            transparent
+            opacity={0.18}
+            side={THREE.DoubleSide}
+            depthWrite={false}
+          />
+        </mesh>
+        {/* Counter-rotating orbital gyro ring */}
+        <mesh ref={gyroRingRef} position={[0, 0.46, 0]}>
+          <torusGeometry args={[0.24, 0.014, 12, 36]} />
+          <meshStandardMaterial
+            color="#ffffff"
+            emissive={color}
+            emissiveIntensity={1.8}
+            metalness={0.85}
             roughness={0.15}
+          />
+        </mesh>
+        {/* Floating core crystal */}
+        <mesh ref={diamondRef} position={[0, 0.46, 0]}>
+          <octahedronGeometry args={[0.14, 0]} />
+          <meshStandardMaterial
+            color="#ffffff"
+            emissive={emissive}
+            emissiveIntensity={2.1}
+            metalness={0.75}
+            roughness={0.12}
           />
         </mesh>
         {label && (
           <TelemetrySprite
-            position={[0, 0.88, 0]}
+            position={[0, 0.94, 0]}
             title={label}
             subtitle="OPTIMAL VERIFIED GOAL"
             statusColor={color}
