@@ -554,7 +554,63 @@
         ]
       }
     ],
-    "provenance_note": "Computed by slava/viewer/index.html runMonteCarlo() over 8 route-adjacent hazards from slava/route_A/scene.json. Seeded N=50 runs per PGA level."
+    "provenance_note": "Computed by slava/viewer/index.html runMonteCarlo() over 8 route-adjacent hazards from slava/route_A/scene.json. Seeded N=50 runs per PGA level.",
+    "sam_ts_solver_crosscheck": {
+      "source": "sam/results/route_A_montecarlo.json",
+      "rooms": [
+        {
+          "room": "room200",
+          "exit_clear_walk": "0/50",
+          "exit_clear_wheelchair": "0/50",
+          "blocked_by": [
+            "r200_banner_front"
+          ],
+          "shelter_spot_m": [
+            6.8,
+            11.6
+          ]
+        },
+        {
+          "room": "hall",
+          "exit_clear_walk": "50/50",
+          "exit_clear_wheelchair": "0/50",
+          "blocked_by": [
+            "banner_build_future",
+            "recycling_bins",
+            "fire_extinguishers",
+            "jet_engine_exhibit"
+          ],
+          "shelter_spot_m": [
+            24.4,
+            13
+          ]
+        },
+        {
+          "room": "corridor",
+          "exit_clear_walk": "50/50",
+          "exit_clear_wheelchair": "50/50",
+          "blocked_by": [],
+          "shelter_spot_m": [
+            5.8,
+            4.91
+          ]
+        },
+        {
+          "room": "lobby",
+          "exit_clear_walk": "0/50",
+          "exit_clear_wheelchair": "0/50",
+          "blocked_by": [
+            "statue_marble",
+            "digital_totem",
+            "planters_lobby"
+          ],
+          "shelter_spot_m": [
+            11.9,
+            18.6
+          ]
+        }
+      ]
+    }
   },
   "gemini_extraction_evaluation": {
     "source": "pushkar/extraction_evaluation.json",
