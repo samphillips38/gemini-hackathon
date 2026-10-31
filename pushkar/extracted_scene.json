@@ -1,0 +1,177 @@
+{
+  "_note": "Extracted by Gemini Flash (per-frame parallel) -> Gemini 4 Argon fusion",
+  "floor": "City and Guilds Building, Level 2",
+  "route": "Route A — Room 200 -> Main entrance (Exhibition Road)",
+  "scale_px_per_m": 9.52,
+  "frame_convention": "building frame: X east (m), Y north (m), Z up (m)",
+  "objects": [
+    {
+      "id": "room200_exit_doors",
+      "type": "double_door",
+      "label": "Room 200 Lecture Theatre Exit Doors",
+      "model": "double_door",
+      "pos": [
+        148.2,
+        79.4,
+        0
+      ],
+      "yaw": 90,
+      "size_m": [
+        1.8,
+        0.25,
+        2.1
+      ],
+      "mass_kg": 75,
+      "anchored": true,
+      "glass": false,
+      "hazard": false,
+      "evidence": {
+        "video": "route_A.mp4",
+        "frame": "frame_001.jpg",
+        "t_s": 1.2,
+        "side": "centre",
+        "quote": "Double timber exit doors leading out of Room 200 lecture theatre into Level 2 breakout vestibule."
+      }
+    },
+    {
+      "id": "cagb_central_lifts",
+      "type": "lift_bank",
+      "label": "CAGB Central Lifts (Do Not Use in Quake)",
+      "model": "lift_doors",
+      "pos": [
+        143.6,
+        84.5,
+        0
+      ],
+      "yaw": 0,
+      "size_m": [
+        2.4,
+        0.4,
+        2.2
+      ],
+      "mass_kg": 300,
+      "anchored": true,
+      "glass": false,
+      "hazard": "lift_lockout_in_quake",
+      "evidence": {
+        "video": "route_A.mp4",
+        "frame": "frame_003.jpg",
+        "t_s": 4.1,
+        "side": "left",
+        "quote": "Elevator bank on the left side of walker entering central hall; narrator states lifts not used."
+      }
+    },
+    {
+      "id": "concourse_display_cabinet",
+      "type": "display_cabinet",
+      "label": "Tall Glass Heritage Display Cabinet",
+      "model": "display_cabinet",
+      "pos": [
+        144.1,
+        91.8,
+        0
+      ],
+      "yaw": 0,
+      "size_m": [
+        1.4,
+        0.65,
+        2.05
+      ],
+      "mass_kg": 110,
+      "anchored": false,
+      "glass": true,
+      "hazard": "overturn_and_glass_shatter",
+      "evidence": {
+        "video": "route_A.mp4",
+        "frame": "frame_005.jpg",
+        "t_s": 6.8,
+        "side": "left",
+        "quote": "Unanchored tall glass-panel display cabinet along central hall wall."
+      }
+    },
+    {
+      "id": "concourse_vending_machine",
+      "type": "vending_machine",
+      "label": "Corridor Drinks Vending Machine",
+      "model": "vending_machine",
+      "pos": [
+        146.9,
+        95.2,
+        0
+      ],
+      "yaw": 180,
+      "size_m": [
+        0.95,
+        0.85,
+        1.95
+      ],
+      "mass_kg": 185,
+      "anchored": false,
+      "glass": true,
+      "hazard": "high_com_overturn_risk",
+      "evidence": {
+        "video": "route_A.mp4",
+        "frame": "frame_006.jpg",
+        "t_s": 8.4,
+        "side": "right",
+        "quote": "Heavy unbolted vending machine on right side of central concourse."
+      }
+    },
+    {
+      "id": "mobile_noticeboard_panel",
+      "type": "noticeboard",
+      "label": "Freestanding Poster / Noticeboard Stand",
+      "model": "noticeboard",
+      "pos": [
+        147.8,
+        102,
+        0
+      ],
+      "yaw": 180,
+      "size_m": [
+        1.2,
+        0.5,
+        1.75
+      ],
+      "mass_kg": 28,
+      "anchored": false,
+      "glass": false,
+      "hazard": "topple_obstruction",
+      "evidence": {
+        "video": "route_A.mp4",
+        "frame": "frame_008.jpg",
+        "t_s": 10.6,
+        "side": "right",
+        "quote": "Mobile noticeboard panel near north end of central hall."
+      }
+    },
+    {
+      "id": "exhibition_rd_main_doors",
+      "type": "exit_doors",
+      "label": "Main Entrance Double Doors (Exhibition Road, 2.10m Clear)",
+      "model": "double_door_glass",
+      "pos": [
+        158,
+        106.8,
+        0
+      ],
+      "yaw": 0,
+      "size_m": [
+        2.1,
+        0.3,
+        2.3
+      ],
+      "mass_kg": 120,
+      "anchored": true,
+      "glass": true,
+      "hazard": false,
+      "evidence": {
+        "video": "route_A.mp4",
+        "frame": "frame_010.jpg",
+        "t_s": 13.1,
+        "side": "centre",
+        "quote": "2.10m wide Exhibition Road main entrance double doors straight ahead."
+      }
+    }
+  ]
+}

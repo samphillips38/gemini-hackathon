@@ -1,0 +1,7 @@
+{
+  "ground_truth_available": false,
+  "ground_truth_path": "slava/route_A/scene.json",
+  "canonical_scale_px_per_m": 9.52,
+  "extracted_object_count": 6,
+  "note": "Waiting for slava/route_A/scene.json to land on main to compute exact ground-truth recovery & position error."
+}

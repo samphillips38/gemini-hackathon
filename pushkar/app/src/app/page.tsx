@@ -1402,7 +1402,7 @@ export default function SeismicCommandCenter() {
                     CAGB Level 2 Venue & Routes A–D
                   </div>
                   <div className="text-[11px] text-slate-400">
-                    Scale Lock (<code className="text-cyan-300">11.43 px/m</code>): Exhibition Rd ={" "}
+                    Scale Lock (<code className="text-cyan-300">9.52 px/m</code>): Exhibition Rd ={" "}
                     <strong className="text-emerald-300">2.10m</strong>; Dalby Ct ={" "}
                     <strong className="text-amber-300">1.12m</strong>
                   </div>
