@@ -1,0 +1,7 @@
+.env
+.env.*
+node_modules/
+__pycache__/
+.DS_Store
+captures/*.mp4
+captures/*.mov

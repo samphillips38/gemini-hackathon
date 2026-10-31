@@ -1,0 +1,176 @@
+{
+  "_note": "Contract v1 between engine/ and web/. Owner: module 4. Values are illustrative, NOT measured.",
+  "version": "1.0",
+  "conventions": {
+    "units": "metres, kilograms, seconds",
+    "axes": "room frame, z-up (MuJoCo). Origin = floor corner; x along one wall, y along the adjacent wall. web/ converts to y-up.",
+    "furniture_pos": "pos_m = [x, y] centre of the footprint on the floor; base sits at z = 0",
+    "furniture_size": "size_m = [x extent, y extent, height] in room axes when yaw_deg = 0",
+    "walls": "wall ids: x0 (x=0), xmax (x=dims.x), y0 (y=0), ymax (y=dims.y); offset_m measured along that wall from its origin end"
+  },
+  "source": {
+    "video": "captures/room.mp4",
+    "frames_used": 12,
+    "model": "gemini-4-argon"
+  },
+  "room": {
+    "dims_m": {
+      "x": 5.0,
+      "y": 4.0,
+      "z": 2.7
+    },
+    "dims_uncertainty_pct": 15
+  },
+  "doors": [
+    {
+      "id": "door_main",
+      "wall": "y0",
+      "offset_m": 1.2,
+      "width_m": 0.85
+    }
+  ],
+  "windows": [
+    {
+      "id": "win_1",
+      "wall": "xmax",
+      "offset_m": 2.0,
+      "width_m": 1.5,
+      "sill_m": 0.9,
+      "glass": true
+    }
+  ],
+  "furniture": [
+    {
+      "id": "wardrobe",
+      "type": "wardrobe",
+      "pos_m": [
+        0.3,
+        1.6
+      ],
+      "yaw_deg": 0,
+      "size_m": [
+        0.55,
+        1.0,
+        2.0
+      ],
+      "mass_kg": 80,
+      "anchored": false,
+      "glass": false,
+      "sturdy_shelter": false,
+      "movable": true
+    },
+    {
+      "id": "bookshelf",
+      "type": "bookshelf",
+      "pos_m": [
+        2.4,
+        0.2
+      ],
+      "yaw_deg": 0,
+      "size_m": [
+        0.8,
+        0.3,
+        1.8
+      ],
+      "mass_kg": 40,
+      "anchored": false,
+      "glass": true,
+      "sturdy_shelter": false,
+      "movable": true
+    },
+    {
+      "id": "desk",
+      "type": "desk",
+      "pos_m": [
+        4.2,
+        3.4
+      ],
+      "yaw_deg": 0,
+      "size_m": [
+        1.4,
+        0.7,
+        0.75
+      ],
+      "mass_kg": 30,
+      "anchored": false,
+      "glass": false,
+      "sturdy_shelter": true,
+      "movable": true
+    },
+    {
+      "id": "bed",
+      "type": "bed",
+      "pos_m": [
+        2.5,
+        2.95
+      ],
+      "yaw_deg": 0,
+      "size_m": [
+        1.4,
+        2.0,
+        0.5
+      ],
+      "mass_kg": 60,
+      "anchored": false,
+      "glass": false,
+      "sturdy_shelter": false,
+      "movable": true
+    }
+  ],
+  "spawn_points_m": [
+    [
+      3.6,
+      1.5
+    ],
+    [
+      4.2,
+      2.4
+    ]
+  ],
+  "sim": {
+    "runs": 50,
+    "pga_g_range": [
+      0.3,
+      0.5
+    ],
+    "duration_s": 15,
+    "seed": 42,
+    "agent_clearance_m": {
+      "walk": 0.4,
+      "wheelchair": 0.9
+    }
+  },
+  "results": {
+    "exit_reachable_p": {
+      "walk": null,
+      "wheelchair": null
+    },
+    "blocked_by": [],
+    "shelter_spot_m": null,
+    "replay": {
+      "run_index": null,
+      "fps": 30,
+      "frames_file": "results/replay.json"
+    },
+    "iterations": [
+      {
+        "_example": "one entry per fix-loop iteration",
+        "layout_changes": [
+          {
+            "id": "wardrobe",
+            "pos_m": [
+              4.7,
+              0.6
+            ],
+            "yaw_deg": 0
+          }
+        ],
+        "exit_reachable_p": {
+          "walk": null,
+          "wheelchair": null
+        },
+        "argon_rationale": null
+      }
+    ]
+  }
+}

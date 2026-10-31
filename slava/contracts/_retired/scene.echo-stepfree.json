@@ -1,0 +1,38 @@
+{
+  "_note": "Contract between engine/ (producer) and web/ (consumer). Values are illustrative. Engine changes -> announce in HANDOFF.md.",
+  "version": "0.1",
+  "source": { "video": "captures/room.mp4", "frames_used": 12 },
+  "scale_reference": { "object": "A4 sheet (long edge)", "known_m": 0.297, "confidence": 0.7 },
+  "room": {
+    "shape": "box",
+    "dims_m": { "length": 18.0, "width": 14.0, "height": 6.5 },
+    "dims_uncertainty_pct": 15
+  },
+  "surfaces": [
+    { "id": "floor", "material": "carpet_on_concrete", "area_m2": 252.0,
+      "absorption": { "125": 0.02, "250": 0.06, "500": 0.14, "1000": 0.37, "2000": 0.60, "4000": 0.65 } },
+    { "id": "walls", "material": "painted_concrete", "area_m2": 416.0,
+      "absorption": { "125": 0.01, "250": 0.01, "500": 0.02, "1000": 0.02, "2000": 0.02, "4000": 0.02 } },
+    { "id": "ceiling", "material": "plasterboard", "area_m2": 252.0,
+      "absorption": { "125": 0.29, "250": 0.10, "500": 0.05, "1000": 0.04, "2000": 0.07, "4000": 0.09 } }
+  ],
+  "openings": [
+    { "id": "door_1", "type": "door", "width_m": 0.9, "height_m": 2.1, "position_m": [0.0, 0.0, 7.0] }
+  ],
+  "steps": [
+    { "id": "stage_step", "rise_m": 0.18, "position_m": [9.0, 0.0, 2.0] }
+  ],
+  "objects": [
+    { "id": "seating", "type": "upholstered_seats", "count": 200,
+      "bbox_m": { "min": [2.0, 0.0, 4.0], "max": [16.0, 4.0, 13.0] } }
+  ],
+  "predictions": {
+    "rt60_s": { "125": null, "250": null, "500": null, "1000": null, "2000": null, "4000": null },
+    "axial_modes_hz": null
+  },
+  "verification": {
+    "checks": [ { "name": "surface_area_consistent_with_dims", "pass": null, "detail": null } ],
+    "measured_rt60_s": null,
+    "status": "unverified"
+  }
+}

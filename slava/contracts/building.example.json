@@ -1,0 +1,34 @@
+{
+  "_note": "Contract v1 for building mode. Owner: module 4. Structure only; null = to be filled by the engine. Never invent coordinates.",
+  "version": "1.0",
+  "conventions": {
+    "units": "metres",
+    "plan_image": "captures/floorplans/cagb-L2.jpg",
+    "plan_px_per_m": null,
+    "scale_reference": "Main entrance (Exhibition Road) double doors = 2.10 m clear opening (AccessAble guide)",
+    "object_anchor": "objects sit on an edge: along_m from the edge's 'from' node, side = left|right|centre when walking from->to"
+  },
+  "floor": "City and Guilds Building, Level 2",
+  "nodes": [
+    { "id": "room200", "type": "room", "label": "Room 200 lecture theatre", "plan_px": null },
+    { "id": "breakout", "type": "space", "label": "Breakout space", "plan_px": null },
+    { "id": "lifts", "type": "lift", "label": "Lifts", "usable_in_quake": false, "plan_px": null },
+    { "id": "stairs_main", "type": "stairs", "label": "Stairs near lifts", "plan_px": null },
+    { "id": "exit_exhibition", "type": "exit", "label": "Main entrance, Exhibition Road", "plan_px": null },
+    { "id": "exit_dalby", "type": "exit", "label": "Entrance from Dalby Court", "plan_px": null }
+  ],
+  "edges": [
+    { "id": "e1", "from": "room200", "to": "breakout", "length_m": null, "min_width_m": null },
+    { "id": "e2", "from": "breakout", "to": "exit_exhibition", "length_m": null, "min_width_m": null },
+    { "id": "e3", "from": "breakout", "to": "exit_dalby", "length_m": null, "min_width_m": null }
+  ],
+  "objects": [
+    { "id": "obj_example", "type": "vending_machine", "edge": "e2", "along_m": null, "side": "left",
+      "size_m": null, "mass_kg": null, "anchored": null, "glass": null,
+      "evidence": { "video": "captures/walk1.mp4", "t_s": null, "quote": "what Argon saw/heard at that moment" } }
+  ],
+  "results": {
+    "routes": [ { "from": "room200", "to": "exit_exhibition", "path": [], "p_clear": { "walk": null, "wheelchair": null }, "blocked_by": [] } ],
+    "shelter_spots": []
+  }
+}
